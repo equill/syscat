@@ -16,7 +16,9 @@
   :components ((:file "generic-functions")
                (:file "neo4j")))
 
-(defpackage :syscat
+(defpackage #:syscat
+  (:use
+    #:cl)
   (:export
     neo4j-rest-server
     store-ipv4-address

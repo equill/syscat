@@ -2,11 +2,11 @@
 
 (in-package #:syscat)
 
-(defgeneric discover-rest-api (endpoint)
-  (:documentation "Query the REST API to discover its capabilities"))
+(defgeneric store-ipv4-address (endpoint address)
+            (:documentation "Store an IPv4 address in the database"))
 
-(defgeneric store-ipv4-address (endpoint address))
+(defgeneric get-ipv4-address (endpoint address)
+            (:documentation "Retrieve the details of an IPv4 address"))
 
-(defgeneric get-ipv4-address (endpoint address))
-
-(defgeneric delete-ipv4-address (endpoint address))
+(defgeneric delete-ipv4-address (endpoint address)
+            (:documentation "Delete an IPv4 address from the database"))
