@@ -35,9 +35,8 @@
     `((:STATEMENTS
         ((:STATEMENT . "CREATE (i:ipv4Addr {properties}) RETURN i")
          (:PARAMETERS .
-                      ((:properties .
-                                    ((:address . ,(format nil "~A" (cl-cidr-notation:parse-ip address))))))))))))
-
+          ((:properties .
+            ((:address . ,(format nil "~A" (cl-cidr-notation:parse-ip address))))))))))))
 
 (defmethod get-ipv4-address ((endpoint neo4cl:neo4j-rest-server) (address string))
   ;; Assert which path we want to take in the event of an error
@@ -56,3 +55,10 @@
            (address (cdr (assoc :address response-data))))
       ;; Convert it back to dotted-quad notation before returning it.
       (cl-cidr-notation:ip-string (parse-integer address)))))
+
+(defmethod delete-ipv4-address ((endpoint neo4cl:neo4j-rest-server) (address string))
+  (neo4cl:neo4j-transaction
+    endpoint
+    `((:STATEMENTS
+        ((:STATEMENT . ,(format nil "MATCH (i:ipv4Addr { address: '~A' }) DELETE i"
+                                (cl-cidr-notation:parse-ip address))))))))
