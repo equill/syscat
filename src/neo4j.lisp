@@ -2,31 +2,6 @@
 
 (in-package #:syscat)
 
-
-;;; Utilities
-
-(defun extract-data-from-get-request (response)
-  "Reach into the copious data returned by a get-x request,
-   and return only the actual content."
-  ;; Extract the data portion of the response
-  (let ((data (cdr
-                (assoc :data
-                       (car
-                         ;; Just the results section
-                         (cdr (assoc :results
-                                     ;; The actual query
-                                     response)))))))
-    ;; If there actually is data to be inspected, extract just the row portion.
-    ;; If there isn't, return NIL.
-    (when data
-      (car
-        (cdr
-          (assoc :row
-                 (car data)))))))
-
-
-;;; Methods - implementing the generics
-
 ;;; IPAM
 
 (defmethod store-ipv4-address ((endpoint neo4cl:neo4j-rest-server) (address string))
@@ -43,7 +18,7 @@
 (defmethod get-ipv4-address ((endpoint neo4cl:neo4j-rest-server) (address string))
   ;; Extract just the data, ignoring everything else
   (let* ((response-data
-           (extract-data-from-get-request
+           (neo4cl:extract-data-from-get-request
              (neo4cl:neo4j-transaction
                endpoint
                `((:STATEMENTS
