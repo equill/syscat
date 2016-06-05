@@ -11,10 +11,10 @@
                #:flexi-streams ; Convert between strings and octets
                #:uuid          ; Universally Unique IDentifiers
                #:cl-base64     ; base64 encoding/decoding
-               #:cl-cidr-notation ; Conversion of addresses to/from integers
-               #:neo4cl        ; Actually connect to Neo$J
+               #:neo4cl        ; Actually connect to Neo4J
                )
   :components ((:file "generic-functions")
+               (:file "ip-addrs")
                (:file "neo4j")))
 
 (defpackage #:syscat
