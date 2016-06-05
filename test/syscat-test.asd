@@ -1,8 +1,8 @@
 (asdf:defsystem #:syscat-test
   :serial t
-  :description "Test suite for syscat"
+  :license "MIT license"
   :author "James Fleming <james@electronic-quill.net>"
-  :license "As yet unlicensed"
+  :description "Test suite for syscat"
   :depends-on (#:syscat
                #:fiveam)
   :components ((:file "syscat-test")))

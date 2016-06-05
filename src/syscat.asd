@@ -1,8 +1,8 @@
 (asdf:defsystem #:syscat
   :serial t
-  :description "System catalogue"
+  :license "MIT license"
   :author "James Fleming <james@electronic-quill.net>"
-  :license "Unlicensed, so far."
+  :description "System catalogue"
   :depends-on (#:cl-ppcre      ; Check UUID formatting and identify error strings
                #:drakma        ; Send requests to the neo4j server
                #:cl-json       ; Encode/decode json requests
