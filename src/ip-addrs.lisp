@@ -9,6 +9,19 @@
 
 (in-package #:syscat)
 
+;;; For IPv4 and IPv6 addresses, I'm using the sb-bsd-sockets conversions
+;;; to vectors of unsigned bytes, largely because it's already written by
+;;; somebody smarter than me, and it's close enough to a format useful for
+;;; comparisons.
+;;;
+;;; Portability would be nice, but a)I'm writing this for myself, and SBCL is my
+;;; platform of choice, and b)the nature of graph databases is such that
+;;; migrating to another format is feasible if required later.
+(defun canonicalise-ipv4-addr (address)
+  "Ensure that the IPv4 address we're handling is in the canonical format."
+  (vector-to-dotted-quad
+    (sb-bsd-sockets:make-inet-address address)))
+
 (defun vector-to-dotted-quad (vec)
   "Prints a vector of unsigned octets to a dotted-quad IPv4 address"
   (format nil "~d.~d.~d.~d" (elt vec 0) (elt vec 1) (elt vec 2) (elt vec 3)))
