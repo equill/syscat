@@ -19,7 +19,7 @@
     (fiveam:is (equal '((:ADDRESS . "127.0.0.1"))
                       (neo4cl:extract-data-from-get-request results))))
   ;; Retrieve the IPv4 address we just stored
-  (fiveam:is (equal "127.0.0.1"
+  (fiveam:is (equal '((:ADDRESS . "127.0.0.1"))
                     (syscat:get-ipv4-address *server* "127.0.0.1")))
   ;; Delete it
   (multiple-value-bind (results status message)
