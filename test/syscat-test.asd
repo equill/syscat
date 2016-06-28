@@ -5,9 +5,5 @@
   :description "Test suite for syscat"
   :depends-on (#:syscat
                #:fiveam)
-  :components ((:file "syscat-test")))
-
-(defpackage #:syscat-test
-  (:use #:cl
-        #:syscat)
-  (:export neo4j))
+  :components ((:file "package")
+               (:file "syscat-test")))
