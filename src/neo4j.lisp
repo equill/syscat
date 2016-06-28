@@ -34,3 +34,29 @@
     `((:STATEMENTS
         ((:STATEMENT . ,(format nil "MATCH (i:ipv4Addr { address: '~A' }) DELETE i"
                                 (canonicalise-ipv4-addr address))))))))
+
+(defmethod store-ipv6-address ((endpoint neo4cl:neo4j-rest-server) (address string))
+  (neo4cl:neo4j-transaction
+    endpoint
+    `((:STATEMENTS
+        ((:STATEMENT . "CREATE (i:ipv6Addr {properties}) RETURN i")
+         (:PARAMETERS .
+          ((:properties .
+            ((:address . ,(format nil "~A"
+                                  (canonicalise-ipv6-addr address))))))))))))
+
+(defmethod get-ipv6-address ((endpoint neo4cl:neo4j-rest-server) (address string))
+  ;; Extract just the data, ignoring everything else
+  (neo4cl:extract-data-from-get-request
+    (neo4cl:neo4j-transaction
+      endpoint
+      `((:STATEMENTS
+          ((:STATEMENT . ,(format nil "MATCH (i:ipv6Addr {address: '~A'}) RETURN i"
+                                  (canonicalise-ipv6-addr address)))))))))
+
+(defmethod delete-ipv6-address ((endpoint neo4cl:neo4j-rest-server) (address string))
+  (neo4cl:neo4j-transaction
+    endpoint
+    `((:STATEMENTS
+        ((:STATEMENT . ,(format nil "MATCH (i:ipv6Addr { address: '~A' }) DELETE i"
+                                (canonicalise-ipv6-addr address))))))))

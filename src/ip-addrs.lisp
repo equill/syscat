@@ -17,14 +17,15 @@
 ;;; Portability would be nice, but a)I'm writing this for myself, and SBCL is my
 ;;; platform of choice, and b)the nature of graph databases is such that
 ;;; migrating to another format is feasible if required later.
-(defun canonicalise-ipv4-addr (address)
-  "Ensure that the IPv4 address we're handling is in the canonical format."
-  (vector-to-dotted-quad
-    (sb-bsd-sockets:make-inet-address address)))
 
 (defun vector-to-dotted-quad (vec)
   "Prints a vector of unsigned octets to a dotted-quad IPv4 address"
   (format nil "~d.~d.~d.~d" (elt vec 0) (elt vec 1) (elt vec 2) (elt vec 3)))
+
+(defun canonicalise-ipv4-addr (address)
+  "Ensure that the IPv4 address we're handling is in the canonical format."
+  (vector-to-dotted-quad
+    (sb-bsd-sockets:make-inet-address address)))
 
 (defun reformat-hex-pair (h1 h2)
   "Takes two unsigned octets, combines them into a two-byte hexadecimal number, and formats them without the leading zero."
@@ -45,3 +46,7 @@
     ;; Nicer to read, and more like what people expect.
     (format nil "~(~x~):~(~x~):~(~x~):~(~x~):~(~x~):~(~x~):~(~x~):~(~x~)"
             s1 s2 s3 s4 s5 s6 s7 s8)))
+
+(defun canonicalise-ipv6-addr (address)
+  "Ensure that the IPv4 address we're handling is in the canonical format."
+  (vector-to-standard-ipv6 (sb-bsd-sockets:make-inet6-address address)))
