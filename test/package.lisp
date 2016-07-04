@@ -1,4 +1,6 @@
 (defpackage #:syscat-test
   (:use #:cl
         #:syscat)
-  (:export neo4j))
+  (:export neo4j
+           ipam
+           devices))

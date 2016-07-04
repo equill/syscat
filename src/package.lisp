@@ -9,4 +9,11 @@
     store-ipv6-address
     get-ipv6-address
     delete-ipv6-address
+    store-device
+    get-device
+    delete-device
+    add-interface-to-device
+    list-device-interfaces
+    get-device-interface
+    delete-interface-from-device
     ))
