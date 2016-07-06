@@ -3,4 +3,7 @@
         #:syscat)
   (:export neo4j
            ipam
-           devices))
+           devices-basic
+           interfaces-basic
+           interfaces-multiple
+           ))
