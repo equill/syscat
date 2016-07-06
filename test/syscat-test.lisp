@@ -93,3 +93,23 @@
                       (syscat:list-device-interfaces *server* test-hostname)))
     ;; Delete the test device
     (fiveam:is (syscat:delete-device *server* test-hostname))))
+
+(fiveam:test
+  (delete-device-with-interfaces :depends-on interfaces-multiple)
+  (let ((test-hostname "frodo.onfire.onice")
+        (test-iface "eth0")
+        (test-iface2 "eth1"))
+    ;; Create a new device for testing interfaces
+    (fiveam:is (syscat:store-device *server* test-hostname))
+    ;; Add an interface to the device
+    (fiveam:is (syscat:add-interface-to-device *server* test-hostname test-iface))
+    ;; Delete the device; its interface should have gone with it.
+    (fiveam:is (syscat:delete-device *server* test-hostname))
+    ;; Make sure it's really gone
+    (fiveam:is (null (syscat:get-device *server* test-hostname)))
+    ;; Do it all again, but with 2 interfaces this time
+    (fiveam:is (syscat:store-device *server* test-hostname))
+    (fiveam:is (syscat:add-interface-to-device *server* test-hostname test-iface))
+    (fiveam:is (syscat:add-interface-to-device *server* test-hostname test-iface2))
+    (fiveam:is (syscat:delete-device *server* test-hostname))
+    (fiveam:is (null (syscat:get-device *server* test-hostname)))))

@@ -6,4 +6,5 @@
            devices-basic
            interfaces-basic
            interfaces-multiple
+           delete-device-with-interfaces
            ))

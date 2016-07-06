@@ -74,6 +74,11 @@
           ((:STATEMENT . ,(format nil "MATCH (d:device { hostname: '~A' }) RETURN d" hostname))))))))
 
 (defmethod delete-device ((endpoint neo4cl:neo4j-rest-server) (hostname string))
+  ;; First, remove all its interfaces
+  (mapcar #'(lambda (iface)
+              (delete-interface-from-device endpoint hostname (first iface)))
+          (list-device-interfaces endpoint hostname))
+  ;; Now remove the device
   (neo4cl:neo4j-transaction
     endpoint
     `((:STATEMENTS
