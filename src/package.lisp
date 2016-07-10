@@ -16,4 +16,6 @@
     list-device-interfaces
     get-device-interface
     delete-interface-from-device
+    startup
+    shutdown
     ))

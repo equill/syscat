@@ -2,6 +2,7 @@
   (:use #:cl
         #:syscat)
   (:export neo4j
+           ip-addrs
            ipam
            devices-basic
            interfaces-basic
