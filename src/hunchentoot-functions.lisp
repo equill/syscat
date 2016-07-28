@@ -37,7 +37,10 @@
      ;; If the client supplied an address, try to create it
      (if (tbnl:post-parameter "address")
        (progn
-         (format t "Creating IPv4 address ~A" (tbnl:post-parameter "address"))
+         (log-message :debug
+                      (format nil
+                              "Creating IPv4 address ~A"
+                              (tbnl:post-parameter "address")))
          (let ((result (syscat:store-ipv4-address
                          (datastore tbnl:*acceptor*)
                          (tbnl:post-parameter "address"))))
@@ -49,7 +52,7 @@
                      (tbnl:request-uri*) (tbnl:post-parameter "address")))))
        ;; If they didn't, complain
        (progn
-         (format t "No address was supplied")
+         (log-message :debug (format nil "No address was supplied"))
          (setf (tbnl:content-type*) "text/plain")
          (setf (tbnl:return-code*) tbnl:+http-not-found+)
          (format nil "Parameter 'address' must be supplied"))))
@@ -60,10 +63,10 @@
        ;; If they did, try to delete it
        (if address
          (progn
-           (format t "Deleting IP address ~A" address)
+           (log-message :info (format nil "Deleting IP address ~A" address))
            (delete-ipv4-address (datastore tbnl:*acceptor*) address)
            (setf (tbnl:content-type*) "text/plain")
-           (print "Success"))
+           (format nil "Success"))
          ;; If they didn't, complain
          (progn
            (setf (tbnl:content-type*) "text/plain")

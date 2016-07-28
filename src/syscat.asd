@@ -7,6 +7,7 @@
                #:hunchentoot)
   :components ((:file "package")
                (:file "generic-functions")
+               (:file "logging")
                (:file "ip-addrs")
                (:file "neo4j")
                (:file "hunchentoot-functions")
