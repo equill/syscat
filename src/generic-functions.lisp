@@ -20,6 +20,12 @@
 (defgeneric delete-ipv6-address (endpoint address)
   (:documentation "Delete an IPv6 address from the database"))
 
+(defgeneric store-ipv4-subnet (endpoint address)
+  (:documentation "Store an IPv4 subnet in the database"))
+
+(defgeneric delete-ipv4-subnet (endpoint address)
+  (:documentation "Delete an IPv4 subnet from the database"))
+
 (defgeneric store-device (endpoint hostname)
   (:documentation "Store a device in the database."))
 
