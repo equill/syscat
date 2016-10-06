@@ -60,7 +60,7 @@
     ;; DELETE = remove an address
     ((equal (tbnl:request-method*) :DELETE)
      ;; Check whether the client supplied an IP address
-     (let ((address  (fourth (cl-ppcre:split "/" (tbnl:request-uri*)))))
+     (let ((address  (tbnl:post-parameter "address")))
        ;; If they did, try to delete it
        (if address
          (progn
@@ -83,11 +83,11 @@
     ;; GET = return a device's details
     ((equal (tbnl:request-method*) :GET)
      ;; We need a hostname to work from
-     (let ((hostname  (fourth (cl-ppcre:split "/" (tbnl:request-uri*)))))
+     (let ((hostname (fourth (cl-ppcre:split "/" (tbnl:request-uri*)))))
        (log-message :debug (format nil "Request received for hostname '~A'" hostname))
        (if hostname
          (progn
-           (log-message :info "Requested device: ~A" hostname)
+           (log-message :info (format nil "Requested device: ~A" hostname))
            (let ((devicedetails (get-device (datastore tbnl:*acceptor*) hostname)))
              (if devicedetails
                (progn
@@ -106,7 +106,7 @@
      (let ((hostname (cdr (assoc "hostname" (tbnl:post-parameters*) :test #'equal))))
        (if hostname
          (progn
-           (log-message :info "Received request to create device: ~A" hostname)
+           (log-message :info (format nil "Received request to create device: ~A" hostname))
            (progn
              (setf (tbnl:content-type*) "application/json")
              (let ((devicedetails (store-device (datastore tbnl:*acceptor*) hostname)))
@@ -115,7 +115,7 @@
                          (tbnl:acceptor-address *syscat-acceptor*)
                          (tbnl:acceptor-port *syscat-acceptor*)
                          (tbnl:request-uri*)
-                         (hostname))))))
+                         hostname)))))
          (progn
            (log-message :info "No hostname specified")
            "'hostname' is a required argument"))))
@@ -124,11 +124,10 @@
      (let ((hostname (cdr (assoc "hostname" (tbnl:post-parameters*) :test #'equal))))
        (if hostname
          (progn
-           (log-message :info "Received request to delete device: ~A" hostname)
-           (progn
-             (setf (tbnl:content-type*) "application/json")
-             (let ((devicedetails (delete-device (datastore tbnl:*acceptor*) hostname)))
-               devicedetails)))
+           (log-message :info (format nil "Received request to delete device: ~A" hostname))
+           (delete-device (datastore tbnl:*acceptor*) hostname)
+           (setf (tbnl:content-type*) "text/plain")
+           (format nil "Success"))
          (progn
            (log-message :info "No hostname specified")
            "'hostname' is a required argument"))))

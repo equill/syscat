@@ -65,7 +65,7 @@ class TestDevice(unittest.TestCase):
                 {'hostname': self.hostname})
         # Delete it
         self.assertEqual(
-                requests.delete('%s/devices/' % BASE_URL, data={'hostname': self.hostname}),
+                requests.delete('%s/devices/' % BASE_URL, data={'hostname': self.hostname}).text,
                 'Success')
         # Confirm it's gone
         self.assertEqual(requests.get('%s/devices/%s' % (BASE_URL, self.hostname)).json(), {})
