@@ -99,30 +99,30 @@
 (fiveam:test
   (interfaces-multiple :depends-on devices-basic)
   (let ((test-hostname "bilbo.onfire.onice")
-        (test-iface "eth0")
+        (test-iface1 "eth0")
         (test-iface2 "eth1"))
     ;; Create a new device for testing interfaces
     (fiveam:is (equal (format nil "{\"hostname\":\"~A\"}" test-hostname)
                       (syscat:store-device *server* test-hostname)))
     ;; Add an interface to the device
-    (fiveam:is (equal (format nil "{\"~A\":null}" test-iface)
+    (fiveam:is (equal (format nil "{\"~A\":null}" test-iface1)
                       (syscat:add-interface-to-device *server*
                                                       test-hostname
-                                                      test-iface)))
+                                                      test-iface1)))
     ;; Add a second interface
     (fiveam:is (equal (format nil "{\"~A\":null,\"~A\":null}"
-                              test-iface test-iface2)
+                              test-iface2 test-iface1)
                       (syscat:add-interface-to-device *server* test-hostname test-iface2)))
     ;; List the interfaces, and confirm we're told about both of them
     (fiveam:is (equal (format nil "{\"~A\":null,\"~A\":null}"
-                              test-iface test-iface2)
+                              test-iface2 test-iface1)
                       (syscat:list-device-interfaces *server* test-hostname)))
     ;; Get the second interface's details
     (fiveam:is (equal (format nil "{\"name\":\"~A\"}" test-iface2)
                       (syscat:get-device-interface *server* test-hostname test-iface2)))
     ;; Delete the first interface
     (fiveam:is (equal (format nil "{\"~A\":null}" test-iface2)
-                      (syscat:delete-interface-from-device *server* test-hostname test-iface)))
+                      (syscat:delete-interface-from-device *server* test-hostname test-iface1)))
     ;; Confirm only the second one is still there
     (fiveam:is (equal (format nil "{\"~A\":null}" test-iface2)
                       (syscat:list-device-interfaces *server* test-hostname)))
@@ -137,7 +137,7 @@
 (fiveam:test
   (delete-device-with-interfaces :depends-on interfaces-multiple)
   (let ((test-hostname "frodo.onfire.onice")
-        (test-iface "eth0")
+        (test-iface1 "eth0")
         (test-iface2 "eth1"))
     ;; Create a new device for testing interfaces
     (fiveam:is (equal (format nil "{\"hostname\":\"~A\"}" test-hostname)
@@ -147,10 +147,10 @@
                       (syscat:list-device-interfaces *server*
                                                      test-hostname)))
     ;; Add an interface to the device
-    (fiveam:is (equal (format nil "{\"~A\":null}" test-iface)
+    (fiveam:is (equal (format nil "{\"~A\":null}" test-iface1)
                       (syscat:add-interface-to-device *server*
                                                       test-hostname
-                                                      test-iface)))
+                                                      test-iface1)))
     ;; Delete the device; its interface should have gone with it.
     (fiveam:is (equal "{}" (syscat:delete-device *server* test-hostname)))
     ;; Make sure it's really gone
@@ -158,12 +158,12 @@
     ;; Do it all again, but with 2 interfaces this time
     (fiveam:is (equal (format nil "{\"hostname\":\"~A\"}" test-hostname)
                       (syscat:store-device *server* test-hostname)))
-    (fiveam:is (equal (format nil "{\"~A\":null}" test-iface)
+    (fiveam:is (equal (format nil "{\"~A\":null}" test-iface1)
                       (syscat:add-interface-to-device *server*
                                                       test-hostname
-                                                      test-iface)))
+                                                      test-iface1)))
     (fiveam:is (equal (format nil "{\"~A\":null,\"~A\":null}"
-                              test-iface test-iface2)
+                              test-iface2 test-iface1)
                       (syscat:add-interface-to-device *server*
                                                       test-hostname
                                                       test-iface2)))
