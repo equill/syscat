@@ -28,19 +28,46 @@ BASE_URL = '%s://%s%s' % (PROTOCOL, SERVER_URL, PREFIX)
 class TestIPAM(unittest.TestCase):
     test_address = '127.0.0.5'
     def test_create_and_delete_ipv4_address(self):
+        # Ensure it's not already present
         self.assertEqual(requests.get('%s/ipv4-addresses/%s' % (BASE_URL, self.test_address)).json(), {})
+        # Create it
         self.assertEqual(
                 requests.post('%s/ipv4-addresses/' % (BASE_URL), data = {'address': self.test_address}).text,
                 '%s/ipv4-addresses/%s' % (BASE_URL, self.test_address)
                 )
+        # Confirm that it's now there
         self.assertEqual(
                 requests.get('%s/ipv4-addresses/%s' % (BASE_URL, self.test_address)).json(),
                 {'address': self.test_address}
                 )
+        # Delete it
         self.assertEqual(
                 requests.delete('%s/ipv4-addresses/%s' % (BASE_URL, self.test_address), data = {'address': self.test_address}).text,
-                'Success')
+                'Success'
+                )
+        # Confirm it's gone
         self.assertEqual(requests.get('%s/ipv4-addresses/%s' % (BASE_URL, self.test_address)).text, '{}')
+
+class TestDevice(unittest.TestCase):
+    hostname = 'frankie'
+    def test_create_and_delete_device(self):
+        # Ensure it's not already present
+        self.assertEqual(requests.get('%s/devices/%s' % (BASE_URL, self.hostname)).json(), {})
+        # Create it
+        self.assertEqual(
+                requests.post('%s/devices/' % (BASE_URL), data = {'hostname': self.hostname}).text,
+                '%s/devices/%s' % (BASE_URL, self.hostname)
+                )
+        # Confirm that it's now there
+        self.assertEqual(requests.get('%s/devices/%s' % (BASE_URL, self.hostname)).json(),
+                {'hostname': self.hostname})
+        # Delete it
+        self.assertEqual(
+                requests.delete('%s/devices/' % BASE_URL, data = {'hostname': self.hostname}),
+                'Success'
+                )
+        # Confirm it's gone
+        self.assertEqual(requests.get('%s/devices/%s' % (BASE_URL, self.hostname)).json(), {})
 
 
 # Make it happen

@@ -15,6 +15,7 @@
      ;; Check whether the client supplied an address
      (let ((address  (fourth (cl-ppcre:split "/" (tbnl:request-uri*)))))
        ;; If they did, try to retrieve it
+       (log-message :debug (format nil "Request received for IP address '~A'" address))
        (if address
          (let ((result (get-ipv4-address (datastore tbnl:*acceptor*) address)))
            (if result
@@ -77,10 +78,68 @@
       (setf (tbnl:return-code*) tbnl:+http-method-not-allowed+)
       "Method not supported")))
 
+(defun device ()
+  (cond
+    ;; GET = return a device's details
+    ((equal (tbnl:request-method*) :GET)
+     ;; We need a hostname to work from
+     (let ((hostname  (fourth (cl-ppcre:split "/" (tbnl:request-uri*)))))
+       (log-message :debug (format nil "Request received for hostname '~A'" hostname))
+       (if hostname
+         (progn
+           (log-message :info "Requested device: ~A" hostname)
+           (let ((devicedetails (get-device (datastore tbnl:*acceptor*) hostname)))
+             (if devicedetails
+               (progn
+                 (setf (tbnl:content-type*) "application/json")
+                 devicedetails)
+               (progn
+                 (setf (tbnl:content-type*) "text/plain")
+                 (setf (tbnl:return-code*) tbnl:+http-not-found+)
+                 "No device found by that name."))))
+         ;; No hostname, no help
+         (progn
+           (log-message :info "No hostname specified")
+           "'hostname' is a required argument"))))
+    ;; POST = create a device
+    ((equal (tbnl:request-method*) :POST)
+     (let ((hostname (cdr (assoc "hostname" (tbnl:post-parameters*) :test #'equal))))
+       (if hostname
+         (progn
+           (log-message :info "Received request to create device: ~A" hostname)
+           (progn
+             (setf (tbnl:content-type*) "application/json")
+             (let ((devicedetails (store-device (datastore tbnl:*acceptor*) hostname)))
+               (when devicedetails
+                 (format nil "http://~A:~A~A~A"
+                         (tbnl:acceptor-address *syscat-acceptor*)
+                         (tbnl:acceptor-port *syscat-acceptor*)
+                         (tbnl:request-uri*)
+                         (hostname))))))
+         (progn
+           (log-message :info "No hostname specified")
+           "'hostname' is a required argument"))))
+    ;; DELETE = delete a device
+    ((equal (tbnl:request-method*) :DELETE)
+     (let ((hostname (cdr (assoc "hostname" (tbnl:post-parameters*) :test #'equal))))
+       (if hostname
+         (progn
+           (log-message :info "Received request to delete device: ~A" hostname)
+           (progn
+             (setf (tbnl:content-type*) "application/json")
+             (let ((devicedetails (delete-device (datastore tbnl:*acceptor*) hostname)))
+               devicedetails)))
+         (progn
+           (log-message :info "No hostname specified")
+           "'hostname' is a required argument"))))
+    (t
+      (setf (tbnl:return-code*) tbnl:+http-method-not-allowed+)
+      "Method not supported")))
 
 ;; Dispatch them
 (setf tbnl:*dispatch-table*
       (list (tbnl:create-prefix-dispatcher "/v1/ipv4-addresses/" 'ipv4-address)
+            (tbnl:create-prefix-dispatcher "/v1/devices/" 'device)
             ;; Fallback.
             ;; This must be last, because they're inspected in order,
             ;; first match wins.
