@@ -8,7 +8,7 @@ CREATE (r:rgResource {name: 'deviceRoles', notes: 'Classification of the device,
 CREATE (r:rgResource {name: 'operatingSystems'});
 CREATE (r:rgResource {name: 'buildings'});
 CREATE (r:rgResource {name: 'networkSegments'}), (r)-[:rgHasAttribute]->(r)-[:rgHasAttribute]->(:rgAttribute {name: 'theirReference'});
-CREATE (r:rgResource {name: 'networkCircuit'}), (r)-[:rgHasAttribute]->(r)-[:rgHasAttribute]->(:rgAttribute {name: 'theirReference'});
+CREATE (r:rgResource {name: 'networkCircuits'}), (r)-[:rgHasAttribute]->(r)-[:rgHasAttribute]->(:rgAttribute {name: 'theirReference'});
 // Network segment types
 CREATE (r:rgResource {name: 'ethernet'});
 CREATE (r:rgResource {name: 'fibreOpticCable'});
@@ -99,8 +99,8 @@ MATCH (v:rgResource {name: 'vlans'}), (g:rgResource {name: 'vlanGroups'}) MERGE 
 MATCH (v:rgResource {name: 'vlanGroups'}), (a:rgResource {name: 'asn'}) MERGE (v)-[:ASN]->(a);
 //
 // L3
-MATCH (s:rgResource {name: 'ipv4Subnets'}), (a:rgResource {name: 'ipv4Addresses'}) MERGE (a)-[:Contains]->(s);
-MATCH (s:rgResource {name: 'ipv6Subnets'}), (a:rgResource {name: 'ipv6Addresses'}) MERGE (a)-[:Contains]->(s);
+MATCH (s:rgResource {name: 'ipv4Subnets'}), (a:rgResource {name: 'ipv4Addresses'}) MERGE (a)-[:Contains {dependent: 'true'}]->(s);
+MATCH (s:rgResource {name: 'ipv6Subnets'}), (a:rgResource {name: 'ipv6Addresses'}) MERGE (a)-[:Contains {dependent: 'true'}]->(s);
 MATCH (s:rgResource {name: 'ipv4Subnets'}), (a:rgResource {name: 'ipv4Addresses'}) MERGE (s)-[:Gateways]->(a);
 MATCH (s:rgResource {name: 'ipv6Subnets'}), (a:rgResource {name: 'ipv6Addresses'}) MERGE (s)-[:Gateways]->(a);
 MATCH (s:rgResource {name: 'ipv4Subnets'}), (a:rgResource {name: 'asn'}) MERGE (s)-[:ASN]->(a);
