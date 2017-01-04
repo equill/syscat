@@ -1,12 +1,4 @@
-// Syscat schema for Restagraph
-//
-// Currently L3-only, because we can't yet model interfaces properly
-
-// Clear the way
-MATCH (n:rgResource)-[r]->(m:rgResource) DELETE r;
-MATCH (n:rgResource)-[r]->(m:rgAttribute) DELETE r;
-MATCH (n:rgAttribute) DELETE n;
-MATCH (n:rgResource) DELETE n;
+// Syscat schema for the Restagraph engine
 
 // Resources
 //
@@ -49,7 +41,6 @@ CREATE (:rgResource {name: 'applications'});
 CREATE (p:rgResource {name: 'people', notes: 'UID = login or other short reference'}), (p)-[:rgHasAttribute]->(:rgAttribute {name: 'givenName'}), (p)-[:rgHasAttribute]->(:rgAttribute {name: 'surname'});
 CREATE (p:rgResource {name: 'organisations', notes: 'Any kind of organisation'});
 
-// Waiting on https://github.com/equill/restagraph/issues/17
 CREATE (i:rgResource {name: 'interfaces'}),
     (i)-[:rgHasAttribute]->(:rgAttribute {name: 'mac-address'}),
     (i)-[:rgHasAttribute]->(:rgAttribute {name: 'maxSpeed'}),
@@ -99,7 +90,7 @@ MATCH (c:rgResource {name: 'networkSegment'}), (o:rgResource {name: 'organisatio
 MATCH (c:rgResource {name: 'networkCircuit'}), (o:rgResource {name: 'organisations'}) MERGE (c)-[:ProvisionedBy]-(o);
 MATCH (c:rgResource {name: 'networkCircuit'}), (o:rgResource {name: 'organisations'}) MERGE (c)-[:BilledBy]-(o);
 //
-// L2: Waiting on https://github.com/equill/restagraph/issues/17
+// L2
 MATCH (r:rgResource {name: 'devices'}), (i:rgResource {name: 'interfaces'}) MERGE (r)-[:Interfaces]->(i);
 MATCH (i:rgResource {name: 'interfaces'}), (a:rgResource {name: 'ipv4Addresses'}) MERGE (i)-[:Ipv4Addresses]->(a);
 MATCH (v:rgResource {name: 'vlans'}), (g:rgResource {name: 'vlanGroups'}) MERGE (v)-[:Member]->(g);
