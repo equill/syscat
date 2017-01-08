@@ -6,4 +6,5 @@
   :depends-on (#:restagraph)
   :components ((:file "package")
                (:file "config")
-               (:file "syscat")))
+               (:file "utilities")
+               (:file "hunchentoot")))
