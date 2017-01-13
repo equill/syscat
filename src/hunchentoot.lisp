@@ -28,7 +28,7 @@
   ;; Set the dispatch table
   (setf tbnl:*dispatch-table*
         (list
-          (tbnl:create-prefix-dispatcher (getf *config-vars* :uri-base) 'api-dispatcher-v1)
+          (tbnl:create-prefix-dispatcher (getf *config-vars* :uri-base) 'restagraph::api-dispatcher-v1)
           (tbnl:create-prefix-dispatcher "/" 'four-oh-four)))
   ;; Start up the server
   (restagraph::log-message :info "Starting up Hunchentoot to serve HTTP requests")

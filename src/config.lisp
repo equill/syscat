@@ -9,4 +9,4 @@
     :dbport 7474
     :dbusername "neo4j"
     :dbpasswd "wallaby"
-    :uri-base "/api"))
+    :uri-base "/api/v1"))
