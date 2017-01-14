@@ -7,8 +7,8 @@ CREATE (r:rgResource {name: 'devices', notes: 'Any kind of device that interacts
 CREATE (r:rgResource {name: 'deviceRoles', notes: 'Classification of the device, e.g. host, router or switch.'});
 CREATE (r:rgResource {name: 'operatingSystems'});
 CREATE (r:rgResource {name: 'buildings'});
-CREATE (r:rgResource {name: 'networkSegments'}), (r)-[:rgHasAttribute]->(r)-[:rgHasAttribute]->(:rgAttribute {name: 'theirReference'});
-CREATE (r:rgResource {name: 'networkCircuits'}), (r)-[:rgHasAttribute]->(r)-[:rgHasAttribute]->(:rgAttribute {name: 'theirReference'});
+CREATE (r:rgResource {name: 'networkSegments'}), (r)-[:rgHasAttribute]->(:rgAttribute {name: 'theirReference'});
+CREATE (r:rgResource {name: 'networkCircuits'}), (r)-[:rgHasAttribute]->(:rgAttribute {name: 'theirReference'});
 // Network segment types
 CREATE (r:rgResource {name: 'ethernet'});
 CREATE (r:rgResource {name: 'fibreOpticCable'});
@@ -55,7 +55,7 @@ MATCH (r:rgResource {name: 'devices'}), (o:rgResource {name: 'operatingSystems'}
 MATCH (i:rgResource {name: 'interfaces'}) MERGE (i)-[:SubInterface]->(i);
 MATCH (i:rgResource {name: 'interfaces'}), (s:rgResource {name: 'networkSegments'}) MERGE (i)-[:ConnectedTo]->(s);
 MATCH (s:rgResource {name: 'networkSegments'}) MERGE (s)-[:ConnectsTo]->(s);
-MATCH (s:rgResource {name: 'networkSegments'}), (c:rgResource {name: 'networkCircuit'}) MERGE (s)-[:ConnectsTo]->(c);
+MATCH (s:rgResource {name: 'networkSegments'}), (c:rgResource {name: 'networkCircuits'}) MERGE (s)-[:ConnectsTo]->(c);
 // Circuit types
 MATCH (s:rgResource {name: 'networkSegments'}), (t:rgResource {name: 'ethernet'}) MERGE (s)-[:Details]->(t);
 MATCH (s:rgResource {name: 'networkSegments'}), (t:rgResource {name: 'fibreOpticCable'}) MERGE (s)-[:Details]->(t);
@@ -87,8 +87,8 @@ MATCH (v:rgResource {name: 'vrfGroups'}), (a:rgResource {name: 'asn'}) MERGE (v)
 // L1->L9
 MATCH (r:rgResource {name: 'devices'}), (p:rgResource {name: 'people'}) MERGE (r)-[:TechnicalOwner]->(p);
 MATCH (c:rgResource {name: 'networkSegment'}), (o:rgResource {name: 'organisations'}) MERGE (c)-[:ProvisionedBy]-(o);
-MATCH (c:rgResource {name: 'networkCircuit'}), (o:rgResource {name: 'organisations'}) MERGE (c)-[:ProvisionedBy]-(o);
-MATCH (c:rgResource {name: 'networkCircuit'}), (o:rgResource {name: 'organisations'}) MERGE (c)-[:BilledBy]-(o);
+MATCH (c:rgResource {name: 'networkCircuits'}), (o:rgResource {name: 'organisations'}) MERGE (c)-[:ProvisionedBy]-(o);
+MATCH (c:rgResource {name: 'networkCircuits'}), (o:rgResource {name: 'organisations'}) MERGE (c)-[:BilledBy]-(o);
 //
 // L2
 MATCH (r:rgResource {name: 'devices'}), (i:rgResource {name: 'interfaces'}) MERGE (r)-[:Interfaces]->(i);
@@ -96,7 +96,6 @@ MATCH (i:rgResource {name: 'interfaces'}), (a:rgResource {name: 'ipv4Addresses'}
 MATCH (v:rgResource {name: 'vlans'}), (g:rgResource {name: 'vlanGroups'}) MERGE (v)-[:Member]->(g);
 //
 // L2->L3
-MATCH (v:rgResource {name: 'vlanGroups'}), (a:rgResource {name: 'asn'}) MERGE (v)-[:ASN]->(a);
 //
 // L3
 MATCH (s:rgResource {name: 'ipv4Subnets'}), (a:rgResource {name: 'ipv4Addresses'}) MERGE (a)-[:Contains {dependent: 'true'}]->(s);
