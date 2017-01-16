@@ -21,6 +21,26 @@
                                       &rest format-arguments)
   (restagraph::log-message log-level (append (list format-string) format-arguments)))
 
+(defun ipam-dispatcher-v1 ()
+  "Hunchentoot dispatch function for the IPAM-specific REST API, version 1."
+  (handler-case
+    (cond
+      ;; Methods we don't support.
+      ;; Take the whitelist approach
+      ((not (member (tbnl:request-method*) '(:POST :GET :PUT :DELETE)))
+       (restagraph::method-not-allowed))
+      ;; Handle all other cases
+      (t
+        (restagraph::return-client-error "This wasn't a valid request")))
+    ;; Handle general errors
+    ;;
+    ;; Generic client errors
+    (neo4cl:client-error (e) (restagraph::return-client-error (neo4cl:message e)))
+    ;; Transient error
+    (neo4cl:transient-error (e) (restagraph::return-transient-error e))
+    ;; Database error
+    (neo4cl:database-error (e) (restagraph::return-database-error e))))
+
 (defun startup ()
   (restagraph::log-message :info "Starting up the restagraph application server")
   ;; Enforce the schema
@@ -28,6 +48,7 @@
   ;; Set the dispatch table
   (setf tbnl:*dispatch-table*
         (list
+          (tbnl:create-prefix-dispatcher "/ipam/v1" 'ipam-dispatcher-v1)
           (tbnl:create-prefix-dispatcher (getf *config-vars* :uri-base) 'restagraph::api-dispatcher-v1)
           (tbnl:create-prefix-dispatcher "/" 'four-oh-four)))
   ;; Start up the server
