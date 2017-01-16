@@ -50,7 +50,7 @@
         (list
           (tbnl:create-prefix-dispatcher "/ipam/v1" 'ipam-dispatcher-v1)
           (tbnl:create-prefix-dispatcher (getf *config-vars* :uri-base) 'restagraph::api-dispatcher-v1)
-          (tbnl:create-prefix-dispatcher "/" 'four-oh-four)))
+          (tbnl:create-prefix-dispatcher "/" 'restagraph::four-oh-four)))
   ;; Start up the server
   (restagraph::log-message :info "Starting up Hunchentoot to serve HTTP requests")
   (handler-case
