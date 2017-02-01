@@ -1,6 +1,6 @@
 ;;;; Configs for the server to use
 
-(in-package #:syscat)
+(in-package #:restagraph)
 
 (defparameter *config-vars*
   `(:listen-address "localhost"
