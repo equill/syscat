@@ -2,8 +2,8 @@
 
 import requests
 
-URL='http://localhost:4950/'
-REST='%sapi/v1' % URL
+URL='http://localhost:4950'
+REST='%s/raw/v1' % URL
 
 # Us
 requests.post('%s/asn' % REST , data={'uid': 'default', 'name': 'Default ASN (us)'})
