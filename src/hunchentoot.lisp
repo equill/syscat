@@ -2,17 +2,17 @@
 
 (defvar *syscat-acceptor*
   (make-instance 'restagraph::restagraph-acceptor
-                 :address (getf *config-vars* :listen-address)
-                 :port (getf *config-vars* :listen-port)
-                 :url-base (getf *config-vars* ::url-base)
+                 :address (getf restagraph::*config-vars* :listen-address)
+                 :port (getf restagraph::*config-vars* :listen-port)
+                 :url-base (getf restagraph::*config-vars* ::url-base)
                  ;; Send all logs to STDOUT, and let Docker sort 'em out
                  :access-log-destination (make-synonym-stream 'cl:*standard-output*)
                  :message-log-destination (make-synonym-stream 'cl:*standard-output*)
                  ;; Datastore object - for specialising all the db methods on
                  :datastore (make-instance 'neo4cl:neo4j-rest-server
-                                           :hostname (getf *config-vars* :dbhostname)
-                                           :dbpasswd (getf *config-vars* :dbpasswd)
-                                           :dbuser (getf *config-vars* :dbusername))))
+                                           :hostname (getf restagraph::*config-vars* :dbhostname)
+                                           :dbpasswd (getf restagraph::*config-vars* :dbpasswd)
+                                           :dbuser (getf restagraph::*config-vars* :dbusername))))
 
 ;;; Define a logging method
 (defmethod tbnl:acceptor-log-message ((acceptor restagraph::restagraph-acceptor)
@@ -49,7 +49,7 @@
   (setf tbnl:*dispatch-table*
         (list
           (tbnl:create-prefix-dispatcher "/ipam/v1" 'ipam-dispatcher-v1)
-          (tbnl:create-prefix-dispatcher (getf *config-vars* :uri-base) 'restagraph::api-dispatcher-v1)
+          (tbnl:create-prefix-dispatcher (getf restagraph::*config-vars* :uri-base) 'restagraph::api-dispatcher-v1)
           (tbnl:create-prefix-dispatcher "/" 'restagraph::four-oh-four)))
   ;; Start up the server
   (restagraph::log-message :info "Starting up Hunchentoot to serve HTTP requests")
