@@ -53,6 +53,8 @@
           (tbnl:create-prefix-dispatcher "/" 'restagraph::four-oh-four)))
   ;; Start up the server
   (restagraph::log-message :info "Starting up Hunchentoot to serve HTTP requests")
+  ;; Enforce the schema
+  (restagraph::enforce-db-schema (restagraph::datastore *syscat-acceptor*))
   (handler-case
     (tbnl:start *syscat-acceptor*)
     (usocket:address-in-use-error
