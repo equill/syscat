@@ -3,7 +3,8 @@
 // Resources
 //
 // L1
-CREATE (r:rgResource {name: 'devices', notes: 'Any kind of device that interacts with a network, be it L1, L2 or L3'});
+CREATE (r:rgResource {name: 'devices', notes: 'Any kind of device that interacts with a network, be it L1, L2 or L3'}),
+    (r)-[:rgHasAttribute]->(:rgAttribute {name: 'description'});
 CREATE (r:rgResource {name: 'deviceTypes', notes: 'Type of device, e.g. physical, cluster or virtual.'});
 CREATE (r:rgResource {name: 'deviceRoles', notes: 'Classification of the device, e.g. host, router or switch.'});
 CREATE (i:rgResource {name: 'ethernetInterfaces', dependent: 'true'}),
@@ -23,8 +24,8 @@ CREATE (r:rgResource {name: 'vLink'});
 // L1/logical
 CREATE (:rgResource {name: 'vrfGroups'});
 CREATE (:rgResource {name: 'routingInstances'}); // FIXME should be dependent on a router
-CREATE (:rgResource {name: 'models'});
 CREATE (:rgResource {name: 'vendors'});
+CREATE (:rgResource {name: 'models', dependent: 'true'});
 // L2
 CREATE (:rgResource {name: 'vlans', notes: 'Layer 2 groupings, i.e. ethernet. Not to be confused with subnets.'});
 CREATE (g:rgResource {name: 'vlanGroups', notes: 'UID: name. VLAN ID goes in the VLAN_ID field - this deals with the problem where the same VLAN ID is used in different ways in different, disconnected, parts of the network.'}), (g)-[:rgHasAttribute]->(:rgAttribute {name: 'vlanid'});
@@ -70,7 +71,7 @@ MATCH (r:rgResource {name: 'devices'}), (a:rgResource {name: 'routingInstances'}
 MATCH (a:rgResource {name: 'routingInstances'}), (i:rgResource {name: 'ethernetInterfaces'}) MERGE (a)-[:Interfaces]->(i);
 MATCH (r:rgResource {name: 'routingInstances'}), (v:rgResource {name: 'vrfGroups'}) MERGE (r)-[:Member]->(v);
 MATCH (v:rgResource {name: 'vendors'}), (o:rgResource {name: 'operatingSystems'}) MERGE (v)-[:Produces]->(o);
-MATCH (v:rgResource {name: 'vendors'}), (m:rgResource {name: 'models'}) MERGE (v)-[:Produces]->(m);
+MATCH (v:rgResource {name: 'vendors'}), (m:rgResource {name: 'models'}) MERGE (v)-[:Models {dependent: 'true'}]->(m);
 MATCH (r:rgResource {name: 'devices'}), (m:rgResource {name: 'models'}) MERGE (r)-[:Model]->(m);
 MATCH (r:rgResource {name: 'models'}), (m:rgResource {name: 'deviceRoles'}) MERGE (r)-[:Capability]->(m);
 // Type is a reserved word in Cypher, so we use the longer-form DeviceType
