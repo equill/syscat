@@ -10,3 +10,5 @@
     :dbusername "neo4j"
     :dbpasswd "wallaby"
     :uri-base "/raw/v1"))
+
+(setf *loglevel* :info)
