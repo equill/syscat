@@ -2,11 +2,15 @@
 
 import requests
 
-URL='http://localhost:4950/'
-REST='%sapi/v1' % URL
+URL='http://localhost:4950'
+REST='%s/api/v1' % URL
 
-requests.post('%s/deviceRoles' % REST, data={'uid': 'router'})
+def post(uri, data):
+    response = requests.post('%s/%s' % (REST, uri), data=data)
+    print '%s: %s' % (uri, response.status_code)
+
+post('deviceRoles', {'uid': 'router'})
 requests.get('%s/deviceRoles' % REST)
-requests.post('%s/devices' % REST, data={'uid': 'amchitka'})
+post('devices', {'uid': 'amchitka'})
 requests.get('%s/devices' % REST)
-requests.post('%s/devices/amchitka/Role/' % REST, data={'target': '/deviceRoles/router'})
+post('devices/amchitka/Role/', {'target': '/deviceRoles/router'})

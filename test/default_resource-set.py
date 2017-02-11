@@ -24,6 +24,11 @@ post('asn', {'uid': 'internet', 'name': 'The Internet'})
 post('asn/internet/Subnets', {'type': 'ipv4Subnets', 'uid': '0.0.0.0/0'})
 
 # Generic stuff
+#
+post('deviceTypes', {'uid': 'physical'})
+post('deviceTypes', {'uid': 'cluster'})
+post('deviceTypes', {'uid': 'virtual'})
+#
 post('deviceRoles', {'uid': 'router'})
 post('deviceRoles', {'uid': 'switch'})
 post('deviceRoles', {'uid': 'host'})
