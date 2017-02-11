@@ -22,25 +22,35 @@ CREATE (r:rgResource {name: 'ethernet'});
 CREATE (r:rgResource {name: 'fibreOpticCable'});
 CREATE (r:rgResource {name: 'vLink'});
 // L1/logical
-CREATE (:rgResource {name: 'vrfGroups'});
-CREATE (:rgResource {name: 'routingInstances'}); // FIXME should be dependent on a router
 CREATE (:rgResource {name: 'vendors'});
 CREATE (:rgResource {name: 'models', dependent: 'true'});
 // L2
 CREATE (:rgResource {name: 'vlans', notes: 'Layer 2 groupings, i.e. ethernet. Not to be confused with subnets.'});
 CREATE (g:rgResource {name: 'vlanGroups', notes: 'UID: name. VLAN ID goes in the VLAN_ID field - this deals with the problem where the same VLAN ID is used in different ways in different, disconnected, parts of the network.'}), (g)-[:rgHasAttribute]->(:rgAttribute {name: 'vlanid'});
+// Network link types (e.g, Telco circuits)
 //
 // L3
-CREATE (:rgResource {name: 'ipv4Addresses', dependent: 'true'});
-CREATE (:rgResource {name: 'ipv4Subnets', dependent: 'true'});
-CREATE (:rgResource {name: 'ipv6Addresses', dependent: 'true'});
-CREATE (:rgResource {name: 'ipv6Subnets', dependent: 'true'});
+CREATE (:rgResource {name: 'vrfGroups'});
+CREATE (:rgResource {name: 'routingInstances'}); // FIXME should be dependent on a router
+CREATE (a:rgResource {name: 'ipv4Addresses', dependent: 'true'}),
+    (a)-[:rgHasAttribute]->(:rgAttribute {name: 'prefixlength'});
+CREATE (s:rgResource {name: 'ipv4Subnets', dependent: 'true'}),
+    (s)-[:rgHasAttribute]->(:rgAttribute {name: 'prefixlength'});
+CREATE (a:rgResource {name: 'ipv6Addresses', dependent: 'true'}),
+    (a)-[:rgHasAttribute]->(:rgAttribute {name: 'prefixlength'});
+CREATE (s:rgResource {name: 'ipv6Subnets', dependent: 'true'}),
+    (s)-[:rgHasAttribute]->(:rgAttribute {name: 'prefixlength'});
+// DNS
+CREATE (z:rgResource {name: 'dnsZones'}),
+    (z)-[:rgHasAttribute]->(:rgAttribute {name: 'domain'});
+CREATE (:rgResource {name: 'aRecord', dependent: 'true'});
+CREATE (:rgResource {name: 'mxRecord', dependent: 'true'});
+CREATE (:rgResource {name: 'aaaaRecord', dependent: 'true'});
+CREATE (:rgResource {name: 'aliasRecord', dependent: 'true'});
 // L3/logical
 CREATE (b:rgResource {name: 'bgpInstances', dependent: 'true'});
 CREATE (b:rgResource {name: 'bgpPeerings', dependent: 'true'});
 CREATE (r:rgResource {name: 'asn', notes: 'Autonomous Systems. The UID should be the ASN, and the "name" should be its human-friendly tag.'}), (r)-[:rgHasAttribute]->(:rgAttribute {name: 'name', required: 'false'});
-//
-// Telco circuits
 //
 // Layer 8 - applications
 CREATE (:rgResource {name: 'applications'});
@@ -88,7 +98,6 @@ MATCH (d:rgResource {name: 'devices'}), (a:rgResource {name: 'ipv6Addresses'}) M
 MATCH (i:rgResource {name: 'ethernetInterfaces'}), (a:rgResource {name: 'ipv4Addresses'}) MERGE (i)-[:Addresses {dependent: 'true'}]->(a);
 MATCH (i:rgResource {name: 'ethernetInterfaces'}), (a:rgResource {name: 'ipv6Addresses'}) MERGE (i)-[:Addresses {dependent: 'true'}]->(a);
 MATCH (r:rgResource {name: 'devices'}), (b:rgResource {name: 'bgpInstances'}) MERGE (r)-[:BgpInstance]->(b);
-MATCH (v:rgResource {name: 'vrfGroups'}), (a:rgResource {name: 'asn'}) MERGE (v)-[:ASN]->(a);
 //
 // L1->L9
 MATCH (r:rgResource {name: 'devices'}), (p:rgResource {name: 'people'}) MERGE (r)-[:TechnicalOwner]->(p);
@@ -105,14 +114,30 @@ MATCH (v:rgResource {name: 'vlans'}), (g:rgResource {name: 'vlanGroups'}) MERGE 
 // L2->L3
 //
 // L3
+MATCH (a:rgResource {name: 'asn'}), (v:rgResource {name: 'vrfGroups'}) MERGE (a)-[:VrfGroups]->(v);
+MATCH (v:rgResource {name: 'vrfGroups'}), (s:rgResource {name: 'ipv4Subnets'}) MERGE (v)-[:Subnets {dependent: 'true'}]->(s);
+MATCH (v:rgResource {name: 'vrfGroups'}), (s:rgResource {name: 'ipv6Subnets'}) MERGE (v)-[:Subnets {dependent: 'true'}]->(s);
 MATCH (s:rgResource {name: 'ipv4Subnets'}), (a:rgResource {name: 'ipv4Addresses'}) MERGE (s)-[:Addresses {dependent: 'true'}]->(a);
 MATCH (s:rgResource {name: 'ipv6Subnets'}), (a:rgResource {name: 'ipv6Addresses'}) MERGE (s)-[:Addresses {dependent: 'true'}]->(a);
-MATCH (s:rgResource {name: 'ipv4Subnets'}), (a:rgResource {name: 'ipv4Addresses'}) MERGE (s)-[:Gateways]->(a);
-MATCH (s:rgResource {name: 'ipv6Subnets'}), (a:rgResource {name: 'ipv6Addresses'}) MERGE (s)-[:Gateways]->(a);
 MATCH (a:rgResource {name: 'asn'}), (s:rgResource {name: 'ipv4Subnets'}) MERGE (a)-[:Subnets {dependent: 'true'}]->(s);
 MATCH (a:rgResource {name: 'asn'}), (s:rgResource {name: 'ipv6Subnets'}) MERGE (a)-[:Subnets {dependent: 'true'}]->(s);
 MATCH (s:rgResource {name: 'ipv4Subnets'}) MERGE (s)-[:Subnets]->(s);
 MATCH (s:rgResource {name: 'ipv6Subnets'}) MERGE (s)-[:Subnets]->(s);
+// DNS
+MATCH (d:rgResource {name: 'applications'}), (z:rgResource {name: 'dnsZones'}) MERGE (d)-[:Serves]->(z);
+MATCH (z:rgResource {name: 'dnsZones'}) MERGE (z)-[:Delegates]->(z);
+MATCH (z:rgResource {name: 'dnsZones'}), (o:rgResource {name: 'organisations'}) MERGE (z)-[:Owner]->(o);
+MATCH (z:rgResource {name: 'dnsZones'}), (a:rgResource {name: 'aRecord'}) MERGE (z)-[:Records {dependent: 'true'}]->(a);
+MATCH (z:rgResource {name: 'dnsZones'}), (a:rgResource {name: 'mxRecord'}) MERGE (z)-[:Records {dependent: 'true'}]->(a);
+MATCH (z:rgResource {name: 'dnsZones'}), (a:rgResource {name: 'aaaaRecord'}) MERGE (z)-[:Records {dependent: 'true'}]->(a);
+MATCH (z:rgResource {name: 'dnsZones'}), (a:rgResource {name: 'aliasRecord'}) MERGE (z)-[:Records {dependent: 'true'}]->(a);
+MATCH (a:rgResource {name: 'aRecord'}), (d:rgResource {name: 'ipv4Addresses'}) MERGE (a)-[:ResolvesTo {dependent: 'true'}]->(d);
+MATCH (a:rgResource {name: 'mxRecord'}), (d:rgResource {name: 'ipv4Addresses'}) MERGE (a)-[:ResolvesTo {dependent: 'true'}]->(d);
+MATCH (a:rgResource {name: 'mxRecord'}), (d:rgResource {name: 'ipv6Addresses'}) MERGE (a)-[:ResolvesTo {dependent: 'true'}]->(d);
+MATCH (a:rgResource {name: 'aaaaRecord'}), (d:rgResource {name: 'ipv6Addresses'}) MERGE (a)-[:ResolvesTo {dependent: 'true'}]->(d);
+MATCH (d:rgResource {name: 'ipv4Addresses'}), (a:rgResource {name: 'aRecord'}) MERGE (d)-[:PTR]->(a);
+MATCH (z:rgResource {name: 'aliasRecord'}), (a:rgResource {name: 'aRecord'}) MERGE (z)-[:CNAME]->(a);
+MATCH (z:rgResource {name: 'aliasRecord'}), (a:rgResource {name: 'aaaaRecord'}) MERGE (z)-[:CNAME]->(a);
 //
 // L3/logical
 MATCH (b:rgResource {name: 'bgpInstances'}), (i:rgResource {name: 'routingInstances'}) MERGE (b)-[:Member]->(i);
@@ -124,6 +149,10 @@ MATCH (b:rgResource {name: 'bgpPeerings'}), (a:rgResource {name: 'ipv4Addresses'
 MATCH (b:rgResource {name: 'bgpPeerings'}), (a:rgResource {name: 'ipv6Addresses'}) MERGE (b)-[:LocalAddress]->(a);
 MATCH (b:rgResource {name: 'bgpPeerings'}), (a:rgResource {name: 'asn'}) MERGE (b)-[:RemoteAs]->(a);
 MATCH (b:rgResource {name: 'bgpInstances'}), (a:rgResource {name: 'asn'}) MERGE (b)-[:ASN]->(a);
+// L3->L9
+MATCH (a:rgResource {name: 'asn'}), (o:rgResource {name: 'organisations'}) MERGE (a)-[:Owner]->(o);
+MATCH (s:rgResource {name: 'ipv4Subnets'}), (o:rgResource {name: 'organisations'}) MERGE (s)-[:Owner]->(o);
+MATCH (s:rgResource {name: 'ipv6Subnets'}), (o:rgResource {name: 'organisations'}) MERGE (s)-[:Owner]->(o);
 //
 // L8
 MATCH (a:rgResource {name: 'applications'}) MERGE (a)-[:DependsOn]->(a);
