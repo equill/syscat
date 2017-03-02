@@ -2,6 +2,9 @@
 
 // Resources
 //
+// L0
+CREATE (:rgResource {name: 'any', notes: 'Represents any type of resource'});
+CREATE (t:rgResource {name: 'tags', notes: 'For categorising any kind of resource'});
 // L1
 CREATE (d:rgResource {name: 'devices', notes: 'Any kind of device that interacts with a network, be it L1, L2 or L3'}),
     (d)-[:rgHasAttribute]->(:rgAttribute {name: 'description'}),
@@ -67,6 +70,8 @@ CREATE (o:rgResource {name: 'organisations', notes: 'Any kind of organisation'})
 
 // Relationships
 //
+// L0
+MATCH (a:rgResource {name: 'any'}), (t:rgResource {name: 'tags'}) MERGE (a)-[:Tags]->(t);
 // L1
 MATCH (r:rgResource {name: 'devices'}), (i:rgResource {name: 'ethernetInterfaces'}) MERGE (r)-[:Interfaces {dependent: 'true'}]->(i);
 MATCH (r:rgResource {name: 'devices'}), (o:rgResource {name: 'operatingSystems'}) MERGE (r)-[:OperatingSystem]->(o);

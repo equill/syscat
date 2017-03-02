@@ -100,7 +100,19 @@ def create_device(details):
     if (details['os']) and (details['os'] != None):
         print('DEBUG Connecting device %s to OS %s' % (details['name'], details['os']))
         post('devices/%s/OperatingSystem' % details['name'], {'target': '/operatingSystems/%s' % (sanitise_uid(details['os']))})
+    # Tags
+    for tag in details['tags']:
+        print('DEBUG Connecting')
+        post('tags', data={'uid': tag})
+        post('devices/%s/Tags' % details['name'], data={'target': '/tags/%s' % tag})
 
 def migrate_devices():
     for device in requests.get('%s/devices/all/?include_cols=name,serial_no,asset_no,in_service,service_level,type,tags,customer,hw_model,manufacturer,location,os,blankasnull=true' % D42_URI, auth=(D42_USER, D42_PASSWD)).json()['Devices']:
         create_device(device)
+
+def migrate_all_the_things():
+    migrate_customers()
+    migrate_brands()
+    migrate_models()
+    migrate_operating_systems()
+    migrate_devices()
