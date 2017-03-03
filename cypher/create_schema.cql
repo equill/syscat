@@ -6,6 +6,27 @@
 CREATE (:rgResource {name: 'any', notes: 'Represents any type of resource'});
 CREATE (t:rgResource {name: 'tags', notes: 'For categorising any kind of resource'});
 // L1
+CREATE (:rgResource {name: 'country', notes: 'The geographical variety'});
+CREATE (:rgResource {name: 'state', notes: 'The geographical variety', dependent: 'true'});
+CREATE (:rgResource {name: 'city', notes: 'The geographical variety', dependent: 'true'});
+CREATE (s:rgResource {name: 'sites', notes: 'Like a campus: a site that contains buildings, or is expected to.'}),
+    (s)-[:rgHasAttribute]->(:rgAttribute {name: 'longName', notes: 'A name to go with the sitecode'}),
+    (s)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
+CREATE (b:rgResource {name: 'buildings', notes: 'An individual building', dependent: 'true'}),
+    (b)-[:rgHasAttribute]->(:rgAttribute {name: 'addressLine1'}),
+    (b)-[:rgHasAttribute]->(:rgAttribute {name: 'addressLine2'}),
+    (b)-[:rgHasAttribute]->(:rgAttribute {name: 'postcode'}),
+    (b)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
+CREATE (f:rgResource {name: 'floors', notes: 'Floors within a building', dependent: 'true'}),
+    (f)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
+CREATE (r:rgResource {name: 'rooms', notes: 'Rooms within a floor of a building', dependent: 'true'}),
+    (r)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
+CREATE (c:rgResource {name: 'cages', notes: 'Lockable areas within a room, containing racks. Usually found in data centres.', dependent: 'true'}),
+    (c)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
+CREATE (c:rgResource {name: 'cabinets', notes: 'A frame for rack-mounting equipment in. May be in the form of a lockable cabinet.', dependent: 'true'}),
+    (c)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
+CREATE (r:rgResource {name: 'racks', notes: 'The rack location within a cabinet where a device is mounted. Usually the topmost rack number, in the case of multi-unit-height hardware.', dependent: 'true'}),
+    (r)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
 CREATE (d:rgResource {name: 'devices', notes: 'Any kind of device that interacts with a network, be it L1, L2 or L3'}),
     (d)-[:rgHasAttribute]->(:rgAttribute {name: 'description'}),
     (d)-[:rgHasAttribute]->(:rgAttribute {name: 'serial_number'}),
@@ -20,7 +41,6 @@ CREATE (i:rgResource {name: 'ethernetInterfaces', dependent: 'true'}),
     (i)-[:rgHasAttribute]->(:rgAttribute {name: 'alias'}),
     (i)-[:rgHasAttribute]->(:rgAttribute {name: 'description'});
 CREATE (r:rgResource {name: 'operatingSystems'});
-CREATE (r:rgResource {name: 'sites'});
 CREATE (r:rgResource {name: 'networkSegments'}), (r)-[:rgHasAttribute]->(:rgAttribute {name: 'theirReference'});
 CREATE (r:rgResource {name: 'networkCircuits'}), (r)-[:rgHasAttribute]->(:rgAttribute {name: 'theirReference'});
 // Network segment types
@@ -73,6 +93,27 @@ CREATE (o:rgResource {name: 'organisations', notes: 'Any kind of organisation'})
 // L0
 MATCH (a:rgResource {name: 'any'}), (t:rgResource {name: 'tags'}) MERGE (a)-[:Tags]->(t);
 // L1
+MATCH (c:rgResource {name: 'country'}), (s:rgResource {name: 'state'}) MERGE (c)-[:Contains {dependent: 'true'}]->(s);
+MATCH (c:rgResource {name: 'country'}), (s:rgResource {name: 'city'}) MERGE (c)-[:Contains {dependent: 'true'}]->(s);
+MATCH (s:rgResource {name: 'state'}), (c:rgResource {name: 'city'}) MERGE (s)-[:Contains {dependent: 'true'}]->(c);
+MATCH (s:rgResource {name: 'sites'}), (b:rgResource {name: 'buildings'}) MERGE (s)-[:Buildings {dependent: 'true'}]->(b);
+MATCH (b:rgResource {name: 'buildings'}), (c:rgResource {name: 'country'}) MERGE (b)-[:Location]->(c);
+MATCH (b:rgResource {name: 'buildings'}), (s:rgResource {name: 'state'}) MERGE (b)-[:Location]->(s);
+MATCH (b:rgResource {name: 'buildings'}), (c:rgResource {name: 'city'}) MERGE (b)-[:Location]->(c);
+MATCH (b:rgResource {name: 'buildings'}), (f:rgResource {name: 'floors'}) MERGE (b)-[:Floors {dependent: 'true'}]->(f);
+MATCH (b:rgResource {name: 'buildings'}), (r:rgResource {name: 'rooms'}) MERGE (b)-[:Rooms {dependent: 'true'}]->(r);
+MATCH (f:rgResource {name: 'floors'}), (r:rgResource {name: 'rooms'}) MERGE (f)-[:Rooms {dependent: 'true'}]->(r);
+MATCH (r:rgResource {name: 'rooms'}), (c:rgResource {name: 'cages'}) MERGE (r)-[:Cages {dependent: 'true'}]->(c);
+MATCH (r:rgResource {name: 'rooms'}), (c:rgResource {name: 'cabinets'}) MERGE (r)-[:Cabinets {dependent: 'true'}]->(c);
+MATCH (r:rgResource {name: 'cages'}), (c:rgResource {name: 'cabinets'}) MERGE (r)-[:Cabinets {dependent: 'true'}]->(c);
+MATCH (c:rgResource {name: 'cabinets'}), (r:rgResource {name: 'racks'}) MERGE (c)-[:Racks {dependent: 'true'}]->(r);
+MATCH (d:rgResource {name: 'devices'}), (s:rgResource {name: 'sites'}) MERGE (d)-[:Location]->(s);
+MATCH (d:rgResource {name: 'devices'}), (s:rgResource {name: 'buildings'}) MERGE (d)-[:Location]->(s);
+MATCH (d:rgResource {name: 'devices'}), (s:rgResource {name: 'floors'}) MERGE (d)-[:Location]->(s);
+MATCH (d:rgResource {name: 'devices'}), (s:rgResource {name: 'rooms'}) MERGE (d)-[:Location]->(s);
+MATCH (d:rgResource {name: 'devices'}), (s:rgResource {name: 'cages'}) MERGE (d)-[:Location]->(s);
+MATCH (d:rgResource {name: 'devices'}), (s:rgResource {name: 'cabinets'}) MERGE (d)-[:Location]->(s);
+MATCH (d:rgResource {name: 'devices'}), (s:rgResource {name: 'racks'}) MERGE (d)-[:Location]->(s);
 MATCH (r:rgResource {name: 'devices'}), (i:rgResource {name: 'ethernetInterfaces'}) MERGE (r)-[:Interfaces {dependent: 'true'}]->(i);
 MATCH (r:rgResource {name: 'devices'}), (o:rgResource {name: 'operatingSystems'}) MERGE (r)-[:OperatingSystem]->(o);
 MATCH (i:rgResource {name: 'ethernetInterfaces'}) MERGE (i)-[:SubInterface]->(i);
@@ -85,7 +126,6 @@ MATCH (s:rgResource {name: 'networkSegments'}), (t:rgResource {name: 'fibreOptic
 MATCH (s:rgResource {name: 'networkSegments'}), (t:rgResource {name: 'vLink'}) MERGE (s)-[:Details]->(t);
 //
 // L1/logical
-MATCH (r:rgResource {name: 'devices'}), (b:rgResource {name: 'sites'}) MERGE (r)-[:Site]->(b);
 MATCH (r:rgResource {name: 'devices'}), (a:rgResource {name: 'routingInstances'}) MERGE (r)-[:RoutingInstances {dependent: 'true'}]->(a);
 MATCH (a:rgResource {name: 'routingInstances'}), (i:rgResource {name: 'ethernetInterfaces'}) MERGE (a)-[:Interfaces]->(i);
 MATCH (r:rgResource {name: 'routingInstances'}), (v:rgResource {name: 'vrfGroups'}) MERGE (r)-[:Member]->(v);
@@ -178,3 +218,8 @@ MATCH (p:rgResource {name: 'people'}), (o:rgResource {name: 'organisations'}) ME
 MATCH (o:rgResource {name: 'organisations'}) MERGE (o)-[:Member]->(o);
 // L9->L1
 MATCH (b:rgResource {name: 'sites'}), (o:rgResource {name: 'organisations'}) MERGE (b)-[:Organisation]->(o);
+MATCH (b:rgResource {name: 'buildings'}), (o:rgResource {name: 'organisations'}) MERGE (b)-[:Organisation]->(o);
+MATCH (b:rgResource {name: 'floors'}), (o:rgResource {name: 'organisations'}) MERGE (b)-[:Organisation]->(o);
+MATCH (b:rgResource {name: 'rooms'}), (o:rgResource {name: 'organisations'}) MERGE (b)-[:Organisation]->(o);
+MATCH (b:rgResource {name: 'cages'}), (o:rgResource {name: 'organisations'}) MERGE (b)-[:Organisation]->(o);
+MATCH (b:rgResource {name: 'cabinets'}), (o:rgResource {name: 'organisations'}) MERGE (b)-[:Organisation]->(o);

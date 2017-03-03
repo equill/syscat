@@ -69,6 +69,18 @@ def migrate_operating_systems():
             brand=os['manufacturer']
         create_operating_system(os['name'], brand)
 
+def migrate_buildings():
+    '''
+    Note that this creates a site with the same name as the building, then creates the building under it.
+    '''
+    for bldg in requests.get('%s/buildings/' % D42_URI, auth=(D42_USER, D42_PASSWD)).json()['buildings']:
+        post('sites', data={'uid': bldg['name'], 'notes': 'Automatically created during migration from Device42'}),
+        post('sites/%s/Buildings' % bldg['name'], data={'type': 'buildings', 'uid': bldg['name'], 'notes': bldg['notes']})
+
+def migrate_rooms():
+    for room in requests.get('%s/rooms/' % D42_URI, auth=(D42_USER, D42_PASSWD)).json()['rooms']:
+        post('sites/%s/Buildings/buildings/%s/Rooms' % (room['building'], room['building']), data={'type': 'rooms', 'uid': room['name'], 'notes': room['notes']})
+
 def create_device(details):
     data={
         'uid': details['name'],
@@ -105,9 +117,17 @@ def create_device(details):
         print('DEBUG Connecting')
         post('tags', data={'uid': tag})
         post('devices/%s/Tags' % details['name'], data={'target': '/tags/%s' % tag})
+    # Site
+    if details['building'] != None and details['building'] != '':
+        if details['room'] != None and details['room'] != '':
+            target='/sites/%s/Buildings/buildings/%s/Rooms/rooms/%s' % (details['building'], details['building'], sanitise_uid(details['room']))
+        else:
+            target='/sites/%s/Buildings/buildings/%s' % (details['building'], details['building'])
+        print('DEBUG: linking device %s to location %s' % (details['name'], target))
+        post('devices/%s/Location' % details['name'], data={'target': target})
 
 def migrate_devices():
-    for device in requests.get('%s/devices/all/?include_cols=name,serial_no,asset_no,in_service,service_level,type,tags,customer,hw_model,manufacturer,location,os,blankasnull=true' % D42_URI, auth=(D42_USER, D42_PASSWD)).json()['Devices']:
+    for device in requests.get('%s/devices/all/?include_cols=name,serial_no,asset_no,in_service,service_level,type,tags,customer,hw_model,manufacturer, room, building,location,os,blankasnull=true' % D42_URI, auth=(D42_USER, D42_PASSWD)).json()['Devices']:
         create_device(device)
 
 def migrate_all_the_things():
@@ -115,4 +135,6 @@ def migrate_all_the_things():
     migrate_brands()
     migrate_models()
     migrate_operating_systems()
+    migrate_buildings()
+    migrate_rooms()
     migrate_devices()
