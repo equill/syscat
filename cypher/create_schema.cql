@@ -96,6 +96,11 @@ CREATE (p:rgResource {name: 'phoneNumbers', dependent: 'true'}),
     (p)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
 CREATE (o:rgResource {name: 'organisations', notes: 'Any kind of organisation'}),
     (o)-[:rgHasAttribute]->(:rgAttribute {name: 'description'});
+CREATE (c:rgResource {name: 'contracts', notes: 'Agreements to supply goods or services'}),
+    (c)-[:rgHasAttribute]->(:rgAttribute {name: 'startDate'}),
+    (c)-[:rgHasAttribute]->(:rgAttribute {name: 'endDate'}),
+    (c)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
+
 
 
 // Relationships
@@ -228,7 +233,26 @@ MATCH (a:rgResource {name: 'applications'}), (p:rgResource {name: 'people'}) MER
 MATCH (p:rgResource {name: 'people'}), (m:rgResource {name: 'emailAddresses'}) MERGE (p)-[:ContactMethods]->(m);
 MATCH (p:rgResource {name: 'people'}), (n:rgResource {name: 'phoneNumbers'}) MERGE (p)-[:ContactMethods]->(n);
 MATCH (p:rgResource {name: 'people'}), (o:rgResource {name: 'organisations'}) MERGE (p)-[:Member]->(o);
+MATCH (p:rgResource {name: 'people'}), (o:rgResource {name: 'organisations'}) MERGE (p)-[:AccountManager]->(o);
+MATCH (p:rgResource {name: 'people'}), (o:rgResource {name: 'organisations'}) MERGE (p)-[:SalesContact]->(o);
+MATCH (p:rgResource {name: 'people'}), (o:rgResource {name: 'organisations'}) MERGE (p)-[:SupportContact]->(o);
 MATCH (o:rgResource {name: 'organisations'}) MERGE (o)-[:Member]->(o);
+MATCH (c:rgResource {name: 'contracts'}) MERGE (c)-[:Subcontracts]->(c);
+MATCH (c:rgResource {name: 'contracts'}), (o:rgResource {name: 'organisations'}) MERGE (c)-[:Vendor]->(o);
+MATCH (c:rgResource {name: 'contracts'}), (o:rgResource {name: 'organisations'}) MERGE (c)-[:Customer]->(o);
+MATCH (c:rgResource {name: 'contracts'}), (p:rgResource {name: 'people'}) MERGE (c)-[:NegotiatedBy]->(p);
+MATCH (c:rgResource {name: 'contracts'}), (d:rgResource {name: 'devices'}) MERGE (c)-[:Supplies]->(d);
+MATCH (c:rgResource {name: 'contracts'}), (d:rgResource {name: 'devices'}) MERGE (c)-[:Supports]->(d);
+MATCH (c:rgResource {name: 'contracts'}), (b:rgResource {name: 'buildings'}) MERGE (c)-[:Supplies]->(b);
+MATCH (c:rgResource {name: 'contracts'}), (b:rgResource {name: 'buildings'}) MERGE (c)-[:Supports]->(b);
+MATCH (c:rgResource {name: 'contracts'}), (f:rgResource {name: 'floors'}) MERGE (c)-[:Supplies]->(b);
+MATCH (c:rgResource {name: 'contracts'}), (f:rgResource {name: 'floors'}) MERGE (c)-[:Supports]->(b);
+MATCH (c:rgResource {name: 'contracts'}), (r:rgResource {name: 'rooms'}) MERGE (c)-[:Supplies]->(r);
+MATCH (c:rgResource {name: 'contracts'}), (r:rgResource {name: 'rooms'}) MERGE (c)-[:Supports]->(r);
+MATCH (c:rgResource {name: 'contracts'}), (r:rgResource {name: 'cages'}) MERGE (c)-[:Supplies]->(r);
+MATCH (c:rgResource {name: 'contracts'}), (r:rgResource {name: 'cages'}) MERGE (c)-[:Supports]->(r);
+MATCH (c:rgResource {name: 'contracts'}), (r:rgResource {name: 'cabinets'}) MERGE (c)-[:Supplies]->(r);
+MATCH (c:rgResource {name: 'contracts'}), (r:rgResource {name: 'cabinets'}) MERGE (c)-[:Supports]->(r);
 // L9->L1
 MATCH (b:rgResource {name: 'sites'}), (o:rgResource {name: 'organisations'}) MERGE (b)-[:Organisation]->(o);
 MATCH (b:rgResource {name: 'buildings'}), (o:rgResource {name: 'organisations'}) MERGE (b)-[:Organisation]->(o);
