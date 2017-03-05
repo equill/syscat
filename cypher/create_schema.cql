@@ -86,8 +86,14 @@ CREATE (r:rgResource {name: 'asn', notes: 'Autonomous Systems. The UID should be
 // Layer 8 - applications
 CREATE (:rgResource {name: 'applications'});
 //
-// Layer 9 - people
-CREATE (p:rgResource {name: 'people', notes: 'UID = login or other short reference'}), (p)-[:rgHasAttribute]->(:rgAttribute {name: 'givenName'}), (p)-[:rgHasAttribute]->(:rgAttribute {name: 'surname'});
+// Layer 9 - people and politics
+CREATE (p:rgResource {name: 'people', notes: 'UID = login or other short reference'}),
+    (p)-[:rgHasAttribute]->(:rgAttribute {name: 'givenName'}),
+    (p)-[:rgHasAttribute]->(:rgAttribute {name: 'surname'});
+CREATE (m:rgResource {name: 'emailAddresses', dependent: 'true'}),
+    (m)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
+CREATE (p:rgResource {name: 'phoneNumbers', dependent: 'true'}),
+    (p)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
 CREATE (o:rgResource {name: 'organisations', notes: 'Any kind of organisation'}),
     (o)-[:rgHasAttribute]->(:rgAttribute {name: 'description'});
 
@@ -219,6 +225,8 @@ MATCH (a:rgResource {name: 'applications'}), (p:rgResource {name: 'people'}) MER
 MATCH (a:rgResource {name: 'applications'}), (p:rgResource {name: 'people'}) MERGE (a)-[:TechnicalOwner]->(p);
 //
 // L9
+MATCH (p:rgResource {name: 'people'}), (m:rgResource {name: 'emailAddresses'}) MERGE (p)-[:ContactMethods]->(m);
+MATCH (p:rgResource {name: 'people'}), (n:rgResource {name: 'phoneNumbers'}) MERGE (p)-[:ContactMethods]->(n);
 MATCH (p:rgResource {name: 'people'}), (o:rgResource {name: 'organisations'}) MERGE (p)-[:Member]->(o);
 MATCH (o:rgResource {name: 'organisations'}) MERGE (o)-[:Member]->(o);
 // L9->L1
