@@ -31,15 +31,19 @@ CREATE (d:rgResource {name: 'devices', notes: 'Any kind of device that interacts
     (d)-[:rgHasAttribute]->(:rgAttribute {name: 'description'}),
     (d)-[:rgHasAttribute]->(:rgAttribute {name: 'serial_number'}),
     (d)-[:rgHasAttribute]->(:rgAttribute {name: 'asset_number'}),
-    (d)-[:rgHasAttribute]->(:rgAttribute {name: 'in_service'});
-CREATE (r:rgResource {name: 'deviceTypes', notes: 'Type of device, e.g. physical, cluster or virtual.'});
-CREATE (r:rgResource {name: 'deviceRoles', notes: 'Classification of the device, e.g. host, router or switch.'});
+    (d)-[:rgHasAttribute]->(:rgAttribute {name: 'in_service'}),
+    (d)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
+CREATE (t:rgResource {name: 'deviceTypes', notes: 'Type of device, e.g. physical, cluster or virtual.'}),
+    (t)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
+CREATE (r:rgResource {name: 'deviceRoles', notes: 'Classification of the device, e.g. host, router or switch.'}),
+    (r)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
 CREATE (i:rgResource {name: 'ethernetInterfaces', dependent: 'true'}),
     (i)-[:rgHasAttribute]->(:rgAttribute {name: 'mac_address'}),
     (i)-[:rgHasAttribute]->(:rgAttribute {name: 'snmp_index'}),
     (i)-[:rgHasAttribute]->(:rgAttribute {name: 'speed'}),
     (i)-[:rgHasAttribute]->(:rgAttribute {name: 'alias'}),
-    (i)-[:rgHasAttribute]->(:rgAttribute {name: 'description'});
+    (i)-[:rgHasAttribute]->(:rgAttribute {name: 'description'}),
+    (i)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
 CREATE (r:rgResource {name: 'operatingSystems'});
 CREATE (r:rgResource {name: 'networkSegments'}), (r)-[:rgHasAttribute]->(:rgAttribute {name: 'theirReference'});
 CREATE (r:rgResource {name: 'networkCircuits'}), (r)-[:rgHasAttribute]->(:rgAttribute {name: 'theirReference'});
@@ -149,6 +153,7 @@ MATCH (i:rgResource {name: 'ethernetInterfaces'}), (a:rgResource {name: 'ipv6Add
 MATCH (r:rgResource {name: 'devices'}), (b:rgResource {name: 'bgpInstances'}) MERGE (r)-[:BgpInstance]->(b);
 //
 // L1->L9
+MATCH (b:rgResource {name: 'brands'}), (o:rgResource {name: 'organisations'}) MERGE (b)-[:Vendor]->(o);
 MATCH (r:rgResource {name: 'devices'}), (p:rgResource {name: 'people'}) MERGE (r)-[:TechnicalOwner]->(p);
 MATCH (r:rgResource {name: 'devices'}), (p:rgResource {name: 'people'}) MERGE (r)-[:BusinessOwner]->(p);
 MATCH (r:rgResource {name: 'devices'}), (o:rgResource {name: 'organisations'}) MERGE (r)-[:BusinessOwner]->(o);
