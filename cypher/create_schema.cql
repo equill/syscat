@@ -44,7 +44,8 @@ CREATE (i:rgResource {name: 'ethernetInterfaces', dependent: 'true'}),
     (i)-[:rgHasAttribute]->(:rgAttribute {name: 'alias'}),
     (i)-[:rgHasAttribute]->(:rgAttribute {name: 'description'}),
     (i)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
-CREATE (r:rgResource {name: 'operatingSystems'});
+CREATE (r:rgResource {name: 'operatingSystems', dependent: 'true'});
+CREATE (r:rgResource {name: 'operatingSystemVersions', dependent: 'true'});
 CREATE (r:rgResource {name: 'networkSegments'}), (r)-[:rgHasAttribute]->(:rgAttribute {name: 'theirReference'});
 CREATE (r:rgResource {name: 'networkCircuits'}), (r)-[:rgHasAttribute]->(:rgAttribute {name: 'theirReference'});
 // Network segment types
@@ -97,6 +98,8 @@ CREATE (p:rgResource {name: 'phoneNumbers', dependent: 'true'}),
 CREATE (o:rgResource {name: 'organisations', notes: 'Any kind of organisation'}),
     (o)-[:rgHasAttribute]->(:rgAttribute {name: 'description'});
 CREATE (c:rgResource {name: 'contracts', notes: 'Agreements to supply goods or services'}),
+    (c)-[:rgHasAttribute]->(:rgAttribute {name: 'referenceNumber'}),
+    (c)-[:rgHasAttribute]->(:rgAttribute {name: 'summary'}),
     (c)-[:rgHasAttribute]->(:rgAttribute {name: 'startDate'}),
     (c)-[:rgHasAttribute]->(:rgAttribute {name: 'endDate'}),
     (c)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
@@ -131,6 +134,7 @@ MATCH (d:rgResource {name: 'devices'}), (s:rgResource {name: 'cabinets'}) MERGE 
 MATCH (d:rgResource {name: 'devices'}), (s:rgResource {name: 'racks'}) MERGE (d)-[:Location]->(s);
 MATCH (r:rgResource {name: 'devices'}), (i:rgResource {name: 'ethernetInterfaces'}) MERGE (r)-[:Interfaces {dependent: 'true'}]->(i);
 MATCH (r:rgResource {name: 'devices'}), (o:rgResource {name: 'operatingSystems'}) MERGE (r)-[:OperatingSystem]->(o);
+MATCH (r:rgResource {name: 'devices'}), (o:rgResource {name: 'operatingSystemVersions'}) MERGE (r)-[:OperatingSystem]->(o);
 MATCH (i:rgResource {name: 'ethernetInterfaces'}) MERGE (i)-[:SubInterface]->(i);
 MATCH (i:rgResource {name: 'ethernetInterfaces'}), (s:rgResource {name: 'networkSegments'}) MERGE (i)-[:ConnectedTo]->(s);
 MATCH (s:rgResource {name: 'networkSegments'}) MERGE (s)-[:ConnectsTo]->(s);
@@ -144,7 +148,8 @@ MATCH (s:rgResource {name: 'networkSegments'}), (t:rgResource {name: 'vLink'}) M
 MATCH (r:rgResource {name: 'devices'}), (a:rgResource {name: 'routingInstances'}) MERGE (r)-[:RoutingInstances {dependent: 'true'}]->(a);
 MATCH (a:rgResource {name: 'routingInstances'}), (i:rgResource {name: 'ethernetInterfaces'}) MERGE (a)-[:Interfaces]->(i);
 MATCH (r:rgResource {name: 'routingInstances'}), (v:rgResource {name: 'vrfGroups'}) MERGE (r)-[:Member]->(v);
-MATCH (b:rgResource {name: 'brands'}), (o:rgResource {name: 'operatingSystems'}) MERGE (b)-[:Produces]->(o);
+MATCH (b:rgResource {name: 'brands'}), (o:rgResource {name: 'operatingSystems'}) MERGE (b)-[:Produces {dependent: 'true'}]->(o);
+MATCH (o:rgResource {name: 'operatingSystems'}), (v:rgResource {name: 'operatingSystemVersions'}) MERGE (o)-[:Versions {dependent: 'true'}]->(v);
 MATCH (b:rgResource {name: 'brands'}), (m:rgResource {name: 'models'}) MERGE (b)-[:Models {dependent: 'true'}]->(m);
 MATCH (r:rgResource {name: 'devices'}), (m:rgResource {name: 'models'}) MERGE (r)-[:Model]->(m);
 MATCH (r:rgResource {name: 'models'}), (m:rgResource {name: 'deviceRoles'}) MERGE (r)-[:Capability]->(m);
@@ -230,8 +235,9 @@ MATCH (a:rgResource {name: 'applications'}), (p:rgResource {name: 'people'}) MER
 MATCH (a:rgResource {name: 'applications'}), (p:rgResource {name: 'people'}) MERGE (a)-[:TechnicalOwner]->(p);
 //
 // L9
-MATCH (p:rgResource {name: 'people'}), (m:rgResource {name: 'emailAddresses'}) MERGE (p)-[:ContactMethods]->(m);
-MATCH (p:rgResource {name: 'people'}), (n:rgResource {name: 'phoneNumbers'}) MERGE (p)-[:ContactMethods]->(n);
+MATCH (o:rgResource {name: 'organisations'}), (m:rgResource {name: 'emailAddresses'}) MERGE (o)-[:ContactMethods {dependent: 'true'}]->(m);
+MATCH (p:rgResource {name: 'people'}), (m:rgResource {name: 'emailAddresses'}) MERGE (p)-[:ContactMethods {dependent: 'true'}]->(m);
+MATCH (p:rgResource {name: 'people'}), (n:rgResource {name: 'phoneNumbers'}) MERGE (p)-[:ContactMethods {dependent: 'true'}]->(n);
 MATCH (p:rgResource {name: 'people'}), (o:rgResource {name: 'organisations'}) MERGE (p)-[:Member]->(o);
 MATCH (p:rgResource {name: 'people'}), (o:rgResource {name: 'organisations'}) MERGE (p)-[:AccountManager]->(o);
 MATCH (p:rgResource {name: 'people'}), (o:rgResource {name: 'organisations'}) MERGE (p)-[:SalesContact]->(o);
