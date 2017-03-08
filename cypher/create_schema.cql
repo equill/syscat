@@ -49,6 +49,9 @@ CREATE (i:rgResource {name: 'ethernetInterfaces', dependent: 'true'}),
     (i)-[:rgHasAttribute]->(:rgAttribute {name: 'alias'}),
     (i)-[:rgHasAttribute]->(:rgAttribute {name: 'description'}),
     (i)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
+CREATE (p:rgResource {name: 'parts', notes: 'Spare parts, swappable components, anything of the kind', dependent: 'true'}),
+    (p)-[:rgHasAttribute]->(:rgAttribute {name: 'ourReference', notes: 'What we call it, regardless of what the manufacturer/vendor does.'}),
+    (p)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
 CREATE (r:rgResource {name: 'operatingSystems', dependent: 'true'});
 CREATE (r:rgResource {name: 'operatingSystemVersions', dependent: 'true'});
 CREATE (r:rgResource {name: 'networkSegments'}), (r)-[:rgHasAttribute]->(:rgAttribute {name: 'theirReference'});
@@ -130,6 +133,7 @@ MATCH (r:rgResource {name: 'rooms'}), (c:rgResource {name: 'cages'}) MERGE (r)-[
 MATCH (r:rgResource {name: 'rooms'}), (c:rgResource {name: 'cabinets'}) MERGE (r)-[:Cabinets {dependent: 'true'}]->(c);
 MATCH (r:rgResource {name: 'cages'}), (c:rgResource {name: 'cabinets'}) MERGE (r)-[:Cabinets {dependent: 'true'}]->(c);
 MATCH (c:rgResource {name: 'cabinets'}), (r:rgResource {name: 'racks'}) MERGE (c)-[:Racks {dependent: 'true'}]->(r);
+MATCH (d:rgResource {name: 'devices'}), (o:rgResource {name: 'organisations'}) MERGE (d)-[:PurchasedFrom]->(o);
 MATCH (d:rgResource {name: 'devices'}), (s:rgResource {name: 'sites'}) MERGE (d)-[:Location]->(s);
 MATCH (d:rgResource {name: 'devices'}), (s:rgResource {name: 'buildings'}) MERGE (d)-[:Location]->(s);
 MATCH (d:rgResource {name: 'devices'}), (s:rgResource {name: 'floors'}) MERGE (d)-[:Location]->(s);
@@ -142,6 +146,14 @@ MATCH (r:rgResource {name: 'devices'}), (o:rgResource {name: 'operatingSystems'}
 MATCH (r:rgResource {name: 'devices'}), (o:rgResource {name: 'operatingSystemVersions'}) MERGE (r)-[:OperatingSystem]->(o);
 MATCH (i:rgResource {name: 'ethernetInterfaces'}) MERGE (i)-[:SubInterface]->(i);
 MATCH (i:rgResource {name: 'ethernetInterfaces'}), (s:rgResource {name: 'networkSegments'}) MERGE (i)-[:ConnectedTo]->(s);
+MATCH (p:rgResource {name: 'parts'}), (o:rgResource {name: 'organisations'}) MERGE (p)-[:PurchasedFrom]->(o);
+MATCH (p:rgResource {name: 'parts'}), (m:rgResource {name: 'models'}) MERGE (p)-[:CompatibleWith]->(m);
+MATCH (p:rgResource {name: 'parts'}), (d:rgResource {name: 'devices'}) MERGE (p)-[:InstalledIn]->(d);
+MATCH (p:rgResource {name: 'parts'}), (l:rgResource {name: 'sites'}) MERGE (p)-[:StorageLocation]->(l);
+MATCH (p:rgResource {name: 'parts'}), (l:rgResource {name: 'buildings'}) MERGE (p)-[:StorageLocation]->(l);
+MATCH (p:rgResource {name: 'parts'}), (l:rgResource {name: 'rooms'}) MERGE (p)-[:StorageLocation]->(l);
+MATCH (p:rgResource {name: 'parts'}), (l:rgResource {name: 'cages'}) MERGE (p)-[:StorageLocation]->(l);
+MATCH (p:rgResource {name: 'parts'}), (l:rgResource {name: 'cabinets'}) MERGE (p)-[:StorageLocation]->(l);
 MATCH (s:rgResource {name: 'networkSegments'}) MERGE (s)-[:ConnectsTo]->(s);
 MATCH (s:rgResource {name: 'networkSegments'}), (c:rgResource {name: 'networkCircuits'}) MERGE (s)-[:MemberOf]->(c);
 // Circuit types
@@ -164,6 +176,7 @@ MATCH (r:rgResource {name: 'devices'}), (m:rgResource {name: 'deviceRoles'}) MER
 MATCH (d:rgResource {name: 'devices'}), (p:rgResource {name: 'lifeCyclePhases'}) MERGE (d)-[:LifeCyclePhase {dependent: 'true'}]->(p);
 MATCH (d:rgResource {name: 'devices'}), (v:rgResource {name: 'environments'}) MERGE (d)-[:Environment {dependent: 'true'}]->(v);
 MATCH (d:rgResource {name: 'devices'}), (l:rgResource {name: 'serviceLevels'}) MERGE (d)-[:ServiceLevel {dependent: 'true'}]->(l);
+MATCH (b:rgResource {name: 'brands'}), (p:rgResource {name: 'parts'}) MERGE (b)-[:PartNumber {dependent: 'true'}]->(p);
 //
 // L1->L2
 MATCH (d:rgResource {name: 'devices'}), (v:rgResource {name: 'vlans'}) MERGE (d)-[:Vlan]->(v);
@@ -257,6 +270,8 @@ MATCH (c:rgResource {name: 'contracts'}), (o:rgResource {name: 'organisations'})
 MATCH (c:rgResource {name: 'contracts'}), (p:rgResource {name: 'people'}) MERGE (c)-[:NegotiatedBy]->(p);
 MATCH (c:rgResource {name: 'contracts'}), (d:rgResource {name: 'devices'}) MERGE (c)-[:Supplies]->(d);
 MATCH (c:rgResource {name: 'contracts'}), (d:rgResource {name: 'devices'}) MERGE (c)-[:Supports]->(d);
+MATCH (c:rgResource {name: 'contracts'}), (p:rgResource {name: 'parts'}) MERGE (c)-[:Supplies]->(p);
+MATCH (c:rgResource {name: 'contracts'}), (p:rgResource {name: 'parts'}) MERGE (c)-[:Supports]->(p);
 MATCH (c:rgResource {name: 'contracts'}), (b:rgResource {name: 'buildings'}) MERGE (c)-[:Supplies]->(b);
 MATCH (c:rgResource {name: 'contracts'}), (b:rgResource {name: 'buildings'}) MERGE (c)-[:Supports]->(b);
 MATCH (c:rgResource {name: 'contracts'}), (f:rgResource {name: 'floors'}) MERGE (c)-[:Supplies]->(b);
