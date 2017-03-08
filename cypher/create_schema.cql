@@ -144,6 +144,8 @@ MATCH (d:rgResource {name: 'devices'}), (s:rgResource {name: 'racks'}) MERGE (d)
 MATCH (r:rgResource {name: 'devices'}), (i:rgResource {name: 'ethernetInterfaces'}) MERGE (r)-[:Interfaces {dependent: 'true'}]->(i);
 MATCH (r:rgResource {name: 'devices'}), (o:rgResource {name: 'operatingSystems'}) MERGE (r)-[:OperatingSystem]->(o);
 MATCH (r:rgResource {name: 'devices'}), (o:rgResource {name: 'operatingSystemVersions'}) MERGE (r)-[:OperatingSystem]->(o);
+MATCH (d:rgResource {name: 'devices'}) MERGE (d)-[:Member]->(d);
+MATCH (d:rgResource {name: 'devices'}) MERGE (d)-[:HostedOn]->(d);
 MATCH (i:rgResource {name: 'ethernetInterfaces'}) MERGE (i)-[:SubInterface]->(i);
 MATCH (i:rgResource {name: 'ethernetInterfaces'}), (s:rgResource {name: 'networkSegments'}) MERGE (i)-[:ConnectedTo]->(s);
 MATCH (p:rgResource {name: 'parts'}), (o:rgResource {name: 'organisations'}) MERGE (p)-[:PurchasedFrom]->(o);
