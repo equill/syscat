@@ -31,12 +31,17 @@ CREATE (d:rgResource {name: 'devices', notes: 'Any kind of device that interacts
     (d)-[:rgHasAttribute]->(:rgAttribute {name: 'description'}),
     (d)-[:rgHasAttribute]->(:rgAttribute {name: 'serial_number'}),
     (d)-[:rgHasAttribute]->(:rgAttribute {name: 'asset_number'}),
-    (d)-[:rgHasAttribute]->(:rgAttribute {name: 'in_service'}),
     (d)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
 CREATE (t:rgResource {name: 'deviceTypes', notes: 'Type of device, e.g. physical, cluster or virtual.'}),
     (t)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
 CREATE (r:rgResource {name: 'deviceRoles', notes: 'Classification of the device, e.g. host, router or switch.'}),
     (r)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
+CREATE (l:rgResource {name: 'lifeCyclePhases', notes: 'Where the device currently is, in its lifecycle. E.g. ordered, installed, in service or decommissioned.', dependent: 'true'}),
+    (l)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
+CREATE (v:rgResource {name: 'environments', notes: 'Development, testing, staging, production etc.', dependent: 'true'}),
+    (v)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
+CREATE (l:rgResource {name: 'serviceLevels', notes: 'Sets the expectations for responses to issues, e.g. gold, silver, bronze, plastic.', dependent: 'true'}),
+    (l)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
 CREATE (i:rgResource {name: 'ethernetInterfaces', dependent: 'true'}),
     (i)-[:rgHasAttribute]->(:rgAttribute {name: 'mac_address'}),
     (i)-[:rgHasAttribute]->(:rgAttribute {name: 'snmp_index'}),
@@ -153,9 +158,12 @@ MATCH (o:rgResource {name: 'operatingSystems'}), (v:rgResource {name: 'operating
 MATCH (b:rgResource {name: 'brands'}), (m:rgResource {name: 'models'}) MERGE (b)-[:Models {dependent: 'true'}]->(m);
 MATCH (r:rgResource {name: 'devices'}), (m:rgResource {name: 'models'}) MERGE (r)-[:Model]->(m);
 MATCH (r:rgResource {name: 'models'}), (m:rgResource {name: 'deviceRoles'}) MERGE (r)-[:Capability]->(m);
-// Type is a reserved word in Cypher, so we use the longer-form DeviceType
+// Type is a reserved word in Cypher, so we use the longer-form DeviceType for the relationship
 MATCH (r:rgResource {name: 'devices'}), (m:rgResource {name: 'deviceTypes'}) MERGE (r)-[:DeviceType]->(m);
 MATCH (r:rgResource {name: 'devices'}), (m:rgResource {name: 'deviceRoles'}) MERGE (r)-[:Role]->(m);
+MATCH (d:rgResource {name: 'devices'}), (p:rgResource {name: 'lifeCyclePhases'}) MERGE (d)-[:LifeCyclePhase {dependent: 'true'}]->(p);
+MATCH (d:rgResource {name: 'devices'}), (v:rgResource {name: 'environments'}) MERGE (d)-[:Environment {dependent: 'true'}]->(v);
+MATCH (d:rgResource {name: 'devices'}), (l:rgResource {name: 'serviceLevels'}) MERGE (d)-[:ServiceLevel {dependent: 'true'}]->(l);
 //
 // L1->L2
 MATCH (d:rgResource {name: 'devices'}), (v:rgResource {name: 'vlans'}) MERGE (d)-[:Vlan]->(v);
