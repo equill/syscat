@@ -89,7 +89,7 @@ CREATE (r:rgResource {name: 'l2Circuits'}),
     (r)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
 //
 // L3
-CREATE (:rgResource {name: 'vrfGroups'});
+CREATE (:rgResource {name: 'vrfGroups', dependent: 'true'});
 CREATE (r:rgResource {name: 'routingInstances', dependent: 'true'}),
     (r)-[:rghasAttribute]->(:rgAttribute {name: 'notes'}),
     (r)-[:rghasAttribute]->(:rgAttribute {name: 'snmp_community', notes: 'Community string for SNMPv2 polling/traps.'});
@@ -246,7 +246,7 @@ MATCH (c:rgResource {name: 'l2Circuits'}), (o:rgResource {name: 'organisations'}
 MATCH (c:rgResource {name: 'l2Circuits'}), (o:rgResource {name: 'organisations'}) MERGE (c)-[:OperatedBy]-(o);
 //
 // L3
-MATCH (a:rgResource {name: 'asn'}), (v:rgResource {name: 'vrfGroups'}) MERGE (a)-[:VrfGroups]->(v);
+MATCH (a:rgResource {name: 'asn'}), (v:rgResource {name: 'vrfGroups'}) MERGE (a)-[:VrfGroups {dependent: 'true'}]->(v);
 MATCH (v:rgResource {name: 'vrfGroups'}), (s:rgResource {name: 'ipv4Subnets'}) MERGE (v)-[:Subnets {dependent: 'true'}]->(s);
 MATCH (v:rgResource {name: 'vrfGroups'}), (s:rgResource {name: 'ipv6Subnets'}) MERGE (v)-[:Subnets {dependent: 'true'}]->(s);
 MATCH (s:rgResource {name: 'ipv4Subnets'}), (a:rgResource {name: 'ipv4Addresses'}) MERGE (s)-[:Addresses {dependent: 'true'}]->(a);

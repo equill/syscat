@@ -29,6 +29,33 @@
       ;; Take the whitelist approach
       ((not (member (tbnl:request-method*) '(:POST :GET :PUT :DELETE)))
        (restagraph::method-not-allowed))
+      ;; Create a subnet
+      ((and (equal (tbnl:request-method*) :POST)
+            ;; Leaving room for the address/netmask approach
+            (tbnl:post-parameter "cidr"))
+       ;; Did we receive an ASN, or is there just one in the database?
+       (let ((asn (or (tbnl:post-parameter "asn")
+                      (handler-case
+                        (check-for-single-asn (restagraph::datastore *syscat-acceptor*))
+                        (restagraph:client-error () nil)))))
+         (if asn
+           ;; Did we receive a VRF, or is there exactly one in this ASN?
+           (let ((vrf
+                   (or (tbnl:post-parameter "vrf")
+                       (check-for-single-vrf (restagraph::datastore *syscat-acceptor*) asn))))
+             ;; Does the subnet already exist?
+             (if (find-subnet (restagraph::datastore *syscat-acceptor*) asn vrf :cidr (tbnl:post-parameter "cidr"))
+               (error 'restagraph:integrity-error :message "Subnet already exists")
+               ;; We're clear to create it
+               (insert-subnet (restagraph::datastore *syscat-acceptor*)
+                              (tbnl:post-parameter "cidr") asn vrf
+                              (find-supernet (tbnl:post-parameter "cidr")
+                                             (restagraph::datastore *syscat-acceptor*)
+                                             asn
+                                             vrf ()))))
+           (error 'restagraph:client-error :message "No ASN supplied, and I couldn't choose just one from the database"))))
+      ;; Search for a subnet
+      ;;
       ;; Handle all other cases
       (t
         (restagraph::return-client-error "This wasn't a valid request")))
