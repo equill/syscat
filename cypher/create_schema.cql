@@ -10,11 +10,11 @@ CREATE (:rgResource {name: 'country', notes: 'The geographical variety'});
 CREATE (:rgResource {name: 'state', notes: 'The geographical variety', dependent: 'true'});
 CREATE (:rgResource {name: 'city', notes: 'The geographical variety', dependent: 'true'});
 CREATE (s:rgResource {name: 'sites', notes: 'Like a campus: a site that contains buildings, or is expected to.'}),
-    (s)-[:rgHasAttribute]->(:rgAttribute {name: 'longName', notes: 'A name to go with the sitecode'}),
+    (s)-[:rgHasAttribute]->(:rgAttribute {name: 'longname', notes: 'A name to go with the sitecode'}),
     (s)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
 CREATE (b:rgResource {name: 'buildings', notes: 'An individual building', dependent: 'true'}),
-    (b)-[:rgHasAttribute]->(:rgAttribute {name: 'addressLine1'}),
-    (b)-[:rgHasAttribute]->(:rgAttribute {name: 'addressLine2'}),
+    (b)-[:rgHasAttribute]->(:rgAttribute {name: 'addressline1'}),
+    (b)-[:rgHasAttribute]->(:rgAttribute {name: 'addressline2'}),
     (b)-[:rgHasAttribute]->(:rgAttribute {name: 'postcode'}),
     (b)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
 CREATE (f:rgResource {name: 'floors', notes: 'Floors within a building', dependent: 'true'}),
@@ -28,7 +28,7 @@ CREATE (c:rgResource {name: 'cabinets', notes: 'A frame for rack-mounting equipm
 CREATE (r:rgResource {name: 'racks', notes: 'The rack location within a cabinet where a device is mounted. Usually the topmost rack number, in the case of multi-unit-height hardware.', dependent: 'true'}),
     (r)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
 CREATE (d:rgResource {name: 'devices', notes: 'Any kind of device that interacts with a network, be it L1, L2 or L3'}),
-    (d)-[:rgHasAttribute]->(:rgAttribute {name: 'description'}),
+    (d)-[:rgHasAttribute]->(:rgAttribute {name: 'sysdescr', notes: 'SNMP host description. Usually either long and detailed per the RFC, or just the hostname.'}),
     (d)-[:rgHasAttribute]->(:rgAttribute {name: 'serial_number'}),
     (d)-[:rgHasAttribute]->(:rgAttribute {name: 'asset_number'}),
     (d)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
@@ -43,24 +43,27 @@ CREATE (v:rgResource {name: 'environments', notes: 'Development, testing, stagin
 CREATE (l:rgResource {name: 'serviceLevels', notes: 'Sets the expectations for responses to issues, e.g. gold, silver, bronze, plastic.', dependent: 'true'}),
     (l)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
 CREATE (i:rgResource {name: 'networkInterfaces', dependent: 'true'}),
-    (i)-[:rgHasAttribute]->(:rgAttribute {name: 'mac_address'}),
-    (i)-[:rgHasAttribute]->(:rgAttribute {name: 'snmp_index'}),
-    (i)-[:rgHasAttribute]->(:rgAttribute {name: 'speed'}),
-    (i)-[:rgHasAttribute]->(:rgAttribute {name: 'alias'}),
-    (i)-[:rgHasAttribute]->(:rgAttribute {name: 'description'}),
+    (i)-[:rgHasAttribute]->(:rgAttribute {name: 'snmp_index', notes: 'The index by which this interface is identified when querying the host device via SNMP.'}),
+    (i)-[:rgHasAttribute]->(:rgAttribute {name: 'ifname', notes: 'Short name of the interface. Usually the one by which the device knows it.'}),
+    (i)-[:rgHasAttribute]->(:rgAttribute {name: 'ifdescr', notes: 'Detailed text description of the interface.'}),
+    (i)-[:rgHasAttribute]->(:rgAttribute {name: 'ifalias', notes: 'Description string as configured by an administrator.'}),
+    (i)-[:rgHasAttribute]->(:rgAttribute {name: 'iftype', notes: 'IANA-specified interface type.'}),
+    (i)-[:rgHasAttribute]->(:rgAttribute {name: 'ifspeed', notes: 'SNMP: max speed in bits/second, or the nominal speed if it has no reliable maximum. If a 32-bit integer is too small, this will be set to the max possible value (4,294,967,295) and ifHighSpeed will be used to give the max speed.'}),
+    (i)-[:rgHasAttribute]->(:rgAttribute {name: 'ifhighspeed', notes: 'An estimate of the current bandwidth in units of 1,000,000 bits per second. Zero for subinterfaces with no concept of bandwidth.'}),
+    (i)-[:rgHasAttribute]->(:rgAttribute {name: 'ifphysaddress', notes: 'Physical address as specified at this network layer, e.g. MAC address for an ethernet NIC.'}),
     (i)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
 CREATE (l:rgResource {name: 'l1Links'}),
-    (l)-[:rgHasAttribute]->(:rgAttribute {name: 'ourID'}),
-    (l)-[:rgHasAttribute]->(:rgAttribute {name: 'vendorID'}),
+    (l)-[:rgHasAttribute]->(:rgAttribute {name: 'our_id'}),
+    (l)-[:rgHasAttribute]->(:rgAttribute {name: 'vendor_id'}),
     (l)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
 CREATE (l:rgResource {name: 'l1LinkTypes'}),
     (l)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
 CREATE (l:rgResource {name: 'l1Circuits'}),
-    (l)-[:rgHasAttribute]->(:rgAttribute {name: 'ourID'}),
-    (l)-[:rgHasAttribute]->(:rgAttribute {name: 'vendorID'}),
+    (l)-[:rgHasAttribute]->(:rgAttribute {name: 'our_id'}),
+    (l)-[:rgHasAttribute]->(:rgAttribute {name: 'vendor_id'}),
     (l)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
 CREATE (p:rgResource {name: 'parts', notes: 'Spare parts, swappable components, anything of the kind', dependent: 'true'}),
-    (p)-[:rgHasAttribute]->(:rgAttribute {name: 'ourReference', notes: 'What we call it, regardless of what the manufacturer/vendor does.'}),
+    (p)-[:rgHasAttribute]->(:rgAttribute {name: 'our_reference', notes: 'What we call it, regardless of what the manufacturer/vendor does.'}),
     (p)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
 CREATE (r:rgResource {name: 'operatingSystems', dependent: 'true'});
 CREATE (r:rgResource {name: 'operatingSystemVersions', dependent: 'true'});
@@ -71,23 +74,24 @@ CREATE (:rgResource {name: 'models', dependent: 'true'});
 // L2
 CREATE (:rgResource {name: 'vlans', notes: 'Layer 2 groupings, i.e. ethernet. Not to be confused with subnets.'});
 CREATE (r:rgResource {name: 'l2Links'}),
-    (r)-[:rgHasAttribute]->(:rgAttribute {name: 'ourID'}),
-    (r)-[:rgHasAttribute]->(:rgAttribute {name: 'vendorID'}),
+    (r)-[:rgHasAttribute]->(:rgAttribute {name: 'our_id'}),
+    (r)-[:rgHasAttribute]->(:rgAttribute {name: 'vendor_id'}),
     (r)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
 CREATE (r:rgResource {name: 'l2LinkTypes'}),
-    (r)-[:rgHasAttribute]->(:rgAttribute {name: 'ourID'}),
-    (r)-[:rgHasAttribute]->(:rgAttribute {name: 'vendorID'}),
+    (r)-[:rgHasAttribute]->(:rgAttribute {name: 'our_id'}),
+    (r)-[:rgHasAttribute]->(:rgAttribute {name: 'vendor_id'}),
     (r)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
 CREATE (r:rgResource {name: 'l2Circuits'}),
-    (r)-[:rgHasAttribute]->(:rgAttribute {name: 'ourID'}),
-    (r)-[:rgHasAttribute]->(:rgAttribute {name: 'vendorID'}),
+    (r)-[:rgHasAttribute]->(:rgAttribute {name: 'our_id'}),
+    (r)-[:rgHasAttribute]->(:rgAttribute {name: 'vendor_id'}),
     (r)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
 //
 // L3
 CREATE (:rgResource {name: 'vrfGroups'});
 CREATE (:rgResource {name: 'routingInstances', dependent: 'true'});
 CREATE (a:rgResource {name: 'ipv4Addresses', dependent: 'true'}),
-    (a)-[:rgHasAttribute]->(:rgAttribute {name: 'prefixlength'});
+    (a)-[:rgHasAttribute]->(:rgAttribute {name: 'prefixlength'}),
+    (a)-[:rgHasAttribute]->(:rgAttribute {name: 'netmask'});
 CREATE (s:rgResource {name: 'ipv4Subnets', dependent: 'true'}),
     (s)-[:rgHasAttribute]->(:rgAttribute {name: 'prefixlength'});
 CREATE (a:rgResource {name: 'ipv6Addresses', dependent: 'true'}),
@@ -115,7 +119,7 @@ CREATE (:rgResource {name: 'applications'});
 //
 // Layer 9 - people and politics
 CREATE (p:rgResource {name: 'people', notes: 'UID = login or other short reference'}),
-    (p)-[:rgHasAttribute]->(:rgAttribute {name: 'givenName'}),
+    (p)-[:rgHasAttribute]->(:rgAttribute {name: 'given_name'}),
     (p)-[:rgHasAttribute]->(:rgAttribute {name: 'surname'});
 CREATE (m:rgResource {name: 'emailAddresses', dependent: 'true'}),
     (m)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
@@ -124,10 +128,10 @@ CREATE (p:rgResource {name: 'phoneNumbers', dependent: 'true'}),
 CREATE (o:rgResource {name: 'organisations', notes: 'Any kind of organisation'}),
     (o)-[:rgHasAttribute]->(:rgAttribute {name: 'description'});
 CREATE (c:rgResource {name: 'contracts', notes: 'Agreements to supply goods or services'}),
-    (c)-[:rgHasAttribute]->(:rgAttribute {name: 'referenceNumber'}),
+    (c)-[:rgHasAttribute]->(:rgAttribute {name: 'referencenumber'}),
     (c)-[:rgHasAttribute]->(:rgAttribute {name: 'summary'}),
-    (c)-[:rgHasAttribute]->(:rgAttribute {name: 'startDate'}),
-    (c)-[:rgHasAttribute]->(:rgAttribute {name: 'endDate'}),
+    (c)-[:rgHasAttribute]->(:rgAttribute {name: 'startdate'}),
+    (c)-[:rgHasAttribute]->(:rgAttribute {name: 'enddate'}),
     (c)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
 
 
