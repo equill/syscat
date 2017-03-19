@@ -344,7 +344,7 @@ def populateSyscat(device, hostname=False):
         if subs:
             for sub in subs:
                 subdetails = device['network']['interfaces'][sub]
-                if2url = '%s/devices/%s/Interfaces/' % (SYSCAT_URI, host)
+                if2url = '%s/devices/%s/Interfaces/networkInterfaces/%s/SubInterfaces' % (SYSCAT_URI, host, sanitise_uid(details['ifName']))
                 print('DEBUG Attempting to create second-level network interface %s at URL %s' % (subdetails['ifName'], if2url))
                 subresponse = requests.post(
                         if2url,
@@ -362,19 +362,14 @@ def populateSyscat(device, hostname=False):
                             },
                         )
                 print('DEBUG result of interface creation for %s (%s): %s - %s' % (index, subdetails['ifName'], subresponse.status_code, subresponse.text))
-                # Now link it to its parent address
-                print('DEBUG attempting to link %s to its parent interface %s' % (subdetails['ifName'], details['ifName']))
-                linkresponse = requests.post(
-                        '%s/devices/%s/Interfaces/networkInterfaces/%s/SubInterface' % (SYSCAT_URI, host , sanitise_uid(details['ifName'])),
-                        data = { 'target': '/devices/%s/Interfaces/networkInterfaces/%s' % (host, sanitise_uid(subdetails['ifName'])) })
-                print('DEBUG result of attempting to link %s to its parent interface %s: %s - %s' % (subdetails['ifName'], details['ifName'], linkresponse.status_code, linkresponse.text,))
             # Add IPv4 addresses
             if str(sub) in device['network']['ifIfaceAddrMap']:    # Not all interfaces have addresses
                 for addr in device['network']['ifIfaceAddrMap'][str(sub)]:
-                    ip2url = '%s/devices/%s/Interfaces/networkInterfaces/%s/Addresses' % (
+                    ip2url = '%s/devices/%s/Interfaces/networkInterfaces/%s/SubInterfaces/networkInterfaces/%s/Addresses' % (
                                 SYSCAT_URI,
                                 host,
-                                sanitise_uid(subdetails['ifName'])
+                                sanitise_uid(details['ifName']),
+                                sanitise_uid(subdetails['ifName']),
                                 )
                     print('DEBUG Attempting to create IPv4 Address %s under URL %s' % (addr['address'], ip2url))
                     addresponse = requests.post(

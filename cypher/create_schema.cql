@@ -168,7 +168,7 @@ MATCH (r:rgResource {name: 'devices'}), (o:rgResource {name: 'operatingSystems'}
 MATCH (r:rgResource {name: 'devices'}), (o:rgResource {name: 'operatingSystemVersions'}) MERGE (r)-[:OperatingSystem]->(o);
 MATCH (d:rgResource {name: 'devices'}) MERGE (d)-[:Member]->(d);
 MATCH (d:rgResource {name: 'devices'}) MERGE (d)-[:HostedOn]->(d);
-MATCH (i:rgResource {name: 'networkInterfaces'}) MERGE (i)-[:SubInterface]->(i);
+MATCH (i:rgResource {name: 'networkInterfaces'}) MERGE (i)-[:SubInterfaces {dependent: 'true'}]->(i);
 MATCH (i:rgResource {name: 'networkInterfaces'}) MERGE (i)-[:ConnectsTo]->(i);
 MATCH (p:rgResource {name: 'parts'}), (o:rgResource {name: 'organisations'}) MERGE (p)-[:PurchasedFrom]->(o);
 MATCH (p:rgResource {name: 'parts'}), (m:rgResource {name: 'models'}) MERGE (p)-[:CompatibleWith]->(m);
