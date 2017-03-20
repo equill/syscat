@@ -36,11 +36,11 @@ CREATE (t:rgResource {name: 'deviceTypes', notes: 'Type of device, e.g. physical
     (t)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
 CREATE (r:rgResource {name: 'deviceRoles', notes: 'Classification of the device, e.g. host, router or switch.'}),
     (r)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
-CREATE (l:rgResource {name: 'lifeCyclePhases', notes: 'Where the device currently is, in its lifecycle. E.g. ordered, installed, in service or decommissioned.', dependent: 'true'}),
+CREATE (l:rgResource {name: 'lifeCyclePhases', notes: 'Where the device currently is, in its lifecycle. E.g. ordered, installed, in service or decommissioned.'}),
     (l)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
-CREATE (v:rgResource {name: 'environments', notes: 'Development, testing, staging, production etc.', dependent: 'true'}),
+CREATE (v:rgResource {name: 'environments', notes: 'Development, testing, staging, production etc.'}),
     (v)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
-CREATE (l:rgResource {name: 'serviceLevels', notes: 'Sets the expectations for responses to issues, e.g. gold, silver, bronze, plastic.', dependent: 'true'}),
+CREATE (l:rgResource {name: 'serviceLevels', notes: 'Sets the expectations for responses to issues, e.g. gold, silver, bronze, plastic.'}),
     (l)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
 CREATE (i:rgResource {name: 'networkInterfaces', dependent: 'true'}),
     (i)-[:rgHasAttribute]->(:rgAttribute {name: 'snmp_index', notes: 'The index by which this interface is identified when querying the host device via SNMP.'}),
@@ -199,9 +199,9 @@ MATCH (r:rgResource {name: 'models'}), (m:rgResource {name: 'deviceRoles'}) MERG
 // Type is a reserved word in Cypher, so we use the longer-form DeviceType for the relationship
 MATCH (r:rgResource {name: 'devices'}), (m:rgResource {name: 'deviceTypes'}) MERGE (r)-[:DeviceType]->(m);
 MATCH (r:rgResource {name: 'devices'}), (m:rgResource {name: 'deviceRoles'}) MERGE (r)-[:Role]->(m);
-MATCH (d:rgResource {name: 'devices'}), (p:rgResource {name: 'lifeCyclePhases'}) MERGE (d)-[:LifeCyclePhase {dependent: 'true'}]->(p);
-MATCH (d:rgResource {name: 'devices'}), (v:rgResource {name: 'environments'}) MERGE (d)-[:Environment {dependent: 'true'}]->(v);
-MATCH (d:rgResource {name: 'devices'}), (l:rgResource {name: 'serviceLevels'}) MERGE (d)-[:ServiceLevel {dependent: 'true'}]->(l);
+MATCH (d:rgResource {name: 'devices'}), (p:rgResource {name: 'lifeCyclePhases'}) MERGE (d)-[:LifeCyclePhase]->(p);
+MATCH (d:rgResource {name: 'devices'}), (v:rgResource {name: 'environments'}) MERGE (d)-[:Environment]->(v);
+MATCH (d:rgResource {name: 'devices'}), (l:rgResource {name: 'serviceLevels'}) MERGE (d)-[:ServiceLevel]->(l);
 MATCH (b:rgResource {name: 'brands'}), (p:rgResource {name: 'parts'}) MERGE (b)-[:PartNumber {dependent: 'true'}]->(p);
 //
 // L1->L2
