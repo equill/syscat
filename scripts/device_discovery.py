@@ -393,4 +393,4 @@ if __name__ == '__main__':
     parser.add_argument('--community', action='store', dest='community', default='public', help='SNMP v2 community string')
     args=parser.parse_args()
     # Do the job
-    populateSyscat(exploreDevice(args.hostname))
+    populateSyscat(exploreDevice(args.hostname, community=args.community))
