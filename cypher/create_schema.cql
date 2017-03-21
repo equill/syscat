@@ -29,6 +29,7 @@ CREATE (r:rgResource {name: 'racks', notes: 'The rack location within a cabinet 
     (r)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
 CREATE (d:rgResource {name: 'devices', notes: 'Any kind of device that interacts with a network, be it L1, L2 or L3'}),
     (d)-[:rgHasAttribute]->(:rgAttribute {name: 'sysdescr', notes: 'SNMP host description. Usually either long and detailed per the RFC, or just the hostname.'}),
+    (d)-[:rgHasAttribute]->(:rgAttribute {name: 'snmp_community', notes: 'Community string for SNMPv2 polling/traps.'}),
     (d)-[:rgHasAttribute]->(:rgAttribute {name: 'serial_number'}),
     (d)-[:rgHasAttribute]->(:rgAttribute {name: 'asset_number'}),
     (d)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
@@ -47,11 +48,12 @@ CREATE (i:rgResource {name: 'networkInterfaces', dependent: 'true'}),
     (i)-[:rgHasAttribute]->(:rgAttribute {name: 'ifname', notes: 'Short name of the interface. Usually the one by which the device knows it.'}),
     (i)-[:rgHasAttribute]->(:rgAttribute {name: 'ifdescr', notes: 'Detailed text description of the interface.'}),
     (i)-[:rgHasAttribute]->(:rgAttribute {name: 'ifalias', notes: 'Description string as configured by an administrator.'}),
-    (i)-[:rgHasAttribute]->(:rgAttribute {name: 'iftype', notes: 'IANA-specified interface type.'}),
     (i)-[:rgHasAttribute]->(:rgAttribute {name: 'ifspeed', notes: 'SNMP: max speed in bits/second, or the nominal speed if it has no reliable maximum. If a 32-bit integer is too small, this will be set to the max possible value (4,294,967,295) and ifHighSpeed will be used to give the max speed.'}),
     (i)-[:rgHasAttribute]->(:rgAttribute {name: 'ifhighspeed', notes: 'An estimate of the current bandwidth in units of 1,000,000 bits per second. Zero for subinterfaces with no concept of bandwidth.'}),
     (i)-[:rgHasAttribute]->(:rgAttribute {name: 'ifphysaddress', notes: 'Physical address as specified at this network layer, e.g. MAC address for an ethernet NIC.'}),
     (i)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
+CREATE (t:rgResource {name: 'networkInterfaceType', notes: 'Classification of a network interface. Could be the IANA-defined types that are reported via SNMP.'}),
+    (t)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
 CREATE (l:rgResource {name: 'l1Links'}),
     (l)-[:rgHasAttribute]->(:rgAttribute {name: 'our_id'}),
     (l)-[:rgHasAttribute]->(:rgAttribute {name: 'vendor_id'}),
@@ -88,7 +90,9 @@ CREATE (r:rgResource {name: 'l2Circuits'}),
 //
 // L3
 CREATE (:rgResource {name: 'vrfGroups'});
-CREATE (:rgResource {name: 'routingInstances', dependent: 'true'});
+CREATE (r:rgResource {name: 'routingInstances', dependent: 'true'}),
+    (r)-[:rghasAttribute]->(:rgAttribute {name: 'notes'}),
+    (r)-[:rghasAttribute]->(:rgAttribute {name: 'snmp_community', notes: 'Community string for SNMPv2 polling/traps.'});
 CREATE (a:rgResource {name: 'ipv4Addresses', dependent: 'true'}),
     (a)-[:rgHasAttribute]->(:rgAttribute {name: 'prefixlength'}),
     (a)-[:rgHasAttribute]->(:rgAttribute {name: 'netmask'});
@@ -168,6 +172,7 @@ MATCH (d:rgResource {name: 'devices'}) MERGE (d)-[:Member]->(d);
 MATCH (d:rgResource {name: 'devices'}) MERGE (d)-[:HostedOn]->(d);
 MATCH (i:rgResource {name: 'networkInterfaces'}) MERGE (i)-[:SubInterfaces {dependent: 'true'}]->(i);
 MATCH (i:rgResource {name: 'networkInterfaces'}) MERGE (i)-[:ConnectsTo]->(i);
+MATCH (i:rgResource {name: 'networkInterfaces'}), (t:rgResource {name: 'networkInterfaceType'}) MERGE (i)-[:Type]->(t);
 MATCH (p:rgResource {name: 'parts'}), (o:rgResource {name: 'organisations'}) MERGE (p)-[:PurchasedFrom]->(o);
 MATCH (p:rgResource {name: 'parts'}), (m:rgResource {name: 'models'}) MERGE (p)-[:CompatibleWith]->(m);
 MATCH (p:rgResource {name: 'parts'}), (d:rgResource {name: 'devices'}) MERGE (p)-[:InstalledIn]->(d);
