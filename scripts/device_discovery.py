@@ -12,10 +12,25 @@ import certifi
 import pysnmp.hlapi
 import argparse
 import re
+import logging
+import sys
 
 
 # Configuration details
 SYSCAT_URI='http://localhost:4950/raw/v1'
+
+
+# Configure logging
+LOGLEVEL=logging.INFO
+# Basic setup
+logger = logging.getLogger('device_discovery')
+# Create console handler
+# create and configure console handler, and add it to the logger
+ch = logging.StreamHandler(stream=sys.stdout)
+ch.setFormatter(logging.Formatter('%(asctime)s %(name)s %(levelname)s %(message)s'))
+ch.setLevel(LOGLEVEL)
+logger.setLevel(LOGLEVEL)
+logger.addHandler(ch)
 
 
 # Utility functions
@@ -47,10 +62,10 @@ def snmpGet(hostname, mib, attr, community, port=161):
                 pysnmp.hlapi.ObjectType(pysnmp.hlapi.ObjectIdentity(mib, attr, 0))))
     # Handle the responses
     if errorIndication:
-        print(errorIndication)
+        logger.error(errorIndication)
         return False
     elif errorStatus:
-        print('%s at %s' % (errorStatus.prettyPrint(),
+        logger.error('%s at %s' % (errorStatus.prettyPrint(),
                         errorIndex and varBinds[int(errorIndex) - 1][0] or '?'))
         return False
     # If we actually got something, return it in human-readable form
@@ -65,6 +80,7 @@ def snmpBulkGet(hostname, mib, attr, community, port=161):
         - index = value
     This structure mirrors SNMP's representation of tables as rows with indexed values.
     '''
+    logger.debug('Querying %s for %s::%s', hostname, mib, attr)
     # Number of nonrepeating MIB variables in the request
     nonRepeaters = 0
     # Maximum number of variables requested for each of the remaining MIB variables in the request
@@ -94,10 +110,10 @@ def snmpBulkGet(hostname, mib, attr, community, port=161):
                     lexicographicMode=False):
         # Handle the responses
         if errorIndication:
-            print(errorIndication)
+            logger.error(errorIndication)
             return False
         elif errorStatus:
-            print('%s at %s' % (errorStatus.prettyPrint(), errorIndex and varBinds[int(errorIndex) - 1][0] or '?'))
+            logger.error('%s at %s' % (errorStatus.prettyPrint(), errorIndex and varBinds[int(errorIndex) - 1][0] or '?'))
             return False
         # If we actually got something, return it in human-readable form
         else:
@@ -110,6 +126,7 @@ def snmpBulkGet(hostname, mib, attr, community, port=161):
                 # Now get the value
                 value = varBind[1].prettyPrint()
                 # Update the results table, ensuring the row is actually present
+                logger.debug('%s.%s = %s', row, index, value)
                 if row not in data:
                     data[row] = {}
                 data[row][index] = value
@@ -128,6 +145,7 @@ def identifyHost(hostname, community='public'):
     - sysObjectID  # Vendor's OID identifying the device.
     - sysServices  # Network-layer services offered by this device. Uses weird maths, but may be usable.
     '''
+    logger.debug('Querying %s for general details', hostname)
     data={}
     for attr in [
             'sysName',
@@ -140,48 +158,66 @@ def identifyHost(hostname, community='public'):
             data[attr]=response
     return data
 
-def ifStackTableToNest(table, index):
+def getIfStackTable(hostname, community):
     '''
-    Take a table as output by the first section of getStackTable(),
-    return the nested dict that it implies.
+    Extract IF-MIB::ifStackTable from a device, per
+    http://www.net-snmp.org/docs/mibs/ifMIBObjects.html
+    and return it as a dict, where the key is the higher layer, and
+    the value is the lower.
     '''
-    # If the value for this index is 0, this interface has no subinterfaces.
-    # Return False to indicate this.
-    if table[index] == ['0']:
+    logger.debug('Attempting to query %s for ifStackTable', hostname)
+    data = {}
+    try:
+        rawdata = snmpBulkGet(hostname, 'IF-MIB', 'ifStackTable', community).items()
+        logger.debug('rawdata: %s', rawdata)
+        for raw, status in rawdata:
+            stackparts=re.split('\.', raw)
+            data[stackparts[0]] = stackparts[1]
+        logger.debug('ifStackTable: %s', data)
+        return data
+    except:
         return False
-    # Otherwise, there are subinterfaces to enumerate.
-    # Recurse through this function.
-    else:
-        acc = {}
-        for sub in table[index]:
-            acc[sub] = ifStackTableToNest(table, sub)
-        return acc
 
-def getStackTable(hostname, community):
+def getInvStackTable(stack):
     '''
-    Generate a mapping of interfaces to their subinterfaces.
-    Based on the ifStackStatus row from IF-MIB::ifStackTable.
-    Returns a recursively nested dict:
+    Generate a mapping of interfaces to their subinterfaces,
+    based on the dict returned by getifStackTable.
+    Return a dict:
     - key = SNMP index of an interface
-    - value = False if this interface has no subinterfaces.
-              If it _does_ have subinterfaces, a dict whose keys are their indices
+    - value = list of indices of inter
     '''
     data={}
     # Get the flat map
     # This returns a dict:
     # - SNMP index of parent interface
     # - list of indices of subinterfaces of that parent
-    for raw, status in snmpBulkGet(hostname, 'IF-MIB', 'ifStackTable', community)['ifStackStatus'].items():
-        keyparts=re.split('\.', raw)
-        key = keyparts[1]
-        value = keyparts[0]
-        if key in data:
-            data[key].append(value)
-        else:
-            data[key] = [value]
+    for upper, lower in stack.items():
+        if lower not in data:
+            data[lower] = []
+        data[lower].append(upper)
     # Now turn that into a nested dict, so we have all the interdependencies mapped.
     # Start at subinterface '0', because that's how SNMP identifies "no interface here."
-    return ifStackTableToNest(data, '0')
+    return data
+
+def ifInvStackTableToNest(table, index='0'):
+    '''
+    Take a table as output by the first section of getInvStackTable().
+    Return a recursively nested dict:
+    - key = SNMP index of an interface
+    - value = False if this interface has no subinterfaces.
+              If it _does_ have subinterfaces, a dict whose keys are their indices
+    '''
+    # If the value for this index is 0, this interface has no subinterfaces.
+    # Return False to indicate this.
+    if table[index] == '0':
+        return False
+    # Otherwise, there are subinterfaces to enumerate.
+    # Recurse through this function.
+    else:
+        acc = {}
+        for sub in table[index]:
+            acc[sub] = ifInvStackTableToNest(table, sub)
+        return acc
 
 def getIfaceAddrMap(hostname, community):
     '''
@@ -228,10 +264,13 @@ def discoverNetwork(hostname, community):
                             # in units of 1,000,000 bits per second. Zero for subinterfaces
                             # with no concept of bandwidth.
             - ifPhysAddress    # E.g. MAC address for an 802.x interface
-    - ifStackTable      # Mapping of parent interfaces to subinterfaces
-        - output of stackToDict()
+    - ifStackTable      # Contents of the ifStackTable SNMP table for the device if it was returned.
+                        # False if nothing was returned.
     - ifIfaceAddrMap      # Mapping of addresses to interface indices
         - output of getIfaceAddrMap()
+    # The following entries will only be present if ifStackTable is not False:
+    - ifStackTree       # Mapping of parent interfaces to subinterfaces
+        - output of stackToDict()
     '''
     network = {'interfaces': {} }
     # Basic interface details
@@ -257,10 +296,13 @@ def discoverNetwork(hostname, community):
         # If it isn't, we really do have a problem.
         for index, value in ifXTable[row].items():
             network['interfaces'][index][row] = value
-    # ifStackTable encodes the relationship between subinterfaces and their parents.
-    network['ifStackTable'] = getStackTable(hostname, community)
     # Map addresses to interfaces
     network['ifIfaceAddrMap'] = getIfaceAddrMap(hostname, community)
+    # ifStackTable encodes the relationship between subinterfaces and their parents.
+    stack = getIfStackTable(hostname, community)
+    if stack:
+        network['ifStackTable'] = getInvStackTable(stack)
+        network['ifStackTree'] = ifInvStackTableToNest(network['ifStackTable'])
     # Return all the stuff we discovered
     return network
 
@@ -271,6 +313,7 @@ def exploreDevice(hostname, community='public'):
     - sysinfo: output of identifyHost()
     - network: output of discoverNetwork()
     '''
+    logger.info('Performing discovery on %s', hostname)
     # Dict to hold the device's information
     device={}
     # Top-level system information
@@ -280,34 +323,15 @@ def exploreDevice(hostname, community='public'):
     # Return the information we found
     return device
 
-def populateSyscat(device, hostname=False):
+def populate_interfaces_flat(hostname, interfaces, ifaceaddrmap):
     '''
-    Create a device in Syscat based on the information discovered by exploreDevice.
-    Optionally accepts a hostname to override the discovered name, in case it's
-    known to the business by another name..
+    Add interface details to a device.
+    Just attach each interface directly to the device, without making any attempt
+    to distinguish between subinterfaces and parents.
     '''
-    # Hostname.
-    # If we were supplied one as a parameter, use that.
-    if hostname:
-        host = hostname
-    # Otherwise, use the SNMP-discovered one
-    else:
-        host = device['sysinfo']['sysName']
-    # Create the device itself
-    sysresponse = requests.post(
-            '%s/devices' % (SYSCAT_URI),
-            data={
-                'uid': host,
-                'sysdescr': device['sysinfo']['sysDescr'],
-                },
-            )
-    print('DEBUG result of device creation: %s - %s' % (sysresponse.status_code, sysresponse.text))
-    # Interfaces
-    # Top-level
-    for index, subs in device['network']['ifStackTable'].items():
-        details = device['network']['interfaces'][index]
-        ifurl = '%s/devices/%s/Interfaces' % (SYSCAT_URI, host)
-        print('DEBUG Attempting to create top-level network interface %s at URL %s' % (details['ifName'], ifurl))
+    for index, details in interfaces.items():
+        ifurl = '%s/devices/%s/Interfaces' % (SYSCAT_URI, hostname)
+        logger.debug('Attempting to add network interface %s to device %s at URL %s', details['ifName'], hostname, ifurl)
         netresponse = requests.post(
                 ifurl,
                 data={
@@ -323,12 +347,12 @@ def populateSyscat(device, hostname=False):
                     'ifphysaddress': details['ifPhysAddress'],
                     },
                 )
-        print('DEBUG result of interface creation for %s (%s): %s - %s' % (index, details['ifName'], netresponse.status_code, netresponse.text))
+        logger.debug('result of interface creation for %s (%s): %s - %s' % (index, details['ifName'], netresponse.status_code, netresponse.text))
         # Add IPv4 addresses
-        if str(index) in device['network']['ifIfaceAddrMap']:    # Not all interfaces have addresses
-            for addr in device['network']['ifIfaceAddrMap'][str(index)]:
-                ipurl = '%s/devices/%s/Interfaces/networkInterfaces/%s/Addresses' % (SYSCAT_URI, host, sanitise_uid(details['ifName']))
-                print('DEBUG Attempting to create IPv4 Address %s under URL %s' % (addr['address'], ipurl))
+        if str(index) in ifaceaddrmap:    # Not all interfaces have addresses
+            for addr in ifaceaddrmap[str(index)]:
+                ipurl = '%s/devices/%s/Interfaces/networkInterfaces/%s/Addresses' % (SYSCAT_URI, hostname, sanitise_uid(details['ifName']))
+                logger.debug('Attempting to create IPv4 Address %s under URL %s' % (addr['address'], ipurl))
                 addresponse = requests.post(
                         ipurl,
                         data={
@@ -337,15 +361,41 @@ def populateSyscat(device, hostname=False):
                             'netmask': addr['netmask'],
                             }
                         )
-            print('DEBUG result of address creation for %s: %s - %s' % (addr['address'], addresponse.status_code, addresponse.text))
+            logger.debug('result of address creation for %s: %s - %s' % (addr['address'], addresponse.status_code, addresponse.text))
         else:
-            print('DEBUG No addresses found for interface with index number %s; moving on.' % str(index))
+            logger.debug('No addresses found for interface with index number %s; moving on.' % str(index))
+
+def populate_interface_tree(hostname, interfaces, ifstacktree, ifaceaddrmap):
+    '''
+    Add interfaces to a device in a nested style,
+    so that subinterfaces are linked to their parent interfaces rather than the device.
+    '''
+    # Top-level
+    for index, subs in ifstacktree.items():
+        details = interfaces[index]
+        ifurl = '%s/devices/%s/Interfaces' % (SYSCAT_URI, hostname)
+        logger.debug('Attempting to create top-level network interface %s at URL %s', details['ifName'], ifurl)
+        netresponse = requests.post(
+                ifurl,
+                data={
+                    'type': 'networkInterfaces',
+                    'uid': details['ifName'],
+                    'snmp_index': index,
+                    'ifname': details['ifName'],    # Just in case
+                    'ifdescr': details['ifDescr'],
+                    'ifalias': details['ifAlias'],
+                    'iftype': details['ifType'],
+                    'ifspeed': details['ifSpeed'],
+                    'ifhighspeed': details['ifHighSpeed'],
+                    'ifphysaddress': details['ifPhysAddress'],
+                    },
+                )
         # Add subinterfaces (nobody ever goes deeper than 2, right?)
         if subs:
             for sub in subs:
-                subdetails = device['network']['interfaces'][sub]
-                if2url = '%s/devices/%s/Interfaces/networkInterfaces/%s/SubInterfaces' % (SYSCAT_URI, host, sanitise_uid(details['ifName']))
-                print('DEBUG Attempting to create second-level network interface %s at URL %s' % (subdetails['ifName'], if2url))
+                subdetails = interfaces[sub]
+                if2url = '%s/devices/%s/Interfaces/networkInterfaces/%s/SubInterfaces' % (SYSCAT_URI, hostname, sanitise_uid(details['ifName']))
+                logger.debug('Attempting to create second-level network interface %s at URL %s' % (subdetails['ifName'], if2url))
                 subresponse = requests.post(
                         if2url,
                         data={
@@ -361,17 +411,17 @@ def populateSyscat(device, hostname=False):
                             'ifphysaddress': subdetails['ifPhysAddress'],
                             },
                         )
-                print('DEBUG result of interface creation for %s (%s): %s - %s' % (index, subdetails['ifName'], subresponse.status_code, subresponse.text))
+                logger.debug('result of interface creation for %s (%s): %s - %s' % (index, subdetails['ifName'], subresponse.status_code, subresponse.text))
             # Add IPv4 addresses
-            if str(sub) in device['network']['ifIfaceAddrMap']:    # Not all interfaces have addresses
-                for addr in device['network']['ifIfaceAddrMap'][str(sub)]:
+            if str(sub) in ifaceaddrmap:    # Not all interfaces have addresses
+                for addr in ifaceaddrmap[str(sub)]:
                     ip2url = '%s/devices/%s/Interfaces/networkInterfaces/%s/SubInterfaces/networkInterfaces/%s/Addresses' % (
                                 SYSCAT_URI,
-                                host,
+                                hostname,
                                 sanitise_uid(details['ifName']),
                                 sanitise_uid(subdetails['ifName']),
                                 )
-                    print('DEBUG Attempting to create IPv4 Address %s under URL %s' % (addr['address'], ip2url))
+                    logger.debug('Attempting to create IPv4 Address %s under URL %s' % (addr['address'], ip2url))
                     addresponse = requests.post(
                             ip2url,
                             data={
@@ -380,9 +430,38 @@ def populateSyscat(device, hostname=False):
                                 'netmask': addr['netmask'],
                                 }
                             )
-                    print('DEBUG result of address creation for %s: %s - %s' % (addr['address'], addresponse.status_code, addresponse.text))
+                    logger.debug('result of address creation for %s: %s - %s' % (addr['address'], addresponse.status_code, addresponse.text))
             else:
-                print('DEBUG No addresses found for interface with index number %s; moving on.' % str(index))
+                logger.debug('No addresses found for interface with index number %s; moving on.' % str(index))
+
+def populateSyscat(device, hostname=False):
+    '''
+    Create a device in Syscat based on the information discovered by exploreDevice.
+    Optionally accepts a hostname to override the discovered name, in case it's
+    known to the business by another name..
+    '''
+    # Hostname.
+    # If we were supplied one as a parameter, use that.
+    if hostname:
+        host = hostname
+    # Otherwise, use the SNMP-discovered one
+    else:
+        host = device['sysinfo']['sysName']
+    logger.info('Populating Syscat with details for %s', host)
+    # Create the device itself
+    sysresponse = requests.post(
+            '%s/devices' % (SYSCAT_URI),
+            data={
+                'uid': host,
+                'sysdescr': device['sysinfo']['sysDescr'],
+                },
+            )
+    logger.debug('result of device creation: %s - %s' % (sysresponse.status_code, sysresponse.text))
+    # Interfaces
+    if 'ifStackTree' in device['network']:
+        populate_interface_tree(hostname, device['network']['interfaces'], device['network']['ifStackTree'], device['network']['ifIfaceAddrMap'])
+    else:
+        populate_interfaces_flat(host, device['network']['interfaces'], device['network']['ifIfaceAddrMap'])
 
 # Enable this to be run as a CLI script, as well as used as a library.
 # Mostly used for testing, at this stage.
@@ -390,7 +469,12 @@ if __name__ == '__main__':
     # Get the command-line arguments
     parser = argparse.ArgumentParser(description='Perform SNMP discovery on a host, to populate Syscat with its details.')
     parser.add_argument('hostname', type=str, help='The hostname or address to perform discovery on')
-    parser.add_argument('--community', action='store', dest='community', default='public', help='SNMP v2 community string')
+    parser.add_argument('--community', type=str, action='store', dest='community', default='public', help='SNMP v2 community string')
+    parser.add_argument('--debug', action='store_true', help='Enable debug logging')
     args=parser.parse_args()
+    # Set debug logging, if requested
+    if args.debug:
+        logger.setLevel(logging.DEBUG)
+        ch.setLevel(logging.DEBUG)
     # Do the job
     populateSyscat(exploreDevice(args.hostname, community=args.community))

@@ -46,14 +46,13 @@ CREATE (l:rgResource {name: 'serviceLevels', notes: 'Sets the expectations for r
 CREATE (i:rgResource {name: 'networkInterfaces', dependent: 'true'}),
     (i)-[:rgHasAttribute]->(:rgAttribute {name: 'snmp_index', notes: 'The index by which this interface is identified when querying the host device via SNMP.'}),
     (i)-[:rgHasAttribute]->(:rgAttribute {name: 'ifname', notes: 'Short name of the interface. Usually the one by which the device knows it.'}),
-    (i)-[:rgHasAttribute]->(:rgAttribute {name: 'ifdescr', notes: 'Detailed text description of the interface.'}),
+    (i)-[:rgHasAttribute]->(:rgAttribute {name: 'ifdescr', notes: 'SNMP-discovered detailed text description of the interface.'}),
+    (i)-[:rgHasAttribute]->(:rgAttribute {name: 'iftype', notes: 'SNMP-discovered interface type, as specified by the IANA in the IANAifType-MIB.'}),
     (i)-[:rgHasAttribute]->(:rgAttribute {name: 'ifalias', notes: 'Description string as configured by an administrator.'}),
     (i)-[:rgHasAttribute]->(:rgAttribute {name: 'ifspeed', notes: 'SNMP: max speed in bits/second, or the nominal speed if it has no reliable maximum. If a 32-bit integer is too small, this will be set to the max possible value (4,294,967,295) and ifHighSpeed will be used to give the max speed.'}),
     (i)-[:rgHasAttribute]->(:rgAttribute {name: 'ifhighspeed', notes: 'An estimate of the current bandwidth in units of 1,000,000 bits per second. Zero for subinterfaces with no concept of bandwidth.'}),
     (i)-[:rgHasAttribute]->(:rgAttribute {name: 'ifphysaddress', notes: 'Physical address as specified at this network layer, e.g. MAC address for an ethernet NIC.'}),
     (i)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
-CREATE (t:rgResource {name: 'networkInterfaceType', notes: 'Classification of a network interface. Could be the IANA-defined types that are reported via SNMP.'}),
-    (t)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
 CREATE (l:rgResource {name: 'l1Links'}),
     (l)-[:rgHasAttribute]->(:rgAttribute {name: 'our_id'}),
     (l)-[:rgHasAttribute]->(:rgAttribute {name: 'vendor_id'}),
@@ -74,7 +73,7 @@ CREATE (b:rgResource {name: 'brands', notes: 'Also known as "make".'}),
     (b)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
 CREATE (:rgResource {name: 'models', dependent: 'true'});
 // L2
-CREATE (:rgResource {name: 'vlans', notes: 'Layer 2 groupings, i.e. ethernet. Not to be confused with subnets.'});
+CREATE (:rgResource {name: 'vlans', dependent: 'true', notes: 'Layer 2 groupings, i.e. ethernet. Not to be confused with subnets.'});
 CREATE (r:rgResource {name: 'l2Links'}),
     (r)-[:rgHasAttribute]->(:rgAttribute {name: 'our_id'}),
     (r)-[:rgHasAttribute]->(:rgAttribute {name: 'vendor_id'}),
@@ -106,13 +105,6 @@ CREATE (t:rgResource {name: 'l3Tunnels'}),
     (t)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
 CREATE (t:rgResource {name: 'l3TunnelTypes'}),
     (t)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
-// DNS
-CREATE (z:rgResource {name: 'dnsZones'}),
-    (z)-[:rgHasAttribute]->(:rgAttribute {name: 'domain'});
-CREATE (:rgResource {name: 'aRecord', dependent: 'true'});
-CREATE (:rgResource {name: 'mxRecord', dependent: 'true'});
-CREATE (:rgResource {name: 'aaaaRecord', dependent: 'true'});
-CREATE (:rgResource {name: 'aliasRecord', dependent: 'true'});
 // L3/logical
 CREATE (r:rgResource {name: 'asn', notes: 'Autonomous Systems. The UID should be the ASN, and the "name" should be its human-friendly tag.'}), (r)-[:rgHasAttribute]->(:rgAttribute {name: 'name', required: 'false'});
 //
@@ -141,186 +133,170 @@ CREATE (c:rgResource {name: 'contracts', notes: 'Agreements to supply goods or s
 // Relationships
 //
 // L0
-MATCH (a:rgResource {name: 'any'}), (t:rgResource {name: 'tags'}) MERGE (a)-[:Tags]->(t);
+MATCH (a:rgResource {name: 'any'}), (t:rgResource {name: 'tags'}) MERGE (a)-[:Tags {cardinality: 'many:many'}]->(t);
 // L1
-MATCH (c:rgResource {name: 'country'}), (s:rgResource {name: 'state'}) MERGE (c)-[:Contains {dependent: 'true'}]->(s);
-MATCH (c:rgResource {name: 'country'}), (s:rgResource {name: 'city'}) MERGE (c)-[:Contains {dependent: 'true'}]->(s);
-MATCH (s:rgResource {name: 'state'}), (c:rgResource {name: 'city'}) MERGE (s)-[:Contains {dependent: 'true'}]->(c);
-MATCH (s:rgResource {name: 'sites'}), (b:rgResource {name: 'buildings'}) MERGE (s)-[:Buildings {dependent: 'true'}]->(b);
-MATCH (b:rgResource {name: 'buildings'}), (c:rgResource {name: 'country'}) MERGE (b)-[:Location]->(c);
-MATCH (b:rgResource {name: 'buildings'}), (s:rgResource {name: 'state'}) MERGE (b)-[:Location]->(s);
-MATCH (b:rgResource {name: 'buildings'}), (c:rgResource {name: 'city'}) MERGE (b)-[:Location]->(c);
-MATCH (b:rgResource {name: 'buildings'}), (f:rgResource {name: 'floors'}) MERGE (b)-[:Floors {dependent: 'true'}]->(f);
-MATCH (b:rgResource {name: 'buildings'}), (r:rgResource {name: 'rooms'}) MERGE (b)-[:Rooms {dependent: 'true'}]->(r);
-MATCH (f:rgResource {name: 'floors'}), (r:rgResource {name: 'rooms'}) MERGE (f)-[:Rooms {dependent: 'true'}]->(r);
-MATCH (r:rgResource {name: 'rooms'}), (c:rgResource {name: 'cages'}) MERGE (r)-[:Cages {dependent: 'true'}]->(c);
-MATCH (r:rgResource {name: 'rooms'}), (c:rgResource {name: 'cabinets'}) MERGE (r)-[:Cabinets {dependent: 'true'}]->(c);
-MATCH (r:rgResource {name: 'cages'}), (c:rgResource {name: 'cabinets'}) MERGE (r)-[:Cabinets {dependent: 'true'}]->(c);
-MATCH (c:rgResource {name: 'cabinets'}), (r:rgResource {name: 'racks'}) MERGE (c)-[:Racks {dependent: 'true'}]->(r);
-MATCH (d:rgResource {name: 'devices'}), (o:rgResource {name: 'organisations'}) MERGE (d)-[:PurchasedFrom]->(o);
-MATCH (d:rgResource {name: 'devices'}), (s:rgResource {name: 'sites'}) MERGE (d)-[:Location]->(s);
-MATCH (d:rgResource {name: 'devices'}), (s:rgResource {name: 'buildings'}) MERGE (d)-[:Location]->(s);
-MATCH (d:rgResource {name: 'devices'}), (s:rgResource {name: 'floors'}) MERGE (d)-[:Location]->(s);
-MATCH (d:rgResource {name: 'devices'}), (s:rgResource {name: 'rooms'}) MERGE (d)-[:Location]->(s);
-MATCH (d:rgResource {name: 'devices'}), (s:rgResource {name: 'cages'}) MERGE (d)-[:Location]->(s);
-MATCH (d:rgResource {name: 'devices'}), (s:rgResource {name: 'cabinets'}) MERGE (d)-[:Location]->(s);
-MATCH (d:rgResource {name: 'devices'}), (s:rgResource {name: 'racks'}) MERGE (d)-[:Location]->(s);
-MATCH (r:rgResource {name: 'devices'}), (i:rgResource {name: 'networkInterfaces'}) MERGE (r)-[:Interfaces {dependent: 'true'}]->(i);
-MATCH (r:rgResource {name: 'devices'}), (o:rgResource {name: 'operatingSystems'}) MERGE (r)-[:OperatingSystem]->(o);
-MATCH (r:rgResource {name: 'devices'}), (o:rgResource {name: 'operatingSystemVersions'}) MERGE (r)-[:OperatingSystem]->(o);
-MATCH (d:rgResource {name: 'devices'}) MERGE (d)-[:Member]->(d);
-MATCH (d:rgResource {name: 'devices'}) MERGE (d)-[:HostedOn]->(d);
-MATCH (i:rgResource {name: 'networkInterfaces'}) MERGE (i)-[:SubInterfaces {dependent: 'true'}]->(i);
-MATCH (i:rgResource {name: 'networkInterfaces'}) MERGE (i)-[:ConnectsTo]->(i);
-MATCH (i:rgResource {name: 'networkInterfaces'}), (t:rgResource {name: 'networkInterfaceType'}) MERGE (i)-[:Type]->(t);
-MATCH (p:rgResource {name: 'parts'}), (o:rgResource {name: 'organisations'}) MERGE (p)-[:PurchasedFrom]->(o);
-MATCH (p:rgResource {name: 'parts'}), (m:rgResource {name: 'models'}) MERGE (p)-[:CompatibleWith]->(m);
-MATCH (p:rgResource {name: 'parts'}), (d:rgResource {name: 'devices'}) MERGE (p)-[:InstalledIn]->(d);
-MATCH (p:rgResource {name: 'parts'}), (l:rgResource {name: 'sites'}) MERGE (p)-[:StorageLocation]->(l);
-MATCH (p:rgResource {name: 'parts'}), (l:rgResource {name: 'buildings'}) MERGE (p)-[:StorageLocation]->(l);
-MATCH (p:rgResource {name: 'parts'}), (l:rgResource {name: 'rooms'}) MERGE (p)-[:StorageLocation]->(l);
-MATCH (p:rgResource {name: 'parts'}), (l:rgResource {name: 'cages'}) MERGE (p)-[:StorageLocation]->(l);
-MATCH (p:rgResource {name: 'parts'}), (l:rgResource {name: 'cabinets'}) MERGE (p)-[:StorageLocation]->(l);
-MATCH (d:rgResource {name: 'devices'}), (l:rgResource {name: 'l1Links'}) MERGE (d)-[:ConnectsTo]->(l);
-MATCH (i:rgResource {name: 'networkInterfaces'}), (l:rgResource {name: 'l1Links'}) MERGE (i)-[:ConnectsTo]->(l);
-MATCH (d:rgResource {name: 'devices'}), (l:rgResource {name: 'l1Circuits'}) MERGE (d)-[:ConnectsTo]->(l);
-MATCH (i:rgResource {name: 'networkInterfaces'}), (l:rgResource {name: 'l1Circuits'}) MERGE (i)-[:ConnectsTo]->(l);
-MATCH (s:rgResource {name: 'l1Links'}) MERGE (s)-[:ConnectsTo]->(s);
-MATCH (s:rgResource {name: 'l1Links'}), (c:rgResource {name: 'l1LinkTypes'}) MERGE (s)-[:Type]->(c);
-MATCH (s:rgResource {name: 'l1Links'}), (c:rgResource {name: 'l1Circuits'}) MERGE (s)-[:MemberOf]->(c);
-MATCH (r:rgResource {name: 'devices'}), (i:rgResource {name: 'networkInterfaces'}) MERGE (r)-[:Interfaces]->(i);
+MATCH (c:rgResource {name: 'country'}), (s:rgResource {name: 'state'}) MERGE (c)-[:Contains {dependent: 'true', cardinality: '1:many'}]->(s);
+MATCH (c:rgResource {name: 'country'}), (s:rgResource {name: 'city'}) MERGE (c)-[:Contains {dependent: 'true', cardinality: '1:many'}]->(s);
+MATCH (s:rgResource {name: 'state'}), (c:rgResource {name: 'city'}) MERGE (s)-[:Contains {dependent: 'true', cardinality: '1:many'}]->(c);
+MATCH (s:rgResource {name: 'sites'}), (b:rgResource {name: 'buildings'}) MERGE (s)-[:Buildings {dependent: 'true', cardinality: '1:many'}]->(b);
+MATCH (b:rgResource {name: 'buildings'}), (c:rgResource {name: 'country'}) MERGE (b)-[:Location {cardinality: 'many:1'}]->(c);
+MATCH (b:rgResource {name: 'buildings'}), (s:rgResource {name: 'state'}) MERGE (b)-[:Location {cardinality: 'many:1'}]->(s);
+MATCH (b:rgResource {name: 'buildings'}), (c:rgResource {name: 'city'}) MERGE (b)-[:Location {cardinality: 'many:1'}]->(c);
+MATCH (b:rgResource {name: 'buildings'}), (f:rgResource {name: 'floors'}) MERGE (b)-[:Floors {dependent: 'true', cardinality: '1:many'}]->(f);
+MATCH (b:rgResource {name: 'buildings'}), (r:rgResource {name: 'rooms'}) MERGE (b)-[:Rooms {dependent: 'true', cardinality: '1:many'}]->(r);
+MATCH (f:rgResource {name: 'floors'}), (r:rgResource {name: 'rooms'}) MERGE (f)-[:Rooms {dependent: 'true', cardinality: '1:many'}]->(r);
+MATCH (r:rgResource {name: 'rooms'}), (c:rgResource {name: 'cages'}) MERGE (r)-[:Cages {dependent: 'true', cardinality: '1:many'}]->(c);
+MATCH (r:rgResource {name: 'rooms'}), (c:rgResource {name: 'cabinets'}) MERGE (r)-[:Cabinets {dependent: 'true', cardinality: '1:many'}]->(c);
+MATCH (r:rgResource {name: 'cages'}), (c:rgResource {name: 'cabinets'}) MERGE (r)-[:Cabinets {dependent: 'true', cardinality: '1:many'}]->(c);
+MATCH (c:rgResource {name: 'cabinets'}), (r:rgResource {name: 'racks'}) MERGE (c)-[:Racks {dependent: 'true', cardinality: '1:many'}]->(r);
+MATCH (d:rgResource {name: 'devices'}), (o:rgResource {name: 'organisations'}) MERGE (d)-[:PurchasedFrom {cardinality: 'many:1'}]->(o);
+MATCH (d:rgResource {name: 'devices'}), (s:rgResource {name: 'sites'}) MERGE (d)-[:Location {cardinality: 'many:1'}]->(s);
+MATCH (d:rgResource {name: 'devices'}), (s:rgResource {name: 'buildings'}) MERGE (d)-[:Location {cardinality: 'many:1'}]->(s);
+MATCH (d:rgResource {name: 'devices'}), (s:rgResource {name: 'floors'}) MERGE (d)-[:Location {cardinality: 'many:1'}]->(s);
+MATCH (d:rgResource {name: 'devices'}), (s:rgResource {name: 'rooms'}) MERGE (d)-[:Location {cardinality: 'many:1'}]->(s);
+MATCH (d:rgResource {name: 'devices'}), (s:rgResource {name: 'cages'}) MERGE (d)-[:Location {cardinality: 'many:1'}]->(s);
+MATCH (d:rgResource {name: 'devices'}), (s:rgResource {name: 'cabinets'}) MERGE (d)-[:Location {cardinality: 'many:1'}]->(s);
+MATCH (d:rgResource {name: 'devices'}), (s:rgResource {name: 'racks'}) MERGE (d)-[:Location {cardinality: 'many:1'}]->(s);
+MATCH (r:rgResource {name: 'devices'}), (i:rgResource {name: 'networkInterfaces'}) MERGE (r)-[:Interfaces {dependent: 'true', cardinality: '1:many'}]->(i);
+MATCH (r:rgResource {name: 'devices'}), (o:rgResource {name: 'operatingSystems'}) MERGE (r)-[:OperatingSystem {cardinality: 'many:1'}]->(o);
+MATCH (r:rgResource {name: 'devices'}), (o:rgResource {name: 'operatingSystemVersions'}) MERGE (r)-[:OperatingSystem {cardinality: 'many:1'}]->(o);
+MATCH (d:rgResource {name: 'devices'}) MERGE (d)-[:Member {cardinality: 'many:1'}]->(d);
+MATCH (d:rgResource {name: 'devices'}) MERGE (d)-[:HostedOn {cardinality: 'many:1'}]->(d);
+MATCH (i:rgResource {name: 'networkInterfaces'}) MERGE (i)-[:SubInterfaces {dependent: 'true', cardinality: '1:many'}]->(i);
+MATCH (i:rgResource {name: 'networkInterfaces'}) MERGE (i)-[:Member {dependent: 'true', cardinality: 'many:1'}]->(i);
+MATCH (i:rgResource {name: 'networkInterfaces'}) MERGE (i)-[:ConnectsTo {cardinality: '1:1'}]->(i);
+MATCH (p:rgResource {name: 'parts'}), (o:rgResource {name: 'organisations'}) MERGE (p)-[:PurchasedFrom {cardinality: 'many:1'}]->(o);
+MATCH (p:rgResource {name: 'parts'}), (m:rgResource {name: 'models'}) MERGE (p)-[:CompatibleWith {cardinality: 'many:many'}]->(m);
+MATCH (p:rgResource {name: 'parts'}), (d:rgResource {name: 'devices'}) MERGE (p)-[:InstalledIn {cardinality: 'many:1'}]->(d);
+MATCH (p:rgResource {name: 'parts'}), (l:rgResource {name: 'sites'}) MERGE (p)-[:StorageLocation {cardinality: 'many:1'}]->(l);
+MATCH (p:rgResource {name: 'parts'}), (l:rgResource {name: 'buildings'}) MERGE (p)-[:StorageLocation {cardinality: 'many:1'}]->(l);
+MATCH (p:rgResource {name: 'parts'}), (l:rgResource {name: 'rooms'}) MERGE (p)-[:StorageLocation {cardinality: 'many:1'}]->(l);
+MATCH (p:rgResource {name: 'parts'}), (l:rgResource {name: 'cages'}) MERGE (p)-[:StorageLocation {cardinality: 'many:1'}]->(l);
+MATCH (p:rgResource {name: 'parts'}), (l:rgResource {name: 'cabinets'}) MERGE (p)-[:StorageLocation {cardinality: 'many:1'}]->(l);
+MATCH (d:rgResource {name: 'devices'}), (l:rgResource {name: 'l1Links'}) MERGE (d)-[:ConnectsTo {cardinality: 'many:many'}]->(l);
+MATCH (i:rgResource {name: 'networkInterfaces'}), (l:rgResource {name: 'l1Links'}) MERGE (i)-[:ConnectsTo {cardinality: 'many:1'}]->(l);
+MATCH (d:rgResource {name: 'devices'}), (l:rgResource {name: 'l1Circuits'}) MERGE (d)-[:ConnectsTo {cardinality: 'many:many'}]->(l);
+MATCH (i:rgResource {name: 'networkInterfaces'}), (l:rgResource {name: 'l1Circuits'}) MERGE (i)-[:ConnectsTo {cardinality: 'many:1'}]->(l);
+MATCH (s:rgResource {name: 'l1Links'}) MERGE (s)-[:ConnectsTo {cardinality: 'many:many'}]->(s);
+MATCH (s:rgResource {name: 'l1Links'}), (c:rgResource {name: 'l1LinkTypes'}) MERGE (s)-[:Type {cardinality: 'many:1'}]->(c);
+MATCH (s:rgResource {name: 'l1Links'}), (c:rgResource {name: 'l1Circuits'}) MERGE (s)-[:MemberOf {cardinality: 'many:1'}]->(c);
 //
 // L1/logical
-MATCH (r:rgResource {name: 'devices'}), (a:rgResource {name: 'routingInstances'}) MERGE (r)-[:RoutingInstances {dependent: 'true'}]->(a);
-MATCH (a:rgResource {name: 'routingInstances'}), (i:rgResource {name: 'networkInterfaces'}) MERGE (a)-[:Interfaces]->(i);
-MATCH (r:rgResource {name: 'routingInstances'}), (v:rgResource {name: 'vrfGroups'}) MERGE (r)-[:Member]->(v);
-MATCH (b:rgResource {name: 'brands'}), (o:rgResource {name: 'operatingSystems'}) MERGE (b)-[:Produces {dependent: 'true'}]->(o);
-MATCH (o:rgResource {name: 'operatingSystems'}), (v:rgResource {name: 'operatingSystemVersions'}) MERGE (o)-[:Versions {dependent: 'true'}]->(v);
-MATCH (b:rgResource {name: 'brands'}), (m:rgResource {name: 'models'}) MERGE (b)-[:Models {dependent: 'true'}]->(m);
-MATCH (r:rgResource {name: 'devices'}), (m:rgResource {name: 'models'}) MERGE (r)-[:Model]->(m);
-MATCH (r:rgResource {name: 'models'}), (m:rgResource {name: 'deviceRoles'}) MERGE (r)-[:Capability]->(m);
+MATCH (r:rgResource {name: 'devices'}), (a:rgResource {name: 'routingInstances'}) MERGE (r)-[:RoutingInstances {dependent: 'true', cardinality: 'many:1'}]->(a);
+MATCH (a:rgResource {name: 'routingInstances'}), (i:rgResource {name: 'networkInterfaces'}) MERGE (a)-[:Interfaces {cardinality: '1:many'}]->(i);
+MATCH (r:rgResource {name: 'routingInstances'}), (v:rgResource {name: 'vrfGroups'}) MERGE (r)-[:Member {cardinality: 'many:1'}]->(v);
+MATCH (b:rgResource {name: 'brands'}), (o:rgResource {name: 'operatingSystems'}) MERGE (b)-[:Produces {dependent: 'true', cardinality: '1:many'}]->(o);
+MATCH (o:rgResource {name: 'operatingSystems'}), (v:rgResource {name: 'operatingSystemVersions'}) MERGE (o)-[:Versions {dependent: 'true', cardinality: '1:many'}]->(v);
+MATCH (b:rgResource {name: 'brands'}), (m:rgResource {name: 'models'}) MERGE (b)-[:Models {dependent: 'true', cardinality: '1:many'}]->(m);
+MATCH (r:rgResource {name: 'devices'}), (m:rgResource {name: 'models'}) MERGE (r)-[:Model {cardinality: 'many:1'}]->(m);
+MATCH (r:rgResource {name: 'models'}), (m:rgResource {name: 'deviceRoles'}) MERGE (r)-[:Capability {cardinality: 'many:many'}]->(m);
 // Type is a reserved word in Cypher, so we use the longer-form DeviceType for the relationship
-MATCH (r:rgResource {name: 'devices'}), (m:rgResource {name: 'deviceTypes'}) MERGE (r)-[:DeviceType]->(m);
-MATCH (r:rgResource {name: 'devices'}), (m:rgResource {name: 'deviceRoles'}) MERGE (r)-[:Role]->(m);
-MATCH (d:rgResource {name: 'devices'}), (p:rgResource {name: 'lifeCyclePhases'}) MERGE (d)-[:LifeCyclePhase]->(p);
-MATCH (d:rgResource {name: 'devices'}), (v:rgResource {name: 'environments'}) MERGE (d)-[:Environment]->(v);
-MATCH (d:rgResource {name: 'devices'}), (l:rgResource {name: 'serviceLevels'}) MERGE (d)-[:ServiceLevel]->(l);
-MATCH (b:rgResource {name: 'brands'}), (p:rgResource {name: 'parts'}) MERGE (b)-[:PartNumber {dependent: 'true'}]->(p);
+MATCH (r:rgResource {name: 'devices'}), (m:rgResource {name: 'deviceTypes'}) MERGE (r)-[:DeviceType {cardinality: 'many:1'}]->(m);
+MATCH (r:rgResource {name: 'devices'}), (m:rgResource {name: 'deviceRoles'}) MERGE (r)-[:Role {cardinality: 'many:many'}]->(m);
+MATCH (d:rgResource {name: 'devices'}), (p:rgResource {name: 'lifeCyclePhases'}) MERGE (d)-[:LifeCyclePhase {cardinality: 'many:1'}]->(p);
+MATCH (d:rgResource {name: 'devices'}), (v:rgResource {name: 'environments'}) MERGE (d)-[:Environment {cardinality: 'many:1'}]->(v);
+MATCH (d:rgResource {name: 'devices'}), (l:rgResource {name: 'serviceLevels'}) MERGE (d)-[:ServiceLevel {cardinality: 'many:1'}]->(l);
+MATCH (b:rgResource {name: 'brands'}), (p:rgResource {name: 'parts'}) MERGE (b)-[:PartNumber {dependent: 'true', cardinality: 'many:1'}]->(p);
 //
 // L1->L2
-MATCH (d:rgResource {name: 'devices'}), (v:rgResource {name: 'vlans'}) MERGE (d)-[:Vlan]->(v);
-MATCH (i:rgResource {name: 'networkInterfaces'}), (v:rgResource {name: 'vlans'}) MERGE (i)-[:Vlan]->(v);
-MATCH (d:rgResource {name: 'devices'}), (l:rgResource {name: 'l2Links'}) MERGE (d)-[:ConnectsTo]->(l);
-MATCH (i:rgResource {name: 'networkInterfaces'}), (l:rgResource {name: 'l2Links'}) MERGE (i)-[:ConnectsTo]->(l);
-MATCH (d:rgResource {name: 'devices'}), (l:rgResource {name: 'l2Circuits'}) MERGE (d)-[:ConnectsTo]->(l);
-MATCH (i:rgResource {name: 'networkInterfaces'}), (l:rgResource {name: 'l2Circuits'}) MERGE (i)-[:ConnectsTo]->(l);
+MATCH (d:rgResource {name: 'devices'}), (v:rgResource {name: 'vlans'}) MERGE (d)-[:Vlan {dependent: 'true', cardinality: '1:many'}]->(v);
+MATCH (i:rgResource {name: 'networkInterfaces'}), (v:rgResource {name: 'vlans'}) MERGE (i)-[:Vlan {dependent: 'true', cardinality: '1:many'}]->(v);
+MATCH (d:rgResource {name: 'devices'}), (l:rgResource {name: 'l2Links'}) MERGE (d)-[:ConnectsTo {cardinality: 'many:many'}]->(l);
+MATCH (i:rgResource {name: 'networkInterfaces'}), (l:rgResource {name: 'l2Links'}) MERGE (i)-[:ConnectsTo {cardinality: 'many:1'}]->(l);
+MATCH (d:rgResource {name: 'devices'}), (l:rgResource {name: 'l2Circuits'}) MERGE (d)-[:ConnectsTo {cardinality: 'many:many'}]->(l);
+MATCH (i:rgResource {name: 'networkInterfaces'}), (l:rgResource {name: 'l2Circuits'}) MERGE (i)-[:ConnectsTo {cardinality: 'many:1'}]->(l);
 //
 // L1->L3
-MATCH (d:rgResource {name: 'devices'}), (a:rgResource {name: 'ipv4Addresses'}) MERGE (d)-[:Addresses {dependent: 'true'}]->(a);
-MATCH (d:rgResource {name: 'devices'}), (a:rgResource {name: 'ipv6Addresses'}) MERGE (d)-[:Addresses {dependent: 'true'}]->(a);
-MATCH (i:rgResource {name: 'networkInterfaces'}), (a:rgResource {name: 'ipv4Addresses'}) MERGE (i)-[:Addresses {dependent: 'true'}]->(a);
-MATCH (i:rgResource {name: 'networkInterfaces'}), (a:rgResource {name: 'ipv6Addresses'}) MERGE (i)-[:Addresses {dependent: 'true'}]->(a);
-MATCH (d:rgResource {name: 'devices'}), (r:rgResource {name: 'routingInstances'}) MERGE (d)-[:RoutingInstance {dependent: 'true'}]->(r);
-MATCH (d:rgResource {name: 'devices'}), (t:rgResource {name: 'l3Tunnels'}) MERGE (d)-[:ConnectsTo]->(t);
-MATCH (i:rgResource {name: 'networkInterfaces'}), (t:rgResource {name: 'l3Tunnels'}) MERGE (i)-[:ConnectsTo]->(t);
+MATCH (d:rgResource {name: 'devices'}), (a:rgResource {name: 'ipv4Addresses'}) MERGE (d)-[:Addresses {dependent: 'true', cardinality: '1:many'}]->(a);
+MATCH (d:rgResource {name: 'devices'}), (a:rgResource {name: 'ipv6Addresses'}) MERGE (d)-[:Addresses {dependent: 'true', cardinality: '1:many'}]->(a);
+MATCH (i:rgResource {name: 'networkInterfaces'}), (a:rgResource {name: 'ipv4Addresses'}) MERGE (i)-[:Addresses {dependent: 'true', cardinality: '1:many'}]->(a);
+MATCH (i:rgResource {name: 'networkInterfaces'}), (a:rgResource {name: 'ipv6Addresses'}) MERGE (i)-[:Addresses {dependent: 'true', cardinality: '1:many'}]->(a);
+MATCH (d:rgResource {name: 'devices'}), (r:rgResource {name: 'routingInstances'}) MERGE (d)-[:RoutingInstance {dependent: 'true', cardinality: '1:many'}]->(r);
+MATCH (d:rgResource {name: 'devices'}), (t:rgResource {name: 'l3Tunnels'}) MERGE (d)-[:ConnectsTo {cardinality: '1:many'}]->(t);
+MATCH (i:rgResource {name: 'networkInterfaces'}), (t:rgResource {name: 'l3Tunnels'}) MERGE (i)-[:ConnectsTo {cardinality: 'many:1'}]->(t);
 //
 // L1->L9
-MATCH (b:rgResource {name: 'brands'}), (o:rgResource {name: 'organisations'}) MERGE (b)-[:Vendor]->(o);
-MATCH (r:rgResource {name: 'devices'}), (p:rgResource {name: 'people'}) MERGE (r)-[:TechnicalOwner]->(p);
-MATCH (r:rgResource {name: 'devices'}), (p:rgResource {name: 'people'}) MERGE (r)-[:BusinessOwner]->(p);
-MATCH (r:rgResource {name: 'devices'}), (o:rgResource {name: 'organisations'}) MERGE (r)-[:BusinessOwner]->(o);
-MATCH (c:rgResource {name: 'l1Links'}), (o:rgResource {name: 'organisations'}) MERGE (c)-[:ProvisionedBy]-(o);
-MATCH (c:rgResource {name: 'l1Links'}), (o:rgResource {name: 'organisations'}) MERGE (c)-[:OperatedBy]-(o);
-MATCH (c:rgResource {name: 'l1Circuits'}), (o:rgResource {name: 'organisations'}) MERGE (c)-[:ProvisionedBy]-(o);
-MATCH (c:rgResource {name: 'l1Circuits'}), (o:rgResource {name: 'organisations'}) MERGE (c)-[:OperatedBy]-(o);
+MATCH (b:rgResource {name: 'brands'}), (o:rgResource {name: 'organisations'}) MERGE (b)-[:Vendor {cardinality: 'many:1'}]->(o);
+MATCH (r:rgResource {name: 'devices'}), (p:rgResource {name: 'people'}) MERGE (r)-[:TechnicalOwner {cardinality: 'many:1'}]->(p);
+MATCH (r:rgResource {name: 'devices'}), (p:rgResource {name: 'people'}) MERGE (r)-[:BusinessOwner {cardinality: 'many:1'}]->(p);
+MATCH (r:rgResource {name: 'devices'}), (o:rgResource {name: 'organisations'}) MERGE (r)-[:BusinessOwner {cardinality: 'many:1'}]->(o);
+MATCH (c:rgResource {name: 'l1Links'}), (o:rgResource {name: 'organisations'}) MERGE (c)-[:ProvisionedBy {cardinality: 'many:1'}]-(o);
+MATCH (c:rgResource {name: 'l1Links'}), (o:rgResource {name: 'organisations'}) MERGE (c)-[:OperatedBy {cardinality: 'many:1'}]-(o);
+MATCH (c:rgResource {name: 'l1Circuits'}), (o:rgResource {name: 'organisations'}) MERGE (c)-[:ProvisionedBy {cardinality: 'many:1'}]-(o);
+MATCH (c:rgResource {name: 'l1Circuits'}), (o:rgResource {name: 'organisations'}) MERGE (c)-[:OperatedBy {cardinality: 'many:1'}]-(o);
 //
 // L2
-MATCH (l:rgResource {name: 'l2Links'}) MERGE (l)-[:ConnectsTo]->(l);
-MATCH (l:rgResource {name: 'l2Links'}), (t:rgResource {name: 'l2LinkTypes'}) MERGE (l)-[:Type]->(t);
-MATCH (l:rgResource {name: 'l2Links'}), (c:rgResource {name: 'l2Circuits'}) MERGE (l)-[:MemberOf]->(c);
+MATCH (l:rgResource {name: 'l2Links'}) MERGE (l)-[:ConnectsTo {cardinality: 'many:many'}]->(l);
+MATCH (l:rgResource {name: 'l2Links'}), (t:rgResource {name: 'l2LinkTypes'}) MERGE (l)-[:Type {cardinality: 'many:1'}]->(t);
+MATCH (l:rgResource {name: 'l2Links'}), (c:rgResource {name: 'l2Circuits'}) MERGE (l)-[:MemberOf {cardinality: 'many:1'}]->(c);
 //
 // L2->L9
-MATCH (c:rgResource {name: 'l2Links'}), (o:rgResource {name: 'organisations'}) MERGE (c)-[:ProvisionedBy]-(o);
-MATCH (c:rgResource {name: 'l2Links'}), (o:rgResource {name: 'organisations'}) MERGE (c)-[:OperatedBy]-(o);
-MATCH (c:rgResource {name: 'l2Circuits'}), (o:rgResource {name: 'organisations'}) MERGE (c)-[:ProvisionedBy]-(o);
-MATCH (c:rgResource {name: 'l2Circuits'}), (o:rgResource {name: 'organisations'}) MERGE (c)-[:OperatedBy]-(o);
+MATCH (c:rgResource {name: 'l2Links'}), (o:rgResource {name: 'organisations'}) MERGE (c)-[:ProvisionedBy {cardinality: 'many:1'}]-(o);
+MATCH (c:rgResource {name: 'l2Links'}), (o:rgResource {name: 'organisations'}) MERGE (c)-[:OperatedBy {cardinality: 'many:1'}]-(o);
+MATCH (c:rgResource {name: 'l2Circuits'}), (o:rgResource {name: 'organisations'}) MERGE (c)-[:ProvisionedBy {cardinality: 'many:1'}]-(o);
+MATCH (c:rgResource {name: 'l2Circuits'}), (o:rgResource {name: 'organisations'}) MERGE (c)-[:OperatedBy {cardinality: 'many:1'}]-(o);
 //
 // L3
-MATCH (a:rgResource {name: 'asn'}), (v:rgResource {name: 'vrfGroups'}) MERGE (a)-[:VrfGroups {dependent: 'true'}]->(v);
-MATCH (v:rgResource {name: 'vrfGroups'}), (s:rgResource {name: 'ipv4Subnets'}) MERGE (v)-[:Subnets {dependent: 'true'}]->(s);
-MATCH (v:rgResource {name: 'vrfGroups'}), (s:rgResource {name: 'ipv6Subnets'}) MERGE (v)-[:Subnets {dependent: 'true'}]->(s);
-MATCH (s:rgResource {name: 'ipv4Subnets'}), (a:rgResource {name: 'ipv4Addresses'}) MERGE (s)-[:Addresses {dependent: 'true'}]->(a);
-MATCH (s:rgResource {name: 'ipv6Subnets'}), (a:rgResource {name: 'ipv6Addresses'}) MERGE (s)-[:Addresses {dependent: 'true'}]->(a);
-MATCH (a:rgResource {name: 'asn'}), (s:rgResource {name: 'ipv4Subnets'}) MERGE (a)-[:Subnets {dependent: 'true'}]->(s);
-MATCH (a:rgResource {name: 'asn'}), (s:rgResource {name: 'ipv6Subnets'}) MERGE (a)-[:Subnets {dependent: 'true'}]->(s);
-MATCH (s:rgResource {name: 'ipv4Subnets'}) MERGE (s)-[:Subnets]->(s);
-MATCH (s:rgResource {name: 'ipv6Subnets'}) MERGE (s)-[:Subnets]->(s);
-MATCH (a:rgResource {name: 'ipv4Addresses'}), (t:rgResource {name: 'l3Tunnels'}) MERGE (a)-[:ConnectsTo]->(t);
-MATCH (a:rgResource {name: 'ipv6Addresses'}), (t:rgResource {name: 'l3Tunnels'}) MERGE (a)-[:ConnectsTo]->(t);
-MATCH (t:rgResource {name: 'l3Tunnels'}), (y:rgResource {name: 'l3TunnelTypes'}) MERGE (t)-[:Type]->(y);
-// DNS
-MATCH (d:rgResource {name: 'applications'}), (z:rgResource {name: 'dnsZones'}) MERGE (d)-[:Serves]->(z);
-MATCH (z:rgResource {name: 'dnsZones'}) MERGE (z)-[:Delegates]->(z);
-MATCH (z:rgResource {name: 'dnsZones'}), (o:rgResource {name: 'organisations'}) MERGE (z)-[:Owner]->(o);
-MATCH (z:rgResource {name: 'dnsZones'}), (a:rgResource {name: 'aRecord'}) MERGE (z)-[:Records {dependent: 'true'}]->(a);
-MATCH (z:rgResource {name: 'dnsZones'}), (a:rgResource {name: 'mxRecord'}) MERGE (z)-[:Records {dependent: 'true'}]->(a);
-MATCH (z:rgResource {name: 'dnsZones'}), (a:rgResource {name: 'aaaaRecord'}) MERGE (z)-[:Records {dependent: 'true'}]->(a);
-MATCH (z:rgResource {name: 'dnsZones'}), (a:rgResource {name: 'aliasRecord'}) MERGE (z)-[:Records {dependent: 'true'}]->(a);
-MATCH (a:rgResource {name: 'aRecord'}), (d:rgResource {name: 'ipv4Addresses'}) MERGE (a)-[:ResolvesTo {dependent: 'true'}]->(d);
-MATCH (a:rgResource {name: 'mxRecord'}), (d:rgResource {name: 'ipv4Addresses'}) MERGE (a)-[:ResolvesTo {dependent: 'true'}]->(d);
-MATCH (a:rgResource {name: 'mxRecord'}), (d:rgResource {name: 'ipv6Addresses'}) MERGE (a)-[:ResolvesTo {dependent: 'true'}]->(d);
-MATCH (a:rgResource {name: 'aaaaRecord'}), (d:rgResource {name: 'ipv6Addresses'}) MERGE (a)-[:ResolvesTo {dependent: 'true'}]->(d);
-MATCH (d:rgResource {name: 'ipv4Addresses'}), (a:rgResource {name: 'aRecord'}) MERGE (d)-[:PTR]->(a);
-MATCH (z:rgResource {name: 'aliasRecord'}), (a:rgResource {name: 'aRecord'}) MERGE (z)-[:CNAME]->(a);
-MATCH (z:rgResource {name: 'aliasRecord'}), (a:rgResource {name: 'aaaaRecord'}) MERGE (z)-[:CNAME]->(a);
+MATCH (a:rgResource {name: 'asn'}), (v:rgResource {name: 'vrfGroups'}) MERGE (a)-[:VrfGroups {dependent: 'true', cardinality: '1:many'}]->(v);
+MATCH (v:rgResource {name: 'vrfGroups'}), (s:rgResource {name: 'ipv4Subnets'}) MERGE (v)-[:Subnets {dependent: 'true', cardinality: '1:many'}]->(s);
+MATCH (v:rgResource {name: 'vrfGroups'}), (s:rgResource {name: 'ipv6Subnets'}) MERGE (v)-[:Subnets {dependent: 'true', cardinality: '1:many'}]->(s);
+MATCH (s:rgResource {name: 'ipv4Subnets'}), (a:rgResource {name: 'ipv4Addresses'}) MERGE (s)-[:Addresses {dependent: 'true', cardinality: '1:many'}]->(a);
+MATCH (s:rgResource {name: 'ipv6Subnets'}), (a:rgResource {name: 'ipv6Addresses'}) MERGE (s)-[:Addresses {dependent: 'true', cardinality: '1:many'}]->(a);
+MATCH (a:rgResource {name: 'asn'}), (s:rgResource {name: 'ipv4Subnets'}) MERGE (a)-[:Subnets {dependent: 'true', cardinality: '1:many'}]->(s);
+MATCH (a:rgResource {name: 'asn'}), (s:rgResource {name: 'ipv6Subnets'}) MERGE (a)-[:Subnets {dependent: 'true', cardinality: '1:many'}]->(s);
+MATCH (s:rgResource {name: 'ipv4Subnets'}) MERGE (s)-[:Subnets {cardinality: '1:many'}]->(s);
+MATCH (s:rgResource {name: 'ipv6Subnets'}) MERGE (s)-[:Subnets {cardinality: '1:many'}]->(s);
+MATCH (a:rgResource {name: 'ipv4Addresses'}), (t:rgResource {name: 'l3Tunnels'}) MERGE (a)-[:ConnectsTo {cardinality: 'many:1'}]->(t);
+MATCH (a:rgResource {name: 'ipv6Addresses'}), (t:rgResource {name: 'l3Tunnels'}) MERGE (a)-[:ConnectsTo {cardinality: 'many:1'}]->(t);
+MATCH (t:rgResource {name: 'l3Tunnels'}), (y:rgResource {name: 'l3TunnelTypes'}) MERGE (t)-[:Type {cardinality: 'many:1'}]->(y);
 //
 // L3/logical
 // L3->L9
-MATCH (a:rgResource {name: 'asn'}), (o:rgResource {name: 'organisations'}) MERGE (a)-[:Owner]->(o);
-MATCH (s:rgResource {name: 'ipv4Subnets'}), (o:rgResource {name: 'organisations'}) MERGE (s)-[:Owner]->(o);
-MATCH (s:rgResource {name: 'ipv6Subnets'}), (o:rgResource {name: 'organisations'}) MERGE (s)-[:Owner]->(o);
+MATCH (a:rgResource {name: 'asn'}), (o:rgResource {name: 'organisations'}) MERGE (a)-[:Owner {cardinality: 'many:1'}]->(o);
+MATCH (s:rgResource {name: 'ipv4Subnets'}), (o:rgResource {name: 'organisations'}) MERGE (s)-[:Owner {cardinality: 'many:1'}]->(o);
+MATCH (s:rgResource {name: 'ipv6Subnets'}), (o:rgResource {name: 'organisations'}) MERGE (s)-[:Owner {cardinality: 'many:1'}]->(o);
 //
 // L8
-MATCH (a:rgResource {name: 'applications'}) MERGE (a)-[:DependsOn]->(a);
+MATCH (a:rgResource {name: 'applications'}) MERGE (a)-[:DependsOn {cardinality: 'many:many'}]->(a);
 //
 // L8->L1
-MATCH (a:rgResource {name: 'applications'}), (h:rgResource {name: 'devices'}) MERGE (a)-[:RunsOn]->(h);
+MATCH (a:rgResource {name: 'applications'}), (h:rgResource {name: 'devices'}) MERGE (a)-[:RunsOn {cardinality: 'many:many'}]->(h);
 //
 // L8->L9
-MATCH (a:rgResource {name: 'applications'}), (p:rgResource {name: 'people'}) MERGE (a)-[:BusinessOwner]->(p);
-MATCH (a:rgResource {name: 'applications'}), (p:rgResource {name: 'people'}) MERGE (a)-[:TechnicalOwner]->(p);
+MATCH (a:rgResource {name: 'applications'}), (p:rgResource {name: 'people'}) MERGE (a)-[:BusinessOwner {cardinality: 'many:1'}]->(p);
+MATCH (a:rgResource {name: 'applications'}), (p:rgResource {name: 'people'}) MERGE (a)-[:TechnicalOwner {cardinality: 'many:1'}]->(p);
 //
 // L9
-MATCH (o:rgResource {name: 'organisations'}), (m:rgResource {name: 'emailAddresses'}) MERGE (o)-[:ContactMethods {dependent: 'true'}]->(m);
-MATCH (p:rgResource {name: 'people'}), (m:rgResource {name: 'emailAddresses'}) MERGE (p)-[:ContactMethods {dependent: 'true'}]->(m);
-MATCH (p:rgResource {name: 'people'}), (n:rgResource {name: 'phoneNumbers'}) MERGE (p)-[:ContactMethods {dependent: 'true'}]->(n);
-MATCH (p:rgResource {name: 'people'}), (o:rgResource {name: 'organisations'}) MERGE (p)-[:Member]->(o);
-MATCH (p:rgResource {name: 'people'}), (o:rgResource {name: 'organisations'}) MERGE (p)-[:AccountManager]->(o);
-MATCH (p:rgResource {name: 'people'}), (o:rgResource {name: 'organisations'}) MERGE (p)-[:SalesContact]->(o);
-MATCH (p:rgResource {name: 'people'}), (o:rgResource {name: 'organisations'}) MERGE (p)-[:SupportContact]->(o);
-MATCH (o:rgResource {name: 'organisations'}) MERGE (o)-[:Member]->(o);
-MATCH (c:rgResource {name: 'contracts'}) MERGE (c)-[:Subcontracts]->(c);
-MATCH (c:rgResource {name: 'contracts'}), (o:rgResource {name: 'organisations'}) MERGE (c)-[:Vendor]->(o);
-MATCH (c:rgResource {name: 'contracts'}), (o:rgResource {name: 'organisations'}) MERGE (c)-[:Customer]->(o);
-MATCH (c:rgResource {name: 'contracts'}), (p:rgResource {name: 'people'}) MERGE (c)-[:NegotiatedBy]->(p);
-MATCH (c:rgResource {name: 'contracts'}), (d:rgResource {name: 'devices'}) MERGE (c)-[:Supplies]->(d);
-MATCH (c:rgResource {name: 'contracts'}), (d:rgResource {name: 'devices'}) MERGE (c)-[:Supports]->(d);
-MATCH (c:rgResource {name: 'contracts'}), (p:rgResource {name: 'parts'}) MERGE (c)-[:Supplies]->(p);
-MATCH (c:rgResource {name: 'contracts'}), (p:rgResource {name: 'parts'}) MERGE (c)-[:Supports]->(p);
-MATCH (c:rgResource {name: 'contracts'}), (b:rgResource {name: 'buildings'}) MERGE (c)-[:Supplies]->(b);
-MATCH (c:rgResource {name: 'contracts'}), (b:rgResource {name: 'buildings'}) MERGE (c)-[:Supports]->(b);
-MATCH (c:rgResource {name: 'contracts'}), (f:rgResource {name: 'floors'}) MERGE (c)-[:Supplies]->(b);
-MATCH (c:rgResource {name: 'contracts'}), (f:rgResource {name: 'floors'}) MERGE (c)-[:Supports]->(b);
-MATCH (c:rgResource {name: 'contracts'}), (r:rgResource {name: 'rooms'}) MERGE (c)-[:Supplies]->(r);
-MATCH (c:rgResource {name: 'contracts'}), (r:rgResource {name: 'rooms'}) MERGE (c)-[:Supports]->(r);
-MATCH (c:rgResource {name: 'contracts'}), (r:rgResource {name: 'cages'}) MERGE (c)-[:Supplies]->(r);
-MATCH (c:rgResource {name: 'contracts'}), (r:rgResource {name: 'cages'}) MERGE (c)-[:Supports]->(r);
-MATCH (c:rgResource {name: 'contracts'}), (r:rgResource {name: 'cabinets'}) MERGE (c)-[:Supplies]->(r);
-MATCH (c:rgResource {name: 'contracts'}), (r:rgResource {name: 'cabinets'}) MERGE (c)-[:Supports]->(r);
+MATCH (o:rgResource {name: 'organisations'}), (m:rgResource {name: 'emailAddresses'}) MERGE (o)-[:ContactMethods {dependent: 'true', cardinality: '1:many'}]->(m);
+MATCH (p:rgResource {name: 'people'}), (m:rgResource {name: 'emailAddresses'}) MERGE (p)-[:ContactMethods {dependent: 'true', cardinality: '1:many'}]->(m);
+MATCH (p:rgResource {name: 'people'}), (n:rgResource {name: 'phoneNumbers'}) MERGE (p)-[:ContactMethods {dependent: 'true', cardinality: '1:many'}]->(n);
+MATCH (p:rgResource {name: 'people'}), (o:rgResource {name: 'organisations'}) MERGE (p)-[:Member {cardinality: '1:many'}]->(o);
+MATCH (p:rgResource {name: 'people'}), (o:rgResource {name: 'organisations'}) MERGE (p)-[:AccountManager {cardinality: '1:many'}]->(o);
+MATCH (p:rgResource {name: 'people'}), (o:rgResource {name: 'organisations'}) MERGE (p)-[:SalesContact {cardinality: '1:many'}]->(o);
+MATCH (p:rgResource {name: 'people'}), (o:rgResource {name: 'organisations'}) MERGE (p)-[:SupportContact {cardinality: '1:many'}]->(o);
+MATCH (o:rgResource {name: 'organisations'}) MERGE (o)-[:Member {cardinality: 'many:many'}]->(o);
+MATCH (c:rgResource {name: 'contracts'}) MERGE (c)-[:Subcontracts {cardinality: '1:many'}]->(c);
+MATCH (c:rgResource {name: 'contracts'}), (o:rgResource {name: 'organisations'}) MERGE (c)-[:Vendor {cardinality: 'many:many'}]->(o);
+MATCH (c:rgResource {name: 'contracts'}), (o:rgResource {name: 'organisations'}) MERGE (c)-[:Customer {cardinality: 'many:many'}]->(o);
+MATCH (c:rgResource {name: 'contracts'}), (p:rgResource {name: 'people'}) MERGE (c)-[:NegotiatedBy {cardinality: 'many:many'}]->(p);
+MATCH (c:rgResource {name: 'contracts'}), (d:rgResource {name: 'devices'}) MERGE (c)-[:Supplies {cardinality: '1:many'}]->(d);
+MATCH (c:rgResource {name: 'contracts'}), (d:rgResource {name: 'devices'}) MERGE (c)-[:Supports {cardinality: '1:many'}]->(d);
+MATCH (c:rgResource {name: 'contracts'}), (p:rgResource {name: 'parts'}) MERGE (c)-[:Supplies {cardinality: '1:many'}]->(p);
+MATCH (c:rgResource {name: 'contracts'}), (p:rgResource {name: 'parts'}) MERGE (c)-[:Supports {cardinality: '1:many'}]->(p);
+MATCH (c:rgResource {name: 'contracts'}), (b:rgResource {name: 'buildings'}) MERGE (c)-[:Supplies {cardinality: '1:many'}]->(b);
+MATCH (c:rgResource {name: 'contracts'}), (b:rgResource {name: 'buildings'}) MERGE (c)-[:Supports {cardinality: 'many:many'}]->(b);
+MATCH (c:rgResource {name: 'contracts'}), (f:rgResource {name: 'floors'}) MERGE (c)-[:Supplies {cardinality: 'many:many'}]->(f);
+MATCH (c:rgResource {name: 'contracts'}), (f:rgResource {name: 'floors'}) MERGE (c)-[:Supports {cardinality: 'many:many'}]->(f);
+MATCH (c:rgResource {name: 'contracts'}), (r:rgResource {name: 'rooms'}) MERGE (c)-[:Supplies {cardinality: '1:many'}]->(r);
+MATCH (c:rgResource {name: 'contracts'}), (r:rgResource {name: 'rooms'}) MERGE (c)-[:Supports {cardinality: '1:many'}]->(r);
+MATCH (c:rgResource {name: 'contracts'}), (r:rgResource {name: 'cages'}) MERGE (c)-[:Supplies {cardinality: '1:many'}]->(r);
+MATCH (c:rgResource {name: 'contracts'}), (r:rgResource {name: 'cages'}) MERGE (c)-[:Supports {cardinality: '1:many'}]->(r);
+MATCH (c:rgResource {name: 'contracts'}), (r:rgResource {name: 'cabinets'}) MERGE (c)-[:Supplies {cardinality: '1:many'}]->(r);
+MATCH (c:rgResource {name: 'contracts'}), (r:rgResource {name: 'cabinets'}) MERGE (c)-[:Supports {cardinality: '1:many'}]->(r);
 // L9->L1
-MATCH (b:rgResource {name: 'sites'}), (o:rgResource {name: 'organisations'}) MERGE (b)-[:Organisation]->(o);
-MATCH (b:rgResource {name: 'buildings'}), (o:rgResource {name: 'organisations'}) MERGE (b)-[:Organisation]->(o);
-MATCH (b:rgResource {name: 'floors'}), (o:rgResource {name: 'organisations'}) MERGE (b)-[:Organisation]->(o);
-MATCH (b:rgResource {name: 'rooms'}), (o:rgResource {name: 'organisations'}) MERGE (b)-[:Organisation]->(o);
-MATCH (b:rgResource {name: 'cages'}), (o:rgResource {name: 'organisations'}) MERGE (b)-[:Organisation]->(o);
-MATCH (b:rgResource {name: 'cabinets'}), (o:rgResource {name: 'organisations'}) MERGE (b)-[:Organisation]->(o);
+MATCH (b:rgResource {name: 'sites'}), (o:rgResource {name: 'organisations'}) MERGE (b)-[:Organisation {cardinality: 'many:1'}]->(o);
+MATCH (b:rgResource {name: 'buildings'}), (o:rgResource {name: 'organisations'}) MERGE (b)-[:Tenant {cardinality: 'many:1'}]->(o);
+MATCH (b:rgResource {name: 'floors'}), (o:rgResource {name: 'organisations'}) MERGE (b)-[:Tenant {cardinality: 'many:1'}]->(o);
+MATCH (b:rgResource {name: 'rooms'}), (o:rgResource {name: 'organisations'}) MERGE (b)-[:Tenant {cardinality: 'many:1'}]->(o);
+MATCH (b:rgResource {name: 'cages'}), (o:rgResource {name: 'organisations'}) MERGE (b)-[:Tenant {cardinality: 'many:1'}]->(o);
+MATCH (b:rgResource {name: 'cabinets'}), (o:rgResource {name: 'organisations'}) MERGE (b)-[:Tenant {cardinality: 'many:1'}]->(o);
