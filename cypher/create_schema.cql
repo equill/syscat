@@ -240,12 +240,14 @@ MATCH (c:rgResource {name: 'l2Circuits'}), (o:rgResource {name: 'organisations'}
 MATCH (a:rgResource {name: 'asn'}), (v:rgResource {name: 'vrfGroups'}) MERGE (a)-[:VrfGroups {dependent: 'true', cardinality: '1:many'}]->(v);
 MATCH (v:rgResource {name: 'vrfGroups'}), (s:rgResource {name: 'ipv4Subnets'}) MERGE (v)-[:Subnets {dependent: 'true', cardinality: '1:many'}]->(s);
 MATCH (v:rgResource {name: 'vrfGroups'}), (s:rgResource {name: 'ipv6Subnets'}) MERGE (v)-[:Subnets {dependent: 'true', cardinality: '1:many'}]->(s);
+MATCH (a:rgResource {name: 'asn'}), (a:rgResource {name: 'ipv4Addresses'}) MERGE (a)-[:Addresses {dependent: 'true', cardinality: '1:many'}]->(a);
+MATCH (a:rgResource {name: 'asn'}), (a:rgResource {name: 'ipv6Addresses'}) MERGE (a)-[:Addresses {dependent: 'true', cardinality: '1:many'}]->(a);
 MATCH (s:rgResource {name: 'ipv4Subnets'}), (a:rgResource {name: 'ipv4Addresses'}) MERGE (s)-[:Addresses {dependent: 'true', cardinality: '1:many'}]->(a);
 MATCH (s:rgResource {name: 'ipv6Subnets'}), (a:rgResource {name: 'ipv6Addresses'}) MERGE (s)-[:Addresses {dependent: 'true', cardinality: '1:many'}]->(a);
 MATCH (a:rgResource {name: 'asn'}), (s:rgResource {name: 'ipv4Subnets'}) MERGE (a)-[:Subnets {dependent: 'true', cardinality: '1:many'}]->(s);
 MATCH (a:rgResource {name: 'asn'}), (s:rgResource {name: 'ipv6Subnets'}) MERGE (a)-[:Subnets {dependent: 'true', cardinality: '1:many'}]->(s);
-MATCH (s:rgResource {name: 'ipv4Subnets'}) MERGE (s)-[:Subnets {cardinality: '1:many'}]->(s);
-MATCH (s:rgResource {name: 'ipv6Subnets'}) MERGE (s)-[:Subnets {cardinality: '1:many'}]->(s);
+MATCH (s:rgResource {name: 'ipv4Subnets'}) MERGE (s)-[:Subnets {dependent: 'true', cardinality: '1:many'}]->(s);
+MATCH (s:rgResource {name: 'ipv6Subnets'}) MERGE (s)-[:Subnets {dependent: 'true', cardinality: '1:many'}]->(s);
 MATCH (a:rgResource {name: 'ipv4Addresses'}), (t:rgResource {name: 'l3Tunnels'}) MERGE (a)-[:ConnectsTo {cardinality: 'many:1'}]->(t);
 MATCH (a:rgResource {name: 'ipv6Addresses'}), (t:rgResource {name: 'l3Tunnels'}) MERGE (a)-[:ConnectsTo {cardinality: 'many:1'}]->(t);
 MATCH (t:rgResource {name: 'l3Tunnels'}), (y:rgResource {name: 'l3TunnelTypes'}) MERGE (t)-[:Type {cardinality: 'many:1'}]->(y);

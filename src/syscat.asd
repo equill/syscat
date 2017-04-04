@@ -7,5 +7,7 @@
                #:cl-cidr-notation)
   :components ((:file "package")
                (:file "config")
+               (:file "generics")
+               (:file "neo4j")
                (:file "utilities")
                (:file "hunchentoot")))

@@ -19,7 +19,7 @@
                                       log-level
                                       format-string
                                       &rest format-arguments)
-  (restagraph::log-message log-level (append (list format-string) format-arguments)))
+  (restagraph:log-message log-level (append (list format-string) format-arguments)))
 
 (defun ipam-dispatcher-v1 ()
   "Hunchentoot dispatch function for the IPAM-specific REST API, version 1."
@@ -35,25 +35,18 @@
             (tbnl:post-parameter "cidr"))
        ;; Did we receive an ASN, or is there just one in the database?
        (let ((asn (or (tbnl:post-parameter "asn")
-                      (handler-case
-                        (check-for-single-asn (restagraph::datastore *syscat-acceptor*))
-                        (restagraph:client-error () nil)))))
+                      (check-for-single-asn (restagraph::datastore *syscat-acceptor*))))
+             (vrf (tbnl:post-parameter "vrf")))
          (if asn
-           ;; Did we receive a VRF, or is there exactly one in this ASN?
-           (let ((vrf
-                   (or (tbnl:post-parameter "vrf")
-                       (check-for-single-vrf (restagraph::datastore *syscat-acceptor*) asn))))
-             ;; Does the subnet already exist?
-             (if (find-subnet (restagraph::datastore *syscat-acceptor*) asn vrf :cidr (tbnl:post-parameter "cidr"))
-               (error 'restagraph:integrity-error :message "Subnet already exists")
-               ;; We're clear to create it
-               (insert-subnet (restagraph::datastore *syscat-acceptor*)
-                              (tbnl:post-parameter "cidr") asn vrf
-                              (find-supernet (tbnl:post-parameter "cidr")
-                                             (restagraph::datastore *syscat-acceptor*)
-                                             asn
-                                             vrf ()))))
-           (error 'restagraph:client-error :message "No ASN supplied, and I couldn't choose just one from the database"))))
+           ;; Does the subnet already exist?
+           (if (find-subnet (restagraph::datastore *syscat-acceptor*) asn vrf :cidr (tbnl:post-parameter "cidr"))
+             (error 'restagraph:integrity-error :message "Subnet already exists")
+             ;; We're clear to create it
+             (insert-subnet (restagraph::datastore *syscat-acceptor*)
+                            (tbnl:post-parameter "cidr")
+                            asn
+                            vrf))
+           (error 'restagraph:client-error :message "No ASN supplied, and there isn't one already in the database."))))
       ;; Search for a subnet
       ;;
       ;; Handle all other cases
@@ -69,7 +62,7 @@
     (neo4cl:database-error (e) (restagraph::return-database-error e))))
 
 (defun startup ()
-  (restagraph::log-message :info "Starting up the restagraph application server")
+  (restagraph:log-message :info "Starting up the restagraph application server")
   ;; Enforce the schema
   (restagraph::enforce-db-schema (restagraph::datastore *syscat-acceptor*))
   ;; Set the dispatch table
@@ -79,18 +72,18 @@
           (tbnl:create-prefix-dispatcher (getf restagraph::*config-vars* :uri-base) 'restagraph::api-dispatcher-v1)
           (tbnl:create-prefix-dispatcher "/" 'restagraph::four-oh-four)))
   ;; Start up the server
-  (restagraph::log-message :info "Starting up Hunchentoot to serve HTTP requests")
+  (restagraph:log-message :info "Starting up Hunchentoot to serve HTTP requests")
   ;; Enforce the schema
   (restagraph::enforce-db-schema (restagraph::datastore *syscat-acceptor*))
   (handler-case
     (tbnl:start *syscat-acceptor*)
     (usocket:address-in-use-error
-      () (restagraph::log-message
+      () (restagraph:log-message
            :error
            (format nil "Attempted to start an already-running instance!")))))
 
 (defun shutdown ()
-  (restagraph::log-message
+  (restagraph:log-message
     :info
     (format nil "Shutting down the restagraph application server"))
   (handler-case
@@ -98,4 +91,4 @@
     ;; Catch the case where it's already shut down
     (tbnl::unbound-slot
       ()
-      (restagraph::log-message :info "Attempting to shut down Hunchentoot, but it's not running."))))
+      (restagraph:log-message :info "Attempting to shut down Hunchentoot, but it's not running."))))
