@@ -21,33 +21,175 @@
                                       &rest format-arguments)
   (restagraph:log-message log-level (append (list format-string) format-arguments)))
 
-(defun ipam-dispatcher-v1 ()
-  "Hunchentoot dispatch function for the IPAM-specific REST API, version 1."
+(defun subnet-dispatcher-v1 ()
+  "Hunchentoot dispatch function for the IPAM-specific REST API, version 1. Subnet subset."
   (handler-case
     (cond
       ;; Methods we don't support.
       ;; Take the whitelist approach
-      ((not (member (tbnl:request-method*) '(:POST :GET :PUT :DELETE)))
+      ((not (member (tbnl:request-method*) '(:POST :GET :DELETE)))
        (restagraph::method-not-allowed))
+      ;;
       ;; Create a subnet
       ((and (equal (tbnl:request-method*) :POST)
-            ;; Leaving room for the address/netmask approach
-            (tbnl:post-parameter "cidr"))
-       ;; Did we receive an ASN, or is there just one in the database?
-       (let ((asn (or (tbnl:post-parameter "asn")
-                      (check-for-single-asn (restagraph::datastore *syscat-acceptor*))))
-             (vrf (tbnl:post-parameter "vrf")))
-         (if asn
-           ;; Does the subnet already exist?
-           (if (find-subnet (restagraph::datastore *syscat-acceptor*) asn vrf :cidr (tbnl:post-parameter "cidr"))
-             (error 'restagraph:integrity-error :message "Subnet already exists")
-             ;; We're clear to create it
-             (insert-subnet (restagraph::datastore *syscat-acceptor*)
-                            (tbnl:post-parameter "cidr")
-                            asn
-                            vrf))
-           (error 'restagraph:client-error :message "No ASN supplied, and there isn't one already in the database."))))
+            (tbnl:post-parameter "subnet")
+            (tbnl:post-parameter "asn"))
+       (restagraph:log-message :debug
+                               (format nil "Dispatching POST request for URI ~A"
+                                       (tbnl:request-uri*)))
+       ;; Insert it
+       (insert-subnet (restagraph::datastore *syscat-acceptor*)
+                      (tbnl:post-parameter "asn")
+                      (or (tbnl:post-parameter "vrf") "")
+                      (tbnl:post-parameter "subnet"))
+       ;; Return it to the client for confirmation
+       (restagraph:log-message
+         :debug
+         (format nil "Stored subnet ~A. Now retrieving it for positive confirmation."
+                 (tbnl:post-parameter "subnet")))
+       (setf (tbnl:content-type*) "application/json")
+       (setf (tbnl:return-code*) tbnl:+http-created+)
+       (cl-json:encode-json-to-string
+         (find-subnet (restagraph::datastore *syscat-acceptor*)
+                      (tbnl:post-parameter "asn")
+                      (or (tbnl:post-parameter "vrf") "")
+                      (tbnl:post-parameter "subnet"))))
+      ;;
       ;; Search for a subnet
+      ((and (equal (tbnl:request-method*) :GET)
+            (tbnl:get-parameter "subnet")
+            (tbnl:get-parameter "asn"))
+       (restagraph:log-message :debug
+                               (format nil "Dispatching GET request for URI ~A"
+                                       (tbnl:request-uri*)))
+       ;; Go look for it
+       (handler-case
+         (let ((result (find-subnet (restagraph::datastore *syscat-acceptor*)
+                                    (tbnl:get-parameter "asn")
+                                    (or (tbnl:get-parameter "vrf") "")
+                                    (tbnl:get-parameter "subnet"))))
+           ;; Did we find one?
+           (if (or (null result)
+                   (equal result ""))
+             ;; Not found
+             (progn
+               (setf (tbnl:content-type*) "text/plain")
+               (setf (tbnl:return-code*) tbnl:+http-not-found+)
+               "No such subnet")
+             ;; Found it!
+             (progn
+               (setf (tbnl:content-type*) "application/json")
+               (setf (tbnl:return-code*) tbnl:+http-ok+)
+               (cl-json:encode-json-to-string result))))
+         ;; Attempted violation of db integrity
+         (restagraph:integrity-error (e) (restagraph::return-integrity-error (restagraph:message e)))
+         ;; Generic client errors
+         (restagraph:client-error (e) (restagraph::return-client-error (restagraph:message e)))))
+      ;;
+      ;; Delete a subnet
+      ((and (equal (tbnl:request-method*) :DELETE)
+            (tbnl:post-parameter "subnet")
+            (tbnl:post-parameter "asn"))
+       (restagraph:log-message :debug
+                               (format nil "Dispatching DELETE request for URI ~A"
+                                       (tbnl:request-uri*)))
+       (delete-subnet (restagraph::datastore *syscat-acceptor*)
+                      (tbnl:post-parameter "asn")
+                      (or (tbnl:post-parameter "vrf") "")
+                      (tbnl:post-parameter "subnet"))
+       (setf (tbnl:content-type*) "text/plain")
+       (setf (tbnl:return-code*) tbnl:+http-no-content+)
+       "")
+      ;;
+      ;; Handle all other cases
+      (t
+        (restagraph::return-client-error "This wasn't a valid request")))
+    ;; Handle general errors
+    ;;
+    ;; Generic client errors
+    (neo4cl:client-error (e) (restagraph::return-client-error (neo4cl:message e)))
+    ;; Transient error
+    (neo4cl:transient-error (e) (restagraph::return-transient-error e))
+    ;; Database error
+    (neo4cl:database-error (e) (restagraph::return-database-error e))))
+
+(defun address-dispatcher-v1 ()
+  "Hunchentoot dispatch function for the IPAM-specific REST API, version 1. Address subset."
+  (handler-case
+    (cond
+      ;; Methods we don't support.
+      ;; Take the whitelist approach
+      ((not (member (tbnl:request-method*) '(:POST :GET :DELETE)))
+       (restagraph::method-not-allowed))
+      ;;
+      ;; Create an address
+      ((and (equal (tbnl:request-method*) :POST)
+            (tbnl:post-parameter "address")
+            (tbnl:post-parameter "asn"))
+       (restagraph:log-message
+         :debug (format nil "Dispatching POST request for URI ~A" (tbnl:request-uri*)))
+       ;; Insert it
+       (insert-ipv4address (restagraph::datastore *syscat-acceptor*)
+                           (tbnl:post-parameter "address")
+                           (tbnl:post-parameter "asn")
+                           (or (tbnl:post-parameter "vrf") ""))
+       ;; Return it to the client for confirmation
+       (restagraph:log-message
+         :debug
+         (format nil "Stored address ~A. Now retrieving it for positive confirmation."
+                 (tbnl:post-parameter "address")))
+       (setf (tbnl:content-type*) "application/json")
+       (setf (tbnl:return-code*) tbnl:+http-created+)
+       (cl-json:encode-json-to-string
+         (find-ipv4address (restagraph::datastore *syscat-acceptor*)
+                           (tbnl:post-parameter "address")
+                           (tbnl:post-parameter "asn")
+                           (or (tbnl:post-parameter "vrf") ""))))
+      ;;
+      ;; Search for an address
+      ((and (equal (tbnl:request-method*) :GET)
+            (tbnl:get-parameter "address")
+            (tbnl:get-parameter "asn"))
+       (restagraph:log-message
+         :debug (format nil "Dispatching GET request for URI ~A" (tbnl:request-uri*)))
+       ;; Go look for it
+       (handler-case
+         (let ((result (find-ipv4address (restagraph::datastore *syscat-acceptor*)
+                                         (tbnl:get-parameter "address")
+                                         (tbnl:get-parameter "asn")
+                                         (or (tbnl:get-parameter "vrf") ""))))
+           ;; Did we find one?
+           (if (or (null result)
+                   (equal result ""))
+               ;; Not found
+               (progn
+                 (setf (tbnl:content-type*) "text/plain")
+                 (setf (tbnl:return-code*) tbnl:+http-not-found+)
+                 "No such address")
+               ;; Found it!
+               (progn
+                 (setf (tbnl:content-type*) "application/json")
+                 (setf (tbnl:return-code*) tbnl:+http-ok+)
+                 (cl-json:encode-json-to-string result))))
+         ;; Attempted violation of db integrity
+         (restagraph:integrity-error (e) (restagraph::return-integrity-error (restagraph:message e)))
+         ;; Generic client errors
+         (restagraph:client-error (e) (restagraph::return-client-error (restagraph:message e)))))
+      ;;
+      ;; Delete an address
+      ((and (equal (tbnl:request-method*) :DELETE)
+            (tbnl:post-parameter "address")
+            (tbnl:post-parameter "asn"))
+       (restagraph:log-message :debug
+                               (format nil "Dispatching DELETE request for URI ~A"
+                                       (tbnl:request-uri*)))
+       (delete-ipv4address (restagraph::datastore *syscat-acceptor*)
+                           (tbnl:post-parameter "address")
+                           (tbnl:post-parameter "asn")
+                           (or (tbnl:post-parameter "vrf") ""))
+       (setf (tbnl:content-type*) "text/plain")
+       (setf (tbnl:return-code*) tbnl:+http-no-content+)
+       "")
       ;;
       ;; Handle all other cases
       (t
@@ -68,7 +210,8 @@
   ;; Set the dispatch table
   (setf tbnl:*dispatch-table*
         (list
-          (tbnl:create-prefix-dispatcher "/ipam/v1" 'ipam-dispatcher-v1)
+          (tbnl:create-prefix-dispatcher "/ipam/v1/subnets" 'subnet-dispatcher-v1)
+          (tbnl:create-prefix-dispatcher "/ipam/v1/addresses" 'address-dispatcher-v1)
           (tbnl:create-prefix-dispatcher (getf restagraph::*config-vars* :uri-base) 'restagraph::api-dispatcher-v1)
           (tbnl:create-prefix-dispatcher "/" 'restagraph::four-oh-four)))
   ;; Start up the server
