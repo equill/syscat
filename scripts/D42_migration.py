@@ -12,6 +12,8 @@ D42_PASSWD=False
 
 SYSCAT_URI='http://localhost:4950/raw/v1'
 
+DEFAULT_ASN='ournet'
+
 
 # Utility functions
 
@@ -29,13 +31,16 @@ def sanitise_uid(uid):
     '''
     return re.sub('[/ ]', '_', uid)
 
-# Actual migration functions
-def create_customer(name, notes):
-    post('organisations', {'uid': name, 'description': notes})
 
+# Actual migration functions
+
+CUSTOMER_CACHE={}   # We'll need this for a lookup table later.
 def migrate_customers():
     for cust in requests.get('%s/customers/' % D42_URI, auth=(D42_USER, D42_PASSWD)).json()['Customers']:
-        create_customer(cust['name'], cust['notes'])
+        # Add it to the cache
+        CUSTOMER_CACHE[cust['id']] = cust['name']
+        # Install it in Syscat
+        post('organisations', {'uid': cust['name'], 'description': cust['notes']})
 
 def create_brand(name, notes):
     post('brands', {'uid': name, 'notes': notes})
@@ -130,6 +135,33 @@ def migrate_devices():
     for device in requests.get('%s/devices/all/?include_cols=name,serial_no,asset_no,in_service,service_level,type,tags,customer,hw_model,manufacturer, room, building,location,os,blankasnull=true' % D42_URI, auth=(D42_USER, D42_PASSWD)).json()['Devices']:
         create_device(device)
 
+def migrate_vrfs():
+    # Create the default ASN, because Device42 doesn't have this concept
+    post('asn', {'uid': DEFAULT_ASN})
+    # Now install the VRFs
+    for vrf in requests.get('%s/vrf_group/' % D42_URI, auth=(D42_USER, D42_PASSWD)).json():
+        post('asn/%s/VrfGroups' % DEFAULT_ASN, {'type': 'vrfGroups', 'uid': vrf['name']})
+
+def migrate_subnets():
+    for subnet in requests.get('%s/subnets/' % D42_URI, auth=(D42_USER, D42_PASSWD)).json()['subnets']:
+        # Insert the subnet itself
+        result=post(
+                '/asn/%s/VrfGroups/%s/Subnets' % (DEFAULT_ASN, subnet['vrf_group_name']),
+                {
+                    'type': 'ipv4Subnets',
+                    'uid': subnet['network'],
+                    'prefixlength': subnet['mask_bits'],
+                    'description': subnet['description'],
+                    }
+                )
+        # Now link it to a customer,
+        # using the cache to avoid a D42 lookup for every last subnet
+        post('~A/Owner' % result.text, {'target': '/organisations/%s' % CUSTOMER_CACHE[subnet['customer_id']])
+        # Tags
+        for tag in subnet['tags']:
+            # There's no way of just querying D42 for tags, so we just need to do this the hard way
+            pass
+
 def migrate_all_the_things():
     migrate_customers()
     migrate_brands()
@@ -138,3 +170,5 @@ def migrate_all_the_things():
     migrate_buildings()
     migrate_rooms()
     migrate_devices()
+    migrate_vrfs()
+    migrate_subnets()
