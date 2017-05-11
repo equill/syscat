@@ -94,13 +94,16 @@ CREATE (r:rgResource {name: 'routingInstances', dependent: 'true'}),
     (r)-[:rghasAttribute]->(:rgAttribute {name: 'snmp_community', notes: 'Community string for SNMPv2 polling/traps.'});
 CREATE (a:rgResource {name: 'ipv4Addresses', dependent: 'true'}),
     (a)-[:rgHasAttribute]->(:rgAttribute {name: 'prefixlength'}),
-    (a)-[:rgHasAttribute]->(:rgAttribute {name: 'netmask'});
+    (a)-[:rgHasAttribute]->(:rgAttribute {name: 'description'});
 CREATE (s:rgResource {name: 'ipv4Subnets', dependent: 'true'}),
-    (s)-[:rgHasAttribute]->(:rgAttribute {name: 'prefixlength'});
+    (s)-[:rgHasAttribute]->(:rgAttribute {name: 'prefixlength'}),
+    (s)-[:rgHasAttribute]->(:rgAttribute {name: 'description'});
 CREATE (a:rgResource {name: 'ipv6Addresses', dependent: 'true'}),
-    (a)-[:rgHasAttribute]->(:rgAttribute {name: 'prefixlength'});
+    (a)-[:rgHasAttribute]->(:rgAttribute {name: 'prefixlength'}),
+    (a)-[:rgHasAttribute]->(:rgAttribute {name: 'description'});
 CREATE (s:rgResource {name: 'ipv6Subnets', dependent: 'true'}),
-    (s)-[:rgHasAttribute]->(:rgAttribute {name: 'prefixlength'});
+    (s)-[:rgHasAttribute]->(:rgAttribute {name: 'prefixlength'}),
+    (s)-[:rgHasAttribute]->(:rgAttribute {name: 'description'});
 CREATE (t:rgResource {name: 'l3Tunnels'}),
     (t)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
 CREATE (t:rgResource {name: 'l3TunnelTypes'}),
