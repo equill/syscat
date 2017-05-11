@@ -21,6 +21,12 @@
                                       &rest format-arguments)
   (restagraph:log-message log-level (append (list format-string) format-arguments)))
 
+(defun format-subnet (asn vrf subnet-list)
+  (format nil "/asn/~A~A~{/Subnets/ipv4Subnets/~A~}"
+          asn
+          (if vrf (format nil "/~A" vrf) "")
+          subnet-list))
+
 (defun subnet-dispatcher-v1 ()
   "Hunchentoot dispatch function for the IPAM-specific REST API, version 1. Subnet subset."
   (handler-case
@@ -49,7 +55,9 @@
                  (tbnl:post-parameter "subnet")))
        (setf (tbnl:content-type*) "application/json")
        (setf (tbnl:return-code*) tbnl:+http-created+)
-       (cl-json:encode-json-to-string
+       (format-subnet
+         (tbnl:post-parameter "asn")
+         (tbnl:post-parameter "vrf")
          (find-subnet (restagraph::datastore *syscat-acceptor*)
                       (tbnl:post-parameter "asn")
                       (or (tbnl:post-parameter "vrf") "")
@@ -71,16 +79,19 @@
            ;; Did we find one?
            (if (or (null result)
                    (equal result ""))
-             ;; Not found
-             (progn
-               (setf (tbnl:content-type*) "text/plain")
-               (setf (tbnl:return-code*) tbnl:+http-not-found+)
-               "No such subnet")
-             ;; Found it!
-             (progn
-               (setf (tbnl:content-type*) "application/json")
-               (setf (tbnl:return-code*) tbnl:+http-ok+)
-               (cl-json:encode-json-to-string result))))
+               ;; Not found
+               (progn
+                 (setf (tbnl:content-type*) "text/plain")
+                 (setf (tbnl:return-code*) tbnl:+http-not-found+)
+                 "No such subnet")
+               ;; Found it!
+               (progn
+                 (setf (tbnl:content-type*) "application/json")
+                 (setf (tbnl:return-code*) tbnl:+http-ok+)
+                 (format-subnet
+                   (tbnl:post-parameter "asn")
+                   (tbnl:post-parameter "vrf")
+                   result))))
          ;; Attempted violation of db integrity
          (restagraph:integrity-error (e) (restagraph::return-integrity-error (restagraph:message e)))
          ;; Generic client errors
