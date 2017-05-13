@@ -17,13 +17,12 @@ DEFAULT_ASN='ournet'
 
 # Utility functions
 
-# Leaving the name unchanged because Syscat is the only system to which we're POSTing data
 def post(uri, data):
     """
     Post data to Syscat, and report the result to STDOUT for feedback to the user
     """
     response = requests.post('%s/%s' % (SYSCAT_URI, uri), data=data)
-    print '%s: %s' % (uri, response.status_code)
+    print('%s: %s' % (uri, response.status_code))
 
 def sanitise_uid(uid):
     '''
