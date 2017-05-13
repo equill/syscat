@@ -41,12 +41,9 @@ def migrate_customers():
         # Install it in Syscat
         post('organisations', {'uid': cust['name'], 'description': cust['notes']})
 
-def create_brand(name, notes):
-    post('brands', {'uid': name, 'notes': notes})
-
 def migrate_brands():
     for vendor in requests.get('%s/vendors/' % D42_URI, auth=(D42_USER, D42_PASSWD)).json()['vendors']:
-        create_brand(vendor['name'], ['notes'])
+        post('brands', {'uid': vendor['name'], 'notes': vendor['notes']})
 
 def create_model(brandname, modelname):
     brand='None'
@@ -54,24 +51,18 @@ def create_model(brandname, modelname):
         brand = sanitise_uid(brandname)
     else:
         create_brand('None', 'For models with no identified brand')
-    post('brands/%s/Models' % (brand), {'type': 'models', 'uid': modelname})
+    post('brands/%s/Models/models' % (brand), {'uid': modelname})
 
 def migrate_models():
     for model in requests.get('%s/hardwares/' % D42_URI, auth=(D42_USER, D42_PASSWD)).json()['models']:
         create_model(model['manufacturer'], model['name'])
-
-def create_operating_system(name, brand=False):
-    post('operatingSystems', {'uid': name})
-    # Associate the OS with its brand, if one was specified
-    if brand:
-        post('brands/%s/Produces' % (brand), {'target': '/operatingSystems/%s' % sanitise_uid(name)})
 
 def migrate_operating_systems():
     for os in requests.get('%s/operatingsystems/' % D42_URI, auth=(D42_USER, D42_PASSWD)).json()['operatingsystems']:
         brand=False
         if os['manufacturer'] != None:
             brand=os['manufacturer']
-        create_operating_system(os['name'], brand)
+        post('brands/%s/Produces' % (brand), {'target': '/operatingSystems/%s' % sanitise_uid(os['name'])})
 
 def migrate_buildings():
     '''
@@ -79,11 +70,11 @@ def migrate_buildings():
     '''
     for bldg in requests.get('%s/buildings/' % D42_URI, auth=(D42_USER, D42_PASSWD)).json()['buildings']:
         post('sites', data={'uid': bldg['name'], 'notes': 'Automatically created during migration from Device42'}),
-        post('sites/%s/Buildings' % bldg['name'], data={'type': 'buildings', 'uid': bldg['name'], 'notes': bldg['notes']})
+        post('sites/%s/Buildings/buildings' % bldg['name'], data={'uid': bldg['name'], 'notes': bldg['notes']})
 
 def migrate_rooms():
     for room in requests.get('%s/rooms/' % D42_URI, auth=(D42_USER, D42_PASSWD)).json()['rooms']:
-        post('sites/%s/Buildings/buildings/%s/Rooms' % (room['building'], room['building']), data={'type': 'rooms', 'uid': room['name'], 'notes': room['notes']})
+        post('sites/%s/Buildings/buildings/%s/Rooms/rooms' % (room['building'], room['building']), data={'uid': room['name'], 'notes': room['notes']})
 
 def create_device(details):
     data={
@@ -139,15 +130,14 @@ def migrate_vrfs():
     post('asn', {'uid': DEFAULT_ASN})
     # Now install the VRFs
     for vrf in requests.get('%s/vrf_group/' % D42_URI, auth=(D42_USER, D42_PASSWD)).json():
-        post('asn/%s/VrfGroups' % DEFAULT_ASN, {'type': 'vrfGroups', 'uid': vrf['name']})
+        post('asn/%s/VrfGroups/vrfGroups' % DEFAULT_ASN, {'uid': vrf['name']})
 
 def migrate_subnets():
     for subnet in requests.get('%s/subnets/' % D42_URI, auth=(D42_USER, D42_PASSWD)).json()['subnets']:
         # Insert the subnet itself
         result=post(
-                '/asn/%s/VrfGroups/%s/Subnets' % (DEFAULT_ASN, subnet['vrf_group_name']),
+                '/asn/%s/VrfGroups/%s/Subnets/ipv4Subnets' % (DEFAULT_ASN, subnet['vrf_group_name']),
                 {
-                    'type': 'ipv4Subnets',
                     'uid': subnet['network'],
                     'prefixlength': subnet['mask_bits'],
                     'description': subnet['description'],

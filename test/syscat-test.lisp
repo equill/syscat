@@ -62,7 +62,7 @@
     (restagraph:store-resource *server* "asn" `(("uid" . ,asn)))
     (restagraph::store-dependent-resource
       *server*
-      (format nil "/asn/~A/VrfGroups" asn) `(("type" . "vrfGroups") ("uid" . ,vrf)))
+      (format nil "/asn/~A/VrfGroups/vrfGroups" asn) `(("uid" . ,vrf)))
     ;; Add a top-level subnet; this should return NIL.
     (fiveam:is (not (syscat::insert-subnet *server* asn vrf subnet1)))
     ;; Confirm the subnet is there
@@ -176,8 +176,8 @@
     (restagraph:store-resource *server* "asn" `(("uid" . ,asn)))
     (restagraph:store-dependent-resource
       *server*
-      (format nil "/asn/~A/VrfGroups/" asn)
-      `(("type" . "vrfGroups") ("uid" . ,vrf)))
+      (format nil "/asn/~A/VrfGroups/vrfGroups" asn)
+      `(("uid" . ,vrf)))
     (syscat::insert-subnet *server* asn vrf subnet)
     ;; Tests
     (restagraph:log-message :debug "TEST Address is absent")

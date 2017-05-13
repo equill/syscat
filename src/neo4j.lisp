@@ -207,7 +207,7 @@
                                              parent-path))))))
          ;; Build the path to insert the new subnet
          (insert-path
-           (format nil "/asn/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets"
+           (format nil "/asn/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets/ipv4Subnets"
                    asn
                    (if (equal vrf "")
                        ""
@@ -220,8 +220,7 @@
               net-addr prefixlength insert-path))
     (restagraph:store-dependent-resource db
                                          insert-path
-                                         `(("type" . "ipv4Subnets")
-                                           ("uid" . ,net-addr)
+                                         `(("uid" . ,net-addr)
                                            ("prefixlength" . ,prefixlength)))
     ;; Using the list of candidates we retrieved earlier,
     ;; identify subnets of the one we just inserted, and move them under it.
@@ -395,13 +394,13 @@
         (progn
           (restagraph:store-dependent-resource
             db
-            (format nil "/asn/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses"
+            (format nil "/asn/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses/ipv4Addresses"
                     asn
                     (if (equal vrf "")
                         ""
                         (format nil "/VrfGroups/vrfGroups/~A" vrf))
                     parent-subnet)
-            `(("type" . "ipv4Addresses")("uid" . ,address)))
+            `(("uid" . ,address)))
           ;; Return NIL, because there's no earthly reason to return anything else.
           nil))))
 
