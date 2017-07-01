@@ -236,16 +236,19 @@
            :error
            (format nil "Attempted to start an already-running instance!"))))
   (when docker
-    (sb-thread:join-thread (find-if
-                                   (lambda (th)
-                                     (string= (sb-thread:thread-name th) "hunchentoot-listener-localhost:4950"))
-                                   (sb-thread:list-all-threads)))))
+    (sb-thread:join-thread
+      (find-if
+        (lambda (th)
+          (string= (sb-thread:thread-name th)
+                   (format nil "hunchentoot-listener-localhost:~A"
+                           (getf restagraph::*config-vars* :listen-port))))
+        (sb-thread:list-all-threads)))))
 
 (defun dockerstart ()
   (startup :docker t))
 
 (defun save-image (&optional (path "/tmp/syscat"))
-  (save-lisp-and-die path :executable t :toplevel 'syscat::dockerstart))
+  (sb-ext:save-lisp-and-die path :executable t :toplevel 'syscat::dockerstart))
 
 (defun shutdown ()
   (restagraph:log-message
