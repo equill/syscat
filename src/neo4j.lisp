@@ -61,13 +61,12 @@
             newpath))
         ;; If not, check whether we have a supernet of the subnet we're looking for
         (let* ((candidates
-                 (car
-                   (restagraph:get-resources
-                     db
-                     (format nil "/asn/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets"
-                             asn
-                             (if (equal vrf "") "" (format nil "/VrfGroups/vrfGroups/~A" vrf))
-                             path))))
+                 (restagraph:get-resources
+                   db
+                   (format nil "/asn/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets"
+                           asn
+                           (if (equal vrf "") "" (format nil "/VrfGroups/vrfGroups/~A" vrf))
+                           path)))
                (supernet
                  (remove-if-not
                    #'(lambda (s)
@@ -115,34 +114,35 @@
   (let ((candidates
           ;; Remove nulls from the list returned by the coming filter
           (remove-if
-                    #'null
-                    (mapcar #'(lambda (c)
-                                (restagraph:log-message
-                                  :debug
-                                  (format nil "Testing candidate parent subnet ~A" c))
-                                (when (parent-ipv4-subnet-p
-                                        (format nil "~A/~A"
-                                                (cdr (assoc :uid c))
-                                                (cdr (assoc :prefixlength c)))
-                                        subnet)
-                                  (cdr (assoc :uid c))))
-                            ;; Extract the list of candidate supernets
-                            (car
-                              (restagraph:get-resources
-                                db
-                                (format nil "/asn/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets"
-                                        asn
-                                        (if (equal vrfgroup "")
-                                            ""
-                                            (format nil "/VrfGroups/vrfGroups/~A" vrfgroup))
-                                        path)))))))
+            #'null
+            (mapcar #'(lambda (c)
+                        (restagraph:log-message
+                          :debug
+                          (format nil "Testing candidate parent subnet ~A" c))
+                        (when (parent-ipv4-subnet-p
+                                (format nil "~A/~A"
+                                        (cdr (assoc :uid c))
+                                        (cdr (assoc :prefixlength c)))
+                                subnet)
+                          (cdr (assoc :uid c))))
+                    ;; Extract the list of candidate supernets
+                    (restagraph:get-resources
+                      db
+                      (format nil "/asn/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets"
+                              asn
+                              (if (equal vrfgroup "")
+                                ""
+                                (format nil "/VrfGroups/vrfGroups/~A" vrfgroup))
+                              path))))))
     (restagraph:log-message
       :debug
       (format nil "Candidate supernets for ~A under ~{/~A~}: ~A" subnet path candidates))
     (cond
       ;; If there's no candidate, this is where the search stops. Return the path to this point.
       ((null candidates)
-       (format nil "End of the line. Using the parent path ~{/~A~}" path)
+       (restagraph:log-message
+         :debug
+         (format nil "End of the line. Using the parent path ~{/~A~}" path))
        path)
       ;; If there's more than one candidate, return an error because this is illegal.
       ;; FIXME: report the path so the user can fix the problem.
@@ -173,7 +173,7 @@
          (net-addr (restagraph::sanitise-uid (first subnet-parts)))
          (prefixlength (second subnet-parts))
          (parent-path (find-parent-subnet db subnet asn vrf ()))
-         ;; Pre-exact the list of candidate subnets for relocation.
+         ;; Pre-extract the list of candidate subnets for relocation.
          ;; If we do this now, we don't accidentally include the one we just inserted.
          (subnets
            (remove-if #'null
@@ -184,34 +184,34 @@
                                                   (cdr (assoc :uid s))
                                                   (cdr (assoc :prefixlength s))))
                                     s))
-                              (car
-                                (restagraph::get-resources
-                                  db (format nil "/asn/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets"
-                                             asn
-                                             (if (equal vrf "")
-                                                 ""
-                                                 (format nil "/VrfGroups/vrfGroups/~A" vrf))
-                                             parent-path))))))
+                              (restagraph::get-resources
+                                db
+                                (format nil "/asn/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets"
+                                        asn
+                                        (if (equal vrf "")
+                                          ""
+                                          (format nil "/VrfGroups/vrfGroups/~A" vrf))
+                                        parent-path)))))
+         ;; Pre-extract the list of candidate addresses for relocation.
          (addresses
-           (remove-if #'null
-                      (mapcar #'(lambda (a)
-                                  (when (parent-ipv4-subnet-p subnet (cdr (assoc :uid a)))
-                                    a))
-                              (car
-                                (restagraph::get-resources
-                                  db (format nil "/asn/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses/ipv4Addresses"
-                                             asn
-                                             (if (equal vrf "")
-                                                 ""
-                                                 (format nil "/VrfGroups/vrfGroups/~A" vrf))
-                                             parent-path))))))
+           (remove-if-not
+             #'(lambda (a)
+                 (parent-ipv4-subnet-p subnet (cdr (assoc :uid a))))
+             (restagraph::get-resources
+               db
+               (format nil "/asn/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses"
+                       asn
+                       (if (equal vrf "")
+                         ""
+                         (format nil "/VrfGroups/vrfGroups/~A" vrf))
+                       parent-path))))
          ;; Build the path to insert the new subnet
          (insert-path
            (format nil "/asn/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets/ipv4Subnets"
                    asn
                    (if (equal vrf "")
-                       ""
-                       (format nil "/VrfGroups/vrfGroups/~A" vrf))
+                     ""
+                     (format nil "/VrfGroups/vrfGroups/~A" vrf))
                    parent-path)))
     ;; Insert the subnet
     (restagraph:log-message
@@ -224,53 +224,57 @@
                                            ("prefixlength" . ,prefixlength)))
     ;; Using the list of candidates we retrieved earlier,
     ;; identify subnets of the one we just inserted, and move them under it.
-    (mapcar #'(lambda (s)
-                (restagraph:log-message
-                  :debug
-                  (format nil "Relocating subnet ~A under its new parent." s))
-                ;; Now actually move it
-                (restagraph:move-dependent-resource
-                  db
-                  ;; Existing path of subnet
-                  (format nil "/asn/~A~A~{/Subnets/ipv4Subnets/~A~}"
-                          asn
-                          (if (equal vrf "")
+    (if subnets
+      (mapcar #'(lambda (s)
+                  (restagraph:log-message
+                    :debug
+                    (format nil "Relocating subnet ~A under its new parent." s))
+                  ;; Now actually move it
+                  (restagraph:move-dependent-resource
+                    db
+                    ;; Existing path of subnet
+                    (format nil "/asn/~A~A~{/Subnets/ipv4Subnets/~A~}"
+                            asn
+                            (if (equal vrf "")
                               ""
                               (format nil "/VrfGroups/vrfGroups/~A" vrf))
-                          (append parent-path (list (cdr (assoc :uid s)))))
-                  ;; New parent for subnet
-                  (format nil "/asn/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets"
-                          asn
-                          (if (equal vrf "")
+                            (append parent-path (list (cdr (assoc :uid s)))))
+                    ;; New parent for subnet
+                    (format nil "/asn/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets"
+                            asn
+                            (if (equal vrf "")
                               ""
                               (format nil "/VrfGroups/vrfGroups/~A" vrf))
-                          (append parent-path (list net-addr)))))
-            subnets)
+                            (append parent-path (list net-addr)))))
+              subnets)
+      (restagraph:log-message :debug "No subnets to relocate"))
     ;; Find all IP addresses directly attached to the supernet which fit in this subnet;
     ;; move them under this one.
-    (mapcar #'(lambda (a)
-                (restagraph:log-message
-                  :debug
-                  (format nil "Relocating address ~A under its new parent." a))
-                ;; Now actually move it
-                (restagraph:move-dependent-resource
-                  db
-                  ;; Existing path of subnet
-                  (format nil "/asn/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses/ipv4Addresses/~A"
-                          asn
-                          (if (equal vrf "")
+    (if addresses
+      (mapcar #'(lambda (a)
+                  (restagraph:log-message
+                    :debug
+                    (format nil "Relocating address ~A under its new parent." a))
+                  ;; Now actually move it
+                  (restagraph:move-dependent-resource
+                    db
+                    ;; Existing path of subnet
+                    (format nil "/asn/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses/ipv4Addresses/~A"
+                            asn
+                            (if (equal vrf "")
                               ""
                               (format nil "/VrfGroups/vrfGroups/~A" vrf))
-                          parent-path
-                          (cdr (assoc :uid a)))
-                  ;; New parent for subnet
-                  (format nil "/asn/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses"
-                          asn
-                          (if (equal vrf "")
+                            parent-path
+                            (cdr (assoc :uid a)))
+                    ;; New parent for subnet
+                    (format nil "/asn/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses"
+                            asn
+                            (if (equal vrf "")
                               ""
                               (format nil "/VrfGroups/vrfGroups/~A" vrf))
-                          (append parent-path (list net-addr)))))
-            addresses))
+                            (append parent-path (list net-addr)))))
+              addresses)
+      (restagraph:log-message :debug "No addresses to relocate")))
   ;; Return nil, because the test suite expects this.
   ;; Seriously, there's nothing useful to actually report,
   ;; and we raise error conditions when anything goes wrong anyway.

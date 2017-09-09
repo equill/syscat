@@ -205,39 +205,42 @@
     ;; Confirm the fixtures aren't already present
     (fiveam:is (null (restagraph:get-resources *server* (format nil "/asn/~A" asn))))
     ;; Add the fixtures
-    (restagraph:log-message :debug "TEST Creating the fixtures.")
+    (restagraph:log-message :info "TEST Creating the fixtures.")
     (restagraph:store-resource *server* "asn" `(("uid" . ,asn)))
     (syscat::insert-subnet *server* asn "" subnet1)
     ;; Add the IP address
-    (restagraph:log-message :debug "TEST Add the IP address")
+    (restagraph:log-message :info "TEST Add the IP address")
     (fiveam:is (null (syscat::insert-ipv4address *server* address asn "")))
     ;; Confirm the address is there
-    (restagraph:log-message :debug "TEST Confirm the address is present.")
+    (restagraph:log-message :info "TEST Confirm the address is present.")
     (fiveam:is (syscat::find-ipv4address *server* address asn ""))
     (fiveam:is (equal (list (first (cl-ppcre:split "/" subnet1))
                             address)
                       (syscat::find-ipv4address *server* address asn "")))
     ;; Add another subnet
-    (restagraph:log-message :debug "TEST Add a second-level subnet.")
+    (restagraph:log-message :info "TEST Add a second-level subnet.")
     (fiveam:is (not (syscat::insert-subnet *server* asn "" subnet2)))
     ;; Confirm that's also there
-    (restagraph:log-message :debug "TEST Confirm the second-level subnet is present.")
-    (fiveam:is (syscat::find-subnet *server* asn "" subnet2))
+    (restagraph:log-message :info "TEST Confirm the second-level subnet is present.")
+    (fiveam:is (equal
+                 (list (first (cl-ppcre:split "/" subnet1))
+                       (first (cl-ppcre:split "/" subnet2)))
+                 (syscat::find-subnet *server* asn "" subnet2)))
     ;; Confirm the address has the correct new path
-    (restagraph:log-message :debug "TEST Confirm the address has been correctly moved.")
+    (restagraph:log-message :info "TEST Confirm the address has been correctly moved.")
     (fiveam:is (equal (list (first (cl-ppcre:split "/" subnet1))
                             (first (cl-ppcre:split "/" subnet2))
                             address)
                       (syscat::find-ipv4address *server* address asn "")))
     ;; Remove the second subnet
-    (restagraph:log-message :debug "TEST Delete the second-level subnet.")
+    (restagraph:log-message :info "TEST Delete the second-level subnet.")
     (fiveam:is (syscat::delete-subnet *server* asn "" subnet2))
     ;; Confirm the address has moved back again
-    (restagraph:log-message :debug "TEST Confirm the address is back under the top-level subnet.")
+    (restagraph:log-message :info "TEST Confirm the address is back under the top-level subnet.")
     (fiveam:is (syscat::find-ipv4address *server* address asn ""))
     (fiveam:is (equal (list (first (cl-ppcre:split "/" subnet1))
                             address)
                       (syscat::find-ipv4address *server* address asn "")))
     ;; Remove the fixtures
-    (restagraph:log-message :debug "TEST Deleting the fixtures.")
+    (restagraph:log-message :info "TEST Deleting the fixtures.")
     (restagraph:delete-resource-by-path *server* (format nil "/asn/~A" asn) :recursive t)))
