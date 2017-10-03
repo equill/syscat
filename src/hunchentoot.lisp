@@ -216,8 +216,6 @@
 
 (defun startup (&key docker)
   (restagraph:log-message :info "Starting up the restagraph application server")
-  ;; Enforce the schema
-  (restagraph::enforce-db-schema (restagraph::datastore *syscat-acceptor*))
   ;; Set the dispatch table
   (setf tbnl:*dispatch-table*
         (list
@@ -227,8 +225,6 @@
           (tbnl:create-prefix-dispatcher "/" 'restagraph::four-oh-four)))
   ;; Start up the server
   (restagraph:log-message :info "Starting up Hunchentoot to serve HTTP requests")
-  ;; Enforce the schema
-  (restagraph::enforce-db-schema (restagraph::datastore *syscat-acceptor*))
   (handler-case
     (tbnl:start *syscat-acceptor*)
     (usocket:address-in-use-error
