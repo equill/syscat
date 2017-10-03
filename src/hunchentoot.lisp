@@ -221,7 +221,8 @@
         (list
           (tbnl:create-prefix-dispatcher "/ipam/v1/subnets" 'subnet-dispatcher-v1)
           (tbnl:create-prefix-dispatcher "/ipam/v1/addresses" 'address-dispatcher-v1)
-          (tbnl:create-prefix-dispatcher (getf restagraph::*config-vars* :uri-base) 'restagraph::api-dispatcher-v1)
+          (tbnl:create-prefix-dispatcher (getf restagraph::*config-vars* :api-uri-base) 'restagraph::api-dispatcher-v1)
+          (tbnl:create-prefix-dispatcher (getf restagraph::*config-vars* :schema-uri-base) 'restagraph::schema-dispatcher-v1)
           (tbnl:create-prefix-dispatcher "/" 'restagraph::four-oh-four)))
   ;; Start up the server
   (restagraph:log-message :info "Starting up Hunchentoot to serve HTTP requests")
