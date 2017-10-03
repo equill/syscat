@@ -109,7 +109,8 @@ CREATE (t:rgResource {name: 'l3Tunnels'}),
 CREATE (t:rgResource {name: 'l3TunnelTypes'}),
     (t)-[:rgHasAttribute]->(:rgAttribute {name: 'notes'});
 // L3/logical
-CREATE (r:rgResource {name: 'asn', notes: 'Autonomous Systems. The UID should be the ASN, and the "name" should be its human-friendly tag.'}), (r)-[:rgHasAttribute]->(:rgAttribute {name: 'name', required: 'false'});
+CREATE (r:rgResource {name: 'asn', notes: 'Autonomous Systems. The UID should be the ASN, and the "name" should be its human-friendly tag.'}),
+    (r)-[:rgHasAttribute]->(:rgAttribute {name: 'name', required: 'false'});
 //
 // Layer 8 - applications
 CREATE (:rgResource {name: 'applications'});
