@@ -35,9 +35,9 @@
     ((asn "internet")
      (subnet1 "172.16.0.0/12"))
     ;; Confirm the fixtures aren't already present
-    (fiveam:is (null (restagraph:get-resources *server* (format nil "/asn/~A" asn))))
+    (fiveam:is (null (restagraph:get-resources *server* (format nil "/asns/~A" asn))))
     ;; Add the fixtures
-    (restagraph:store-resource *server* "asn" `(("uid" . ,asn)))
+    (restagraph:store-resource *server* "asns" `(("uid" . ,asn)))
     ;; Add a top-level subnet; this should return NIL.
     (fiveam:is (not (syscat::insert-subnet *server* asn "" subnet1)))
     ;; Confirm the subnet is there
@@ -47,7 +47,7 @@
     ;; Confirm the subnet is gone
     (fiveam:is (not (syscat::find-subnet *server* asn "" subnet1)))
     ;; Remove the fixtures
-    (restagraph:delete-resource-by-path *server* (format nil "/asn/~A" asn))))
+    (restagraph:delete-resource-by-path *server* (format nil "/asns/~A" asn))))
 
 (fiveam:test
   ipam-subnets-one-vrf
@@ -57,12 +57,12 @@
      (vrf "red")
      (subnet1 "172.16.0.0/12"))
     ;; Confirm the fixtures aren't already present
-    (fiveam:is (null (restagraph:get-resources *server* (format nil "/asn/~A" asn))))
+    (fiveam:is (null (restagraph:get-resources *server* (format nil "/asns/~A" asn))))
     ;; Add the fixtures
-    (restagraph:store-resource *server* "asn" `(("uid" . ,asn)))
+    (restagraph:store-resource *server* "asns" `(("uid" . ,asn)))
     (restagraph::store-dependent-resource
       *server*
-      (format nil "/asn/~A/VrfGroups/vrfGroups" asn) `(("uid" . ,vrf)))
+      (format nil "/asns/~A/VrfGroups/vrfGroups" asn) `(("uid" . ,vrf)))
     ;; Add a top-level subnet; this should return NIL.
     (fiveam:is (not (syscat::insert-subnet *server* asn vrf subnet1)))
     ;; Confirm the subnet is there
@@ -72,7 +72,7 @@
     ;; Confirm the subnet is gone
     (fiveam:is (not (syscat::find-subnet *server* asn vrf subnet1)))
     ;; Remove the fixtures
-    (restagraph:delete-resource-by-path *server* (format nil "/asn/~A" asn) :recursive t)))
+    (restagraph:delete-resource-by-path *server* (format nil "/asns/~A" asn) :recursive t)))
 
 (fiveam:test
   ipam-subnets-2-levels-no-vrf
@@ -82,10 +82,10 @@
      (subnet1 "172.16.0.0/12")
      (subnet2 "172.18.0.0/23"))
     ;; Confirm the fixtures aren't already present
-    (fiveam:is (null (restagraph:get-resources *server* (format nil "/asn/~A" asn))))
+    (fiveam:is (null (restagraph:get-resources *server* (format nil "/asns/~A" asn))))
     ;; Add the fixtures
     (restagraph:log-message :debug "TEST Creating the fixtures.")
-    (restagraph:store-resource *server* "asn" `(("uid" . ,asn)))
+    (restagraph:store-resource *server* "asns" `(("uid" . ,asn)))
     ;; Add a top-level subnet; this should return NIL.
     (restagraph:log-message :debug "TEST Add a top-level subnet.")
     (fiveam:is (not (syscat::insert-subnet *server* asn "" subnet1)))
@@ -108,7 +108,7 @@
     (fiveam:is (not (syscat::find-subnet *server* asn "" subnet1)))
     ;; Remove the fixtures
     (restagraph:log-message :debug "TEST Deleting the fixtures.")
-    (restagraph:delete-resource-by-path *server* (format nil "/asn/~A" asn))))
+    (restagraph:delete-resource-by-path *server* (format nil "/asns/~A" asn))))
 
 (fiveam:test
   ipam-subnets-3-levels-no-vrf
@@ -119,10 +119,10 @@
      (subnet2 "172.16.19.0/24")
      (subnet3 "172.16.18.0/23"))
     ;; Confirm the fixtures aren't already present
-    (fiveam:is (null (restagraph:get-resources *server* (format nil "/asn/~A" asn))))
+    (fiveam:is (null (restagraph:get-resources *server* (format nil "/asns/~A" asn))))
     ;; Add the fixtures
     (restagraph:log-message :debug "TEST Creating the fixtures.")
-    (restagraph:store-resource *server* "asn" `(("uid" . ,asn)))
+    (restagraph:store-resource *server* "asns" `(("uid" . ,asn)))
     ;; Add a top-level subnet; this should return NIL.
     (restagraph:log-message :debug "TEST Add a top-level subnet.")
     (fiveam:is (not (syscat::insert-subnet *server* asn "" subnet1)))
@@ -160,7 +160,7 @@
     (fiveam:is (syscat::delete-subnet *server* asn "" subnet2))
     ;; Remove the fixtures
     (restagraph:log-message :debug "TEST Deleting the fixtures.")
-    (restagraph:delete-resource-by-path *server* (format nil "/asn/~A" asn) :recursive t)))
+    (restagraph:delete-resource-by-path *server* (format nil "/asns/~A" asn) :recursive t)))
 
 (fiveam:test
   ipv4address-basic
@@ -170,13 +170,13 @@
         (vrf "green")
         (subnet "172.17.2.0/24"))
     ;; Ensure we're clear to start
-    (fiveam:is (null (restagraph:get-resources *server* (format nil "/asn/~A" asn))))
+    (fiveam:is (null (restagraph:get-resources *server* (format nil "/asns/~A" asn))))
     ;; Create fixtures
     (restagraph:log-message :debug "Creating fixtures with one VRF")
-    (restagraph:store-resource *server* "asn" `(("uid" . ,asn)))
+    (restagraph:store-resource *server* "asns" `(("uid" . ,asn)))
     (restagraph:store-dependent-resource
       *server*
-      (format nil "/asn/~A/VrfGroups/vrfGroups" asn)
+      (format nil "/asns/~A/VrfGroups/vrfGroups" asn)
       `(("uid" . ,vrf)))
     (syscat::insert-subnet *server* asn vrf subnet)
     ;; Tests
@@ -190,9 +190,9 @@
     (fiveam:is (null (syscat::delete-ipv4address *server* address asn vrf)))
     (fiveam:is (null (syscat::find-ipv4address *server* address asn vrf)))
     ;; Remove fixtures
-    (restagraph:delete-resource-by-path *server* (format nil "/asn/~A" asn) :recursive t)
+    (restagraph:delete-resource-by-path *server* (format nil "/asns/~A" asn) :recursive t)
     ;; Ensure the fixtures are gone
-    (fiveam:is (null (restagraph:get-resources *server* (format nil "/asn/~A" asn))))))
+    (fiveam:is (null (restagraph:get-resources *server* (format nil "/asns/~A" asn))))))
 
 (fiveam:test
   ipv4-subnets-and-addresses-basic
@@ -203,10 +203,10 @@
      (subnet2 "192.168.32.0/23")
      (address "192.168.32.3"))
     ;; Confirm the fixtures aren't already present
-    (fiveam:is (null (restagraph:get-resources *server* (format nil "/asn/~A" asn))))
+    (fiveam:is (null (restagraph:get-resources *server* (format nil "/asns/~A" asn))))
     ;; Add the fixtures
     (restagraph:log-message :info "TEST Creating the fixtures.")
-    (restagraph:store-resource *server* "asn" `(("uid" . ,asn)))
+    (restagraph:store-resource *server* "asns" `(("uid" . ,asn)))
     (syscat::insert-subnet *server* asn "" subnet1)
     ;; Add the IP address
     (restagraph:log-message :info "TEST Add the IP address")
@@ -243,4 +243,4 @@
                       (syscat::find-ipv4address *server* address asn "")))
     ;; Remove the fixtures
     (restagraph:log-message :info "TEST Deleting the fixtures.")
-    (restagraph:delete-resource-by-path *server* (format nil "/asn/~A" asn) :recursive t)))
+    (restagraph:delete-resource-by-path *server* (format nil "/asns/~A" asn) :recursive t)))

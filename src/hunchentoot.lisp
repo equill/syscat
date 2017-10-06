@@ -22,7 +22,7 @@
   (restagraph:log-message log-level (append (list format-string) format-arguments)))
 
 (defun format-subnet (asn vrf subnet-list)
-  (format nil "/asn/~A~A~{/Subnets/ipv4Subnets/~A~}"
+  (format nil "/asns/~A~A~{/Subnets/ipv4Subnets/~A~}"
           asn
           (if vrf (format nil "/~A" vrf) "")
           subnet-list))
@@ -39,13 +39,13 @@
       ;; Create a subnet
       ((and (equal (tbnl:request-method*) :POST)
             (tbnl:post-parameter "subnet")
-            (tbnl:post-parameter "asn"))
+            (tbnl:post-parameter "asns"))
        (restagraph:log-message :debug
                                (format nil "Dispatching POST request for URI ~A"
                                        (tbnl:request-uri*)))
        ;; Insert it
        (insert-subnet (restagraph::datastore *syscat-acceptor*)
-                      (tbnl:post-parameter "asn")
+                      (tbnl:post-parameter "asns")
                       (or (tbnl:post-parameter "vrf") "")
                       (tbnl:post-parameter "subnet"))
        ;; Return it to the client for confirmation
@@ -56,24 +56,24 @@
        (setf (tbnl:content-type*) "application/json")
        (setf (tbnl:return-code*) tbnl:+http-created+)
        (format-subnet
-         (tbnl:post-parameter "asn")
+         (tbnl:post-parameter "asns")
          (tbnl:post-parameter "vrf")
          (find-subnet (restagraph::datastore *syscat-acceptor*)
-                      (tbnl:post-parameter "asn")
+                      (tbnl:post-parameter "asns")
                       (or (tbnl:post-parameter "vrf") "")
                       (tbnl:post-parameter "subnet"))))
       ;;
       ;; Search for a subnet
       ((and (equal (tbnl:request-method*) :GET)
             (tbnl:get-parameter "subnet")
-            (tbnl:get-parameter "asn"))
+            (tbnl:get-parameter "asns"))
        (restagraph:log-message :debug
                                (format nil "Dispatching GET request for URI ~A"
                                        (tbnl:request-uri*)))
        ;; Go look for it
        (handler-case
          (let ((result (find-subnet (restagraph::datastore *syscat-acceptor*)
-                                    (tbnl:get-parameter "asn")
+                                    (tbnl:get-parameter "asns")
                                     (or (tbnl:get-parameter "vrf") "")
                                     (tbnl:get-parameter "subnet"))))
            ;; Did we find one?
@@ -89,7 +89,7 @@
                  (setf (tbnl:content-type*) "application/json")
                  (setf (tbnl:return-code*) tbnl:+http-ok+)
                  (format-subnet
-                   (tbnl:post-parameter "asn")
+                   (tbnl:post-parameter "asns")
                    (tbnl:post-parameter "vrf")
                    result))))
          ;; Attempted violation of db integrity
@@ -100,12 +100,12 @@
       ;; Delete a subnet
       ((and (equal (tbnl:request-method*) :DELETE)
             (tbnl:post-parameter "subnet")
-            (tbnl:post-parameter "asn"))
+            (tbnl:post-parameter "asns"))
        (restagraph:log-message :debug
                                (format nil "Dispatching DELETE request for URI ~A"
                                        (tbnl:request-uri*)))
        (delete-subnet (restagraph::datastore *syscat-acceptor*)
-                      (tbnl:post-parameter "asn")
+                      (tbnl:post-parameter "asns")
                       (or (tbnl:post-parameter "vrf") "")
                       (tbnl:post-parameter "subnet"))
        (setf (tbnl:content-type*) "text/plain")
@@ -136,13 +136,13 @@
       ;; Create an address
       ((and (equal (tbnl:request-method*) :POST)
             (tbnl:post-parameter "address")
-            (tbnl:post-parameter "asn"))
+            (tbnl:post-parameter "asns"))
        (restagraph:log-message
          :debug (format nil "Dispatching POST request for URI ~A" (tbnl:request-uri*)))
        ;; Insert it
        (insert-ipv4address (restagraph::datastore *syscat-acceptor*)
                            (tbnl:post-parameter "address")
-                           (tbnl:post-parameter "asn")
+                           (tbnl:post-parameter "asns")
                            (or (tbnl:post-parameter "vrf") ""))
        ;; Return it to the client for confirmation
        (restagraph:log-message
@@ -154,20 +154,20 @@
        (cl-json:encode-json-to-string
          (find-ipv4address (restagraph::datastore *syscat-acceptor*)
                            (tbnl:post-parameter "address")
-                           (tbnl:post-parameter "asn")
+                           (tbnl:post-parameter "asns")
                            (or (tbnl:post-parameter "vrf") ""))))
       ;;
       ;; Search for an address
       ((and (equal (tbnl:request-method*) :GET)
             (tbnl:get-parameter "address")
-            (tbnl:get-parameter "asn"))
+            (tbnl:get-parameter "asns"))
        (restagraph:log-message
          :debug (format nil "Dispatching GET request for URI ~A" (tbnl:request-uri*)))
        ;; Go look for it
        (handler-case
          (let ((result (find-ipv4address (restagraph::datastore *syscat-acceptor*)
                                          (tbnl:get-parameter "address")
-                                         (tbnl:get-parameter "asn")
+                                         (tbnl:get-parameter "asns")
                                          (or (tbnl:get-parameter "vrf") ""))))
            ;; Did we find one?
            (if (or (null result)
@@ -190,13 +190,13 @@
       ;; Delete an address
       ((and (equal (tbnl:request-method*) :DELETE)
             (tbnl:post-parameter "address")
-            (tbnl:post-parameter "asn"))
+            (tbnl:post-parameter "asns"))
        (restagraph:log-message :debug
                                (format nil "Dispatching DELETE request for URI ~A"
                                        (tbnl:request-uri*)))
        (delete-ipv4address (restagraph::datastore *syscat-acceptor*)
                            (tbnl:post-parameter "address")
-                           (tbnl:post-parameter "asn")
+                           (tbnl:post-parameter "asns")
                            (or (tbnl:post-parameter "vrf") ""))
        (setf (tbnl:content-type*) "text/plain")
        (setf (tbnl:return-code*) tbnl:+http-no-content+)

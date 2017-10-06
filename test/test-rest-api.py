@@ -54,17 +54,17 @@ class TestSubnetsBasicNoVrf(unittest.TestCase):
     def test_create_and_delete_single_subnet(self):
         print('Test: test_create_and_delete_single_subnet')
         # Create the ASN that it goes under
-        self.assertEqual(requests.post('%s/%s/asn' % (BASE_URL, RAWPREFIX), data={'uid': self.asn}).status_code, 201)
+        self.assertEqual(requests.post('%s/%s/asns' % (BASE_URL, RAWPREFIX), data={'uid': self.asn}).status_code, 201)
         # Add the subnet
-        self.assertEqual(requests.post('%s/%s/subnets' % (BASE_URL, IPAMPREFIX), data={'asn': self.asn, 'subnet': self.subnet1}).status_code, 201)
+        self.assertEqual(requests.post('%s/%s/subnets' % (BASE_URL, IPAMPREFIX), data={'asns': self.asn, 'subnet': self.subnet1}).status_code, 201)
         # Confirm it's there
-        self.assertEqual(requests.get('%s/%s/subnets?subnet=%s&asn=%s' % (BASE_URL, IPAMPREFIX, self.subnet1, self.asn)).status_code, 200)
+        self.assertEqual(requests.get('%s/%s/subnets?subnet=%s&asns=%s' % (BASE_URL, IPAMPREFIX, self.subnet1, self.asn)).status_code, 200)
         # Delete it
-        self.assertEqual(requests.delete('%s/%s/subnets' % (BASE_URL, IPAMPREFIX), data={'asn': self.asn, 'subnet': self.subnet1}).status_code, 204)
+        self.assertEqual(requests.delete('%s/%s/subnets' % (BASE_URL, IPAMPREFIX), data={'asns': self.asn, 'subnet': self.subnet1}).status_code, 204)
         # Ensure it's gone
-        self.assertEqual(requests.get('%s/%s/subnets?subnet=%s&asn=%s' % (BASE_URL, IPAMPREFIX, self.subnet1, self.asn)).status_code, 404)
+        self.assertEqual(requests.get('%s/%s/subnets?subnet=%s&asns=%s' % (BASE_URL, IPAMPREFIX, self.subnet1, self.asn)).status_code, 404)
         # Remove the ASN
-        self.assertEqual(requests.delete('%s/%s/asn/%s' % (BASE_URL, RAWPREFIX, self.asn)).status_code, 204)
+        self.assertEqual(requests.delete('%s/%s/asns/%s' % (BASE_URL, RAWPREFIX, self.asn)).status_code, 204)
 
 class TestIpv4AddressesBasicNoVrf(unittest.TestCase):
     '''
@@ -76,19 +76,19 @@ class TestIpv4AddressesBasicNoVrf(unittest.TestCase):
     def test_create_and_delete_single_address(self):
         print('Test: test_create_and_delete_single_address')
         # Create the ASN that it goes under
-        self.assertEqual(requests.post('%s/%s/asn' % (BASE_URL, RAWPREFIX), data={'uid': self.asn}).status_code, 201)
+        self.assertEqual(requests.post('%s/%s/asns' % (BASE_URL, RAWPREFIX), data={'uid': self.asn}).status_code, 201)
         # Add the subnet
-        self.assertEqual(requests.post('%s/%s/subnets' % (BASE_URL, IPAMPREFIX), data={'asn': self.asn, 'subnet': self.subnet1}).status_code, 201)
+        self.assertEqual(requests.post('%s/%s/subnets' % (BASE_URL, IPAMPREFIX), data={'asns': self.asn, 'subnet': self.subnet1}).status_code, 201)
         # Add the address
-        self.assertEqual(requests.post('%s/%s/addresses' % (BASE_URL, IPAMPREFIX), data={'asn': self.asn, 'address': self.address1}).status_code, 201)
+        self.assertEqual(requests.post('%s/%s/addresses' % (BASE_URL, IPAMPREFIX), data={'asns': self.asn, 'address': self.address1}).status_code, 201)
         # Confirm it's there
-        self.assertEqual(requests.get('%s/%s/addresses?address=%s&asn=%s' % (BASE_URL, IPAMPREFIX, self.address1, self.asn)).status_code, 200)
+        self.assertEqual(requests.get('%s/%s/addresses?address=%s&asns=%s' % (BASE_URL, IPAMPREFIX, self.address1, self.asn)).status_code, 200)
         # Delete it
-        self.assertEqual(requests.delete('%s/%s/addresses' % (BASE_URL, IPAMPREFIX), data={'asn': self.asn, 'address': self.address1}).status_code, 204)
+        self.assertEqual(requests.delete('%s/%s/addresses' % (BASE_URL, IPAMPREFIX), data={'asns': self.asn, 'address': self.address1}).status_code, 204)
         # Ensure it's gone
-        self.assertEqual(requests.get('%s/%s/addresses?address=%s&asn=%s' % (BASE_URL, IPAMPREFIX, self.address1, self.asn)).status_code, 404)
+        self.assertEqual(requests.get('%s/%s/addresses?address=%s&asns=%s' % (BASE_URL, IPAMPREFIX, self.address1, self.asn)).status_code, 404)
         # Remove the ASN and subnet
-        self.assertEqual(requests.delete('%s/%s/asn/%s' % (BASE_URL, RAWPREFIX, self.asn), data={'recursive': 'true'}).status_code, 204)
+        self.assertEqual(requests.delete('%s/%s/asns/%s' % (BASE_URL, RAWPREFIX, self.asn), data={'recursive': 'true'}).status_code, 204)
 
 
 # Make it happen
