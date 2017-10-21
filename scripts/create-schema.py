@@ -157,6 +157,11 @@ SCHEMA = {
             'vlans': {
                     'notes': 'Layer 2 spans, i.e. ethernet segments. Not to be confused with subnets.',
                     'dependent': 'true',
+                    'attributes': ['name'],
+                    },
+            'vlanGroups': {
+                    'notes': 'A notional VLAN, the sum of the VLANs of one or more devices. Often confused as being the VLAN itself.',
+                    'attributes': ['default_vlan_id', 'comments'],
                     },
             'l2Links': {
                     'attributes': ['comments', 'our_id', 'vendor_id'],
@@ -296,6 +301,7 @@ SCHEMA = {
             {'uri': '/devices/Environment/environments', 'cardinality': 'many:1'},
             {'uri': '/devices/ServiceLevel/serviceLevels', 'cardinality': 'many:1'},
             {'uri': '/brands/Produces/parts', 'cardinality': '1:many', 'dependent': 'true'},
+            {'uri': '/vlans/Member/vlanGroups', 'cardinality': '1:many'},
             {'uri': '/devices/Vlan/vlans', 'cardinality': '1:many', 'dependent': 'true'},
             {'uri': '/networkInterfaces/Vlan/vlans', 'cardinality': '1:many', 'dependent': 'true'},
             {'uri': '/devices/ConnectsTo/l2Links', 'cardinality': 'many:many'},
@@ -341,6 +347,10 @@ SCHEMA = {
             {'uri': '/asns/Owner/organisations', 'cardinality': 'many:1'},
             {'uri': '/ipv4Subnets/Owner/organisations', 'cardinality': 'many:1'},
             {'uri': '/ipv6Subnets/Owner/organisations', 'cardinality': 'many:1'},
+            {'uri': '/ipv4Addresses/AllocatedTo/devices', 'cardinality': 'many:1'},
+            {'uri': '/ipv6Addresses/AllocatedTo/devices', 'cardinality': 'many:1'},
+            {'uri': '/ipv4Subnets/AllocatedTo/vlanGroups', 'cardinality': 'many:1'},
+            {'uri': '/ipv6Subnets/AllocatedTo/vlanGroups', 'cardinality': 'many:1'},
             {'uri': '/applications/DependsOn/applications', 'cardinality': 'many:many'},
             {'uri': '/applications/RunsOn/devices', 'cardinality': 'many:many'},
             {'uri': '/applications/BusinessOwner/people', 'cardinality': 'many:1'},
