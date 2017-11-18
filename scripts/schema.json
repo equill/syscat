@@ -28,7 +28,9 @@
         "postbox_addresses": {
             "notes": "The UID is the PO Box number."
         },
-        "postcodes": {},
+        "postcodes": {
+            "notes": "What else does this need?"
+        },
         "sites": {
             "notes": "Like a campus, a site contains one or more buildings.",
             "attributes": ["longname", "comments"]
@@ -159,6 +161,7 @@
             "attributes": ["prefixlength", "comments"]
         },
         "l3Tunnels": {
+            "notes": "Any kind of tunnel above layer 2: MPLS, SSL etc.",
             "attributes": ["comments"]
         },
         "l3TunnelTypes": {
@@ -230,9 +233,12 @@
     {"uri": "/devices/OperatingSystem/operatingSystemVersions", "cardinality": "many:1"},
     {"uri": "/devices/Member/devices", "cardinality": "many:1"},
     {"uri": "/devices/HostedOn/devices", "cardinality": "many:1"},
+    {"uri": "/devices/ManagementAddress/ipv4Address", "cardinality": "1:1"}
+    {"uri": "/devices/ManagementAddress/ipv6Address", "cardinality": "1:1"}
     {"uri": "/networkInterfaces/Subinterfaces/networkInterfaces", "cardinality": "1:many", "dependent": "true"},
     {"uri": "/networkInterfaces/Member/networkInterfaces", "cardinality": "many:1"},
     {"uri": "/networkInterfaces/Connectsto/networkInterfaces", "cardinality": "1:1"},
+    {"uri": "/brands/Produces/models", "cardinality": "1:many", "dependent": "true"},
     {"uri": "/parts/Model/models", "cardinality": "many:1"},
     {"uri": "/parts/PurchasedFrom/organisations", "cardinality": "many:1"},
     {"uri": "/models/CompatibleWith/models", "cardinality": "many:many"},
@@ -305,7 +311,14 @@
     {"uri": "/ipv6Subnets/Addresses/ipv6Addresses", "cardinality": "1:many", "dependent": "true"},
     {"uri": "/ipv4Addresses/ConnectsTo/l3Tunnels", "cardinality": "many:1"},
     {"uri": "/ipv6Addresses/ConnectsTo/l3Tunnels", "cardinality": "many:1"},
+    {"uri": "/ipv4Subnets/AllocatedTo/organisations", "cardinality": "1:1"},
+    {"uri": "/ipv6Subnets/AllocatedTo/organisations", "cardinality": "1:1"},
+    {"uri": "/organisations/Allocated/ipv4Subnets", "cardinality": "many:1"},
+    {"uri": "/organisations/Allocated/ipv6Subnets", "cardinality": "many:1"},
+    {"uri": "/ipv4Subnets/AllocatedTo/sites", "cardinality": "1:1"},
+    {"uri": "/ipv6Subnets/AllocatedTo/sites", "cardinality": "1:1"},
     {"uri": "/l3Tunnels/TunnelType/l3TunnelTypes", "cardinality": "many:1"},
+    {"uri": "/organisations/Asns/asns", "cardinality": "1:many"},
     {"uri": "/asns/AllocatedTo/organisations", "cardinality": "many:1"},
     {"uri": "/asns/AllocatedBy/organisations", "cardinality": "many:1"},
     {"uri": "/ipv4Subnets/AllocatedTo/organisations", "cardinality": "many:1"},
