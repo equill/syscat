@@ -187,7 +187,8 @@
             "attributes": ["comments"]
         },
         "organisations": {
-            "notes": "Any kind of organisation: professional, social or other."
+            "notes": "Any kind of organisation: professional, social or other.",
+            "attributes": ["comments"]
         },
         "contracts": {
             "attributes": ["comments", "reference_number", "start_date", "end_date"]
