@@ -56,27 +56,31 @@ There's a raw API, which provides the core functionality, plus domain-specific A
 
 This provides most of the functionality, is rooted at `/raw/v<version/` and uses [Restagraph](https://github.com/equill/restagraph) as its engine.
 
-It dynamically generates the API according to what's in the database, so mostly\* keeps up automatically with any updates. This is what enables you to extend the schema according to your needs.
-
-\*mostly = uniqueness constraints in the database are only updated when the application starts up, so sometimes you _will_ need to restart it after updating the schema.
+It dynamically generates the API according to what's in the database, so keeps up automatically with any updates. This is what enables you to extend the schema according to your needs.
 
 It looks slightly cumbersome, using a `/<type>/<uid>/<relationship>/<type>/<uid>...` format, but this has the virtues of consistency and predictability, which makes automation easier.
 
 
 ### IPAM (IP Address Management) API
 
-Rudimentary at present.
+Some things do need their own API; among them are creating and removing IP subnets and addresses.
 
-This design recognises that what you've allocated in your IPAM system may or may not correspond with what's actually configured on any given interface, or with what's in DNS.
+While nothing actually _stops_ you using the Raw API to add, change and remove subnets and addresses, it's a tedious and error-prone process, especially if you add and remove subnets by hand - finding the parent subnet, moving the new child subnets and addresses under a new mid-level subnet, and doing all that in reverse when you remove them.
 
 It's aware of ASes and VRFs, in keeping with the rest of the system.
 
-When fully-functional, newly subnets will be automatically created under the most appropriate supernet, and IP addresses will be automatically rehomed as subnets are created, deleted and resized.
+New subnets are automatically created under the most appropriate supernet, and subnets and IP addresses are automatically rehomed as subnets are created, deleted and resized.
 
+GET requests are the search interface to the IPAM section:
 
-## Current status
+- `/subnets`
+- `/addresses`
 
-- it's in working order
-- the schema looks plausible, if incomplete for things like DNS
-- scripts for discovery and for migration from existing CMDBs/DCIMs are being built
-- documentation is woefully lacking
+Both return the URI for interacting with the subnet or address in question via the Raw API, which is what you need when you then link them to/from other resources, such as delegating a subnet to another suborganisation, or allocating an address to a device.
+
+Search for subnet 192.168.0.0/16 under ASN 64496:
+```
+GET http://localhost:4950/ipam/v1/subnets?asns=64496?subnet=192.168.0.0/16
+
+/asns/64496/Subnets/ipv4Subnets/192.168.0.0
+```
