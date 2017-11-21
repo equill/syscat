@@ -7,15 +7,13 @@
                         &optional path)
   (restagraph:log-message
     :debug
-    (format nil "find-subnet: Search for subnet ~A in ASN ~A and ~A~A."
+    (format nil "find-subnet: Search for subnet ~A in path /~A~A~{/~A~}"
             subnet
             org
             (if (equal vrf "")
-              "the default VRF group"
-              (format nil "VRF group ~A" vrf))
-            (if path
-            (format nil " and under existing path ~A" path)
-            "")))
+              ""
+              (format nil "/~A" vrf))
+            path))
   ;; Sanity-check
   (unless (ipv4-subnet-p subnet)
     (error 'restagraph:client-error
