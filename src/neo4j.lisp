@@ -1,7 +1,7 @@
 (in-package #:syscat)
 
 (defmethod find-subnet ((db neo4cl:neo4j-rest-server)
-                        (asn string)
+                        (org string)
                         (vrf string)
                         (subnet string)
                         &optional path)
@@ -9,7 +9,7 @@
     :debug
     (format nil "find-subnet: Search for subnet ~A in path /~A~A~{/~A~}"
             subnet
-            asn
+            org
             (if (equal vrf "")
               ""
               (format nil "/~A" vrf))
@@ -26,7 +26,8 @@
     (let ((match
             (restagraph:get-resources
               db
-              (format nil "/asns/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets/ipv4Subnets/~A" asn
+              (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets/ipv4Subnets/~A"
+                      org
                       (if (equal vrf "")
                         ""
                         (format nil "/VrfGroups/vrfGroups/~A" vrf))
@@ -48,8 +49,8 @@
         (let* ((candidates
                  (restagraph:get-resources
                    db
-                   (format nil "/asns/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets"
-                           asn
+                   (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets"
+                           org
                            (if (equal vrf "") "" (format nil "/VrfGroups/vrfGroups/~A" vrf))
                            path)))
                (supernet
@@ -77,24 +78,24 @@
                     :debug
                     (format nil "Supernet identified. Finding the location of ~A under /~A~A~{/~A~}"
                             subnet
-                            asn
+                            org
                             (if (equal vrf "")
                               ""
                               (format nil "/~A" vrf))
                             newpath))
-                  (find-subnet db asn vrf subnet newpath)))
+                  (find-subnet db org vrf subnet newpath)))
               ;; No candidate supernet found
               (restagraph:log-message :debug "No exact match or supernet found on this path."))))))))
 
 (defmethod find-parent-subnet ((db neo4cl:neo4j-rest-server)
                                (subnet string)
-                               (asn string)
+                               (org string)
                                (vrfgroup string)
                                (path list))
   (restagraph:log-message
     :debug
-    (format nil "Searching for parent subnet for ~A under ASN '~A' and VRF '~A'."
-            subnet asn vrfgroup))
+    (format nil "Searching for parent subnet for ~A under organisation '~A' and VRF '~A'."
+            subnet org vrfgroup))
   ;; Get a list of candidate supernets
   (let ((candidates
           ;; Remove nulls from the list returned by the coming filter
@@ -113,8 +114,8 @@
                     ;; Extract the list of candidate supernets
                     (restagraph:get-resources
                       db
-                      (format nil "/asns/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets"
-                              asn
+                      (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets"
+                              org
                               (if (equal vrfgroup "")
                                 ""
                                 (format nil "/VrfGroups/vrfGroups/~A" vrfgroup))
@@ -140,24 +141,24 @@
          :debug
          (format nil "Found a candidate supernet for ~A: recursing into ~{/~A~}."
                  subnet (append path (list (car candidates)))))
-       (find-parent-subnet db subnet asn vrfgroup (append path (list (car candidates))))))))
+       (find-parent-subnet db subnet org vrfgroup (append path (list (car candidates))))))))
 
 (defmethod insert-subnet ((db neo4cl:neo4j-rest-server)
-                          (asn string)
+                          (org string)
                           (vrf string)
                           (subnet string))
   (restagraph:log-message
     :debug
-    (format nil "Attempting to insert subnet '~A' under ASN '~A' and VRF-group '~A'."
-            subnet asn vrf))
+    (format nil "Attempting to insert subnet '~A' under organisation '~A' and VRF-group '~A'."
+            subnet org vrf))
   ;; Sanity check: is it already there?
-  (when (find-subnet db asn vrf subnet)
+  (when (find-subnet db org vrf subnet)
     (error 'restagraph:client-error :message "Subnet already exists"))
   ;; Precalculate stuff
   (let* ((subnet-parts (cl-ppcre:split "/" subnet))
          (net-addr (restagraph::sanitise-uid (first subnet-parts)))
          (prefixlength (second subnet-parts))
-         (parent-path (find-parent-subnet db subnet asn vrf ()))
+         (parent-path (find-parent-subnet db subnet org vrf ()))
          ;; Pre-extract the list of candidate subnets for relocation.
          ;; If we do this now, we don't accidentally include the one we just inserted.
          (subnets
@@ -171,8 +172,8 @@
                                     s))
                               (restagraph::get-resources
                                 db
-                                (format nil "/asns/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets"
-                                        asn
+                                (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets"
+                                        org
                                         (if (equal vrf "")
                                           ""
                                           (format nil "/VrfGroups/vrfGroups/~A" vrf))
@@ -184,16 +185,16 @@
                  (parent-ipv4-subnet-p subnet (cdr (assoc :uid a))))
              (restagraph::get-resources
                db
-               (format nil "/asns/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses"
-                       asn
+               (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses"
+                       org
                        (if (equal vrf "")
                          ""
                          (format nil "/VrfGroups/vrfGroups/~A" vrf))
                        parent-path))))
          ;; Build the path to insert the new subnet
          (insert-path
-           (format nil "/asns/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets/ipv4Subnets"
-                   asn
+           (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets/ipv4Subnets"
+                   org
                    (if (equal vrf "")
                      ""
                      (format nil "/VrfGroups/vrfGroups/~A" vrf))
@@ -218,15 +219,15 @@
                   (restagraph:move-dependent-resource
                     db
                     ;; Existing path of subnet
-                    (format nil "/asns/~A~A~{/Subnets/ipv4Subnets/~A~}"
-                            asn
+                    (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}"
+                            org
                             (if (equal vrf "")
                               ""
                               (format nil "/VrfGroups/vrfGroups/~A" vrf))
                             (append parent-path (list (cdr (assoc :uid s)))))
                     ;; New parent for subnet
-                    (format nil "/asns/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets"
-                            asn
+                    (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets"
+                            org
                             (if (equal vrf "")
                               ""
                               (format nil "/VrfGroups/vrfGroups/~A" vrf))
@@ -244,16 +245,16 @@
                   (restagraph:move-dependent-resource
                     db
                     ;; Existing path of subnet
-                    (format nil "/asns/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses/ipv4Addresses/~A"
-                            asn
+                    (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses/ipv4Addresses/~A"
+                            org
                             (if (equal vrf "")
                               ""
                               (format nil "/VrfGroups/vrfGroups/~A" vrf))
                             parent-path
                             (cdr (assoc :uid a)))
                     ;; New parent for subnet
-                    (format nil "/asns/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses"
-                            asn
+                    (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses"
+                            org
                             (if (equal vrf "")
                               ""
                               (format nil "/VrfGroups/vrfGroups/~A" vrf))
@@ -266,10 +267,10 @@
   nil)
 
 (defmethod delete-subnet ((db neo4cl:neo4j-rest-server)
-                          (asn string)
+                          (org string)
                           (vrf string)
                           (subnet string))
-  (let* ((subnet-path (find-subnet db asn vrf subnet))
+  (let* ((subnet-path (find-subnet db org vrf subnet))
          (parent-path (butlast subnet-path)))
     ;; Sanity-check
     (unless subnet-path
@@ -280,15 +281,15 @@
                 (restagraph:move-dependent-resource
                   db
                   ;; Existing path
-                  (format nil "/asns/~A~A~{/Subnets/ipv4Subnets/~A~}"
-                          asn
+                  (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}"
+                          org
                           (if (equal vrf "")
                               ""
                               (format nil "/VrfGroups/vrfGroups/~A" vrf))
                           (append subnet-path (list (cdr (assoc :uid s)))))
                   ;; New parent path
-                  (format nil "/asns/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets"
-                          asn
+                  (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets"
+                          org
                           (if (equal vrf "")
                               ""
                               (format nil "/VrfGroups/vrfGroups/~A" vrf))
@@ -297,8 +298,8 @@
             (car
               (restagraph:get-resources
                 db
-                (format nil "/asns/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets/ipv4Subnets"
-                        asn
+                (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets/ipv4Subnets"
+                        org
                         (if (equal vrf "")
                             ""
                             (format nil "/VrfGroups/vrfGroups/~A" vrf))
@@ -309,16 +310,16 @@
                 (restagraph:move-dependent-resource
                   db
                   ;; Existing path
-                  (format nil "/asns/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses/ipv4Addresses/~A"
-                          asn
+                  (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses/ipv4Addresses/~A"
+                          org
                           (if (equal vrf "")
                               ""
                               (format nil "/VrfGroups/vrfGroups/~A" vrf))
                           subnet-path
                           (cdr (assoc :uid a)))
                   ;; New parent path
-                  (format nil "/asns/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses"
-                          asn
+                  (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses"
+                          org
                           (if (equal vrf "")
                               ""
                               (format nil "/VrfGroups/vrfGroups/~A" vrf))
@@ -327,8 +328,8 @@
             (car
               (restagraph:get-resources
                 db
-                (format nil "/asns/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses/ipv4Addresses"
-                        asn
+                (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses/ipv4Addresses"
+                        org
                         (if (equal vrf "")
                             ""
                             (format nil "/VrfGroups/vrfGroups/~A" vrf))
@@ -336,8 +337,8 @@
     ;; Delete the subnet itself
     (restagraph:delete-resource-by-path
       db
-      (format nil "/asns/~A~A~{/Subnets/ipv4Subnets/~A~}"
-              asn
+      (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}"
+              org
               (if (equal vrf "")
                   ""
                   (format nil "/VrfGroups/vrfGroups/~A" vrf))
@@ -346,14 +347,14 @@
 
 (defmethod find-ipv4address ((db neo4cl:neo4j-rest-server)
                              (address string)
-                             (asn string)
+                             (org string)
                              (vrf string))
-  (let ((parent-path (find-parent-subnet db address asn vrf ())))
+  (let ((parent-path (find-parent-subnet db address org vrf ())))
     (when parent-path
       (let ((result (restagraph:get-resources
                       db
-                      (format nil "/asns/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses/ipv4Addresses/~A"
-                              asn
+                      (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses/ipv4Addresses/~A"
+                              org
                               (if (equal vrf "")
                                   ""
                                   (format nil "/VrfGroups/vrfGroups/~A" vrf))
@@ -364,14 +365,14 @@
 
 (defmethod insert-ipv4address ((db neo4cl:neo4j-rest-server)
                                (address string)
-                               (asn string)
+                               (org string)
                                (vrf string))
-  (let ((parent-subnet (find-parent-subnet db address asn vrf ())))
+  (let ((parent-subnet (find-parent-subnet db address org vrf ())))
     ;; Sanity-check: is it already there?
     (if (restagraph:get-resources
           db
-          (format nil "/asns/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses/ipv4Addresses/~A"
-                  asn
+          (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses/ipv4Addresses/~A"
+                  org
                   (if (equal vrf "")
                       ""
                       (format nil "/VrfGroups/vrfGroups/~A" vrf))
@@ -383,8 +384,8 @@
         (progn
           (restagraph:store-dependent-resource
             db
-            (format nil "/asns/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses/ipv4Addresses"
-                    asn
+            (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses/ipv4Addresses"
+                    org
                     (if (equal vrf "")
                         ""
                         (format nil "/VrfGroups/vrfGroups/~A" vrf))
@@ -395,16 +396,16 @@
 
 (defmethod delete-ipv4address ((db neo4cl:neo4j-rest-server)
                                (address string)
-                               (asn string)
+                               (org string)
                                (vrf string))
   (restagraph:delete-resource-by-path
     db
-    (format nil "/asns/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses/ipv4Addresses/~A"
-            asn
+    (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses/ipv4Addresses/~A"
+            org
             (if (equal vrf "")
                 ""
                 (format nil "/VrfGroups/vrfGroups/~A" vrf))
-            (find-parent-subnet db address asn vrf ())
+            (find-parent-subnet db address org vrf ())
             address)
             :delete-dependent t)
   ;; Return NIL, because there's no earthly reason to return anything else.
