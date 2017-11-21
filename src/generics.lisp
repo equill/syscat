@@ -1,9 +1,8 @@
 (in-package #:syscat)
 
-(defgeneric check-for-single-asn (db)
-  (:documentation "Confirm whether the database contains exactly one ASN.
-                   If it contains more, raise a client-error.
-                   If it doesn't contain any, return NIL."))
+(defgeneric find-subnet (db org vrf subnet &optional path)
+  (:documentation "Try to locate a subnet, given the organisation and VRF to check under.
+                   If VRF is NIL, assume the subnet is in the default VRF and thus directly attached to the organisation."))
 
 (defgeneric find-subnet (db asn vrf subnet &optional path)
   (:documentation "Try to locate a subnet, given the ASN and VRF to check under.

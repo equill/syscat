@@ -1,20 +1,5 @@
 (in-package #:syscat)
 
-(defmethod check-for-single-asn ((db neo4cl:neo4j-rest-server))
-  (let ((result
-          (mapcar #'car
-                  (neo4cl:extract-rows-from-get-request
-                    (neo4cl:neo4j-transaction
-                      db
-                      `((:STATEMENTS
-                          ((:STATEMENT . "MATCH (a:asns) return a.uid")))))))))
-    (if (> (length result) 1)
-      ;; More than one ASN
-      (error 'restagraph:client-error :message "More than one ASN found in the database")
-      ;; Clearly we only either one or none.
-      ;; If the latter, we're returning NIL automagically
-      (car result))))
-
 (defmethod find-subnet ((db neo4cl:neo4j-rest-server)
                         (asn string)
                         (vrf string)
