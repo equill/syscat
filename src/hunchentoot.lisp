@@ -1,18 +1,22 @@
 (in-package #:syscat)
 
-(defvar *syscat-acceptor*
+(defparameter *syscat-acceptor*
   (make-instance 'restagraph::restagraph-acceptor
-                 :address (getf restagraph::*config-vars* :listen-address)
-                 :port (getf restagraph::*config-vars* :listen-port)
-                 :url-base (getf restagraph::*config-vars* ::url-base)
+                 :address (or (sb-ext:posix-getenv "SYSCAT_LISTEN_ADDR")
+                              (getf restagraph::*config-vars* :listen-address))
+                 :port (or (sb-ext:posix-getenv "SYSCAT_LISTEN_PORT")
+                           (getf restagraph::*config-vars* :listen-port))
                  ;; Send all logs to STDOUT, and let Docker sort 'em out
                  :access-log-destination (make-synonym-stream 'cl:*standard-output*)
                  :message-log-destination (make-synonym-stream 'cl:*standard-output*)
                  ;; Datastore object - for specialising all the db methods on
                  :datastore (make-instance 'neo4cl:neo4j-rest-server
-                                           :hostname (getf restagraph::*config-vars* :dbhostname)
-                                           :dbpasswd (getf restagraph::*config-vars* :dbpasswd)
-                                           :dbuser (getf restagraph::*config-vars* :dbusername))))
+                                           :hostname (or (sb-ext:posix-getenv "SYSCAT_NEO4J_HOSTNAME")
+                                                         (getf restagraph::*config-vars* :dbhostname))
+                                           :dbpasswd (or (sb-ext:posix-getenv "SYSCAT_NEO4J_PASSWORD")
+                                                         (getf restagraph::*config-vars* :dbpasswd))
+                                           :dbuser (or (sb-ext:posix-getenv "SYSCAT_NEO4J_USER")
+                                                       (getf restagraph::*config-vars* :dbusername)))))
 
 ;;; Define a logging method
 (defmethod tbnl:acceptor-log-message ((acceptor restagraph::restagraph-acceptor)

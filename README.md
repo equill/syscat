@@ -9,6 +9,24 @@ The REST API is its primary interface; anything else will be built on that. This
 Its schema is user-extendable, so you can add whatever network elements it doesn't already cover.
 
 
+## Usage
+
+### Startup
+
+If it was supplied as a standalone executable, it checks for the following environment variables, with default values as shown:
+
+- `SYSCAT_LISTEN_ADDR` = address(es) on which the application server should listen for incoming HTTP requests
+    - default: `localhost`
+- `SYSCAT_LISTEN_PORT` = port on which the application server should listen for incoming HTTP requests
+    - default: `4950`
+- `SYSCAT_NEO4J_HOSTNAME` = hostname or IP address on which the Neo4j server is listening
+    - default: `localhost`
+- `SYSCAT_NEO4J_USER` = username for authenticating to the Neo4j server
+    - default: `neo4j`
+- `SYSCAT_NEO4J_PASSWORD` = password for authenticating that user to the Neo4j server
+    - default: it really doesn't matter. Set it to something hard to crack, and keep it secret.
+
+
 ## Basic design
 
 ### Background thinking
