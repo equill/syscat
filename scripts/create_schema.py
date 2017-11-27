@@ -23,12 +23,12 @@ Set up the Syscat schema in the database, via the REST API.
 import requests
 
 # Build-in modules
-import json
+import yaml
 
 
 # Global variables - edit these to match your local setup
 URL = 'http://localhost:4950/schema/v1'
-SCHEMAPATH = 'schema.json'
+SCHEMAPATH = 'schema.yaml'
 
 
 def inject_schema():
@@ -37,7 +37,7 @@ def inject_schema():
     '''
     # Load the schema
     infile = open(SCHEMAPATH, 'r')
-    schema = json.load(infile)
+    schema = yaml.load(infile)
     infile.close()
     # First, create the resourcetypes
     for resourcetype, details in schema['resourcetypes'].items():
