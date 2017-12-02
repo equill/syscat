@@ -4,11 +4,6 @@ resourcetypes:
   applications:
     attributes:
     - comments
-  asns:
-    attributes:
-    - comments
-    - name
-    notes: "BGP Autonomous System Numbers. The UID should be the ASN, and the ´name´ should be its human-friendly tag."
   brands:
     attributes:
     - comments
@@ -216,6 +211,16 @@ resourcetypes:
     notes: Layer 2 spans, i.e. ethernet segments. Not to be confused with subnets.
   vrfGroups:
     dependent: 'true'
+# BGP4
+  asns:
+    attributes:
+    - comments
+    - name
+    notes: "BGP Autonomous System Numbers. The UID should be the ASN, and the ´name´ should be its human-friendly tag."
+  bgp4peerings:
+      dependent: true
+      attributes:
+          - description
 relationships:
 - cardinality: many:many
   uri: /any/Tag/tags
@@ -497,12 +502,6 @@ relationships:
   uri: /ipv6Subnets/AllocatedTo/sites
 - cardinality: many:1
   uri: /l3Tunnels/TunnelType/l3TunnelTypes
-- cardinality: 1:many
-  uri: /organisations/Asns/asns
-- cardinality: many:1
-  uri: /asns/AllocatedTo/organisations
-- cardinality: many:1
-  uri: /asns/AllocatedBy/organisations
 - cardinality: many:1
   uri: /ipv4Subnets/AllocatedTo/organisations
 - cardinality: many:1
@@ -618,3 +617,42 @@ relationships:
   cardinality: 1:many
 - uri: /l1Links/SuppliedBy/organisations
   cardinality: many:1
+#
+# BGP4
+#
+# ASNs
+- uri: /organisations/Asns/asns
+  cardinality: 1:many
+- uri: /organisations/Allocated/asns
+  cardinality: 1:many
+- uri: /asns/AllocatedTo/organisations
+  cardinality: many:1
+- uri: /asns/AllocatedBy/organisations
+  cardinality: many:1
+# Peerings
+- uri: /devices/Bgp4Peering/bgp4peerings
+  cardinality: 1:many
+- uri: /bgp4peerings/HostedOn/devices
+  cardinality: many:1
+- uri: /routingInstances/Bgp4Peering/bgp4peerings
+  cardinality: 1:many
+- uri: /bgp4peerings/HostedOn/routingInstances
+  cardinality: many:1
+# Peering-ASN associations
+- uri: /bgp4peerings/LocalAsn/asns
+  cardinality: many:1
+- uri: /asns/LocalAsnFor/bgp4peerings
+  cardinality: 1:many
+- uri: /asns/RemoteAsnFor/bgp4peerings
+  cardinality: 1:many
+- uri: /bgp4peerings/RemoteAsn/asns
+  cardinality: many:1
+# Peering-ASN associations
+- uri: /bgp4peerings/RemoteAddress/ipv4Addresses
+  cardinality: many:1
+- uri: /ipv4Addresses/RemoteAddressFor/ipv4Addresses
+  cardinality: 1:many
+- uri: /bgp4peerings/LocalAddress/ipv4Addresses
+  cardinality: many:1
+- uri: /ipv4Addresses/LocalAddressFor/ipv4Addresses
+  cardinality: 1:many
