@@ -610,11 +610,11 @@ relationships:
   uri: /cages/Tenant/organisations
 - cardinality: many:many
   uri: /cabinets/Tenant/organisations
-- uri: /organisations/Supplies/L1Circuits
+- uri: /organisations/Supplies/l1Circuits
   cardinality: 1:many
-- uri: /L1Circuits/SuppliedBy/organisations
+- uri: /l1Circuits/SuppliedBy/organisations
   cardinality: many:1
-- uri: /organisations/Supplies/L1Links
+- uri: /organisations/Supplies/l1Links
   cardinality: 1:many
-- uri: /L1Links/SuppliedBy/organisations
+- uri: /l1Links/SuppliedBy/organisations
   cardinality: many:1
