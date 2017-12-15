@@ -43,18 +43,17 @@ def inject_schema():
     for resourcetype, details in schema['resourcetypes'].items():
         # Accumulate the resourcetype's attributes
         payload = {}
-        for attribute in ['notes', 'dependent', 'attributes']:
+        for attribute in ['notes', 'dependent']:
             if attribute in details:
                 payload[attribute] = details[attribute]
+        if 'attributes' in details:
+            payload['attributes'] = ','.join(details['attributes'])
         # Create the resourcetype
         result = requests.post('%s/resourcetype/%s' % (URL, resourcetype), data=payload)
         # Report any failed requests
         if result.status_code != 201:
-            print('ERROR %s - %s: /resourcetype/%s' % (
-                result.status_code,
-                result.text,
-                resourcetype
-                ))
+            print('ERROR %s - %s: /resourcetype/%s'
+                  % (result.status_code, result.text, resourcetype))
     # Now create the relationships between the types
     for details in schema['relationships']:
         # Accumulate the relationship's attributes
