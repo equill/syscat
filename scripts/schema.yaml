@@ -43,7 +43,9 @@ resourcetypes:
   devices:
     attributes:
     - comments
-    - sysDescr
+    - sysdescr
+    - sysname
+    - sysobjectid
     - snmp_community
     - serial_number
     - asset_number
