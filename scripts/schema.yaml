@@ -130,14 +130,14 @@ resourcetypes:
   networkInterfaces:
     attributes:
     - comments
-    - snmp_index
-    - ifName
-    - ifDescr
-    - ifType
-    - ifAlias
-    - ifSpeed
-    - ifHighspeed
-    - ifPhysAddress
+    - snmpindex
+    - ifname
+    - ifdescr
+    - ifalias
+    - iftype
+    - ifspeed
+    - ifhighspeed
+    - ifphysaddress
     dependent: 'true'
   operatingSystemVersions:
     dependent: 'true'
