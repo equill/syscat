@@ -1,0 +1,10 @@
+version: '3'
+services:
+    syscat:
+        environment:
+            SYSCAT_LISTEN_ADDR: "0.0.0.0"
+            SYSCAT_LISTEN_PORT: 4951
+            SYSCAT_NEO4J_HOSTNAME: "172.17.0.1"
+        image: syscat
+        ports:
+            - "4951:4951"
