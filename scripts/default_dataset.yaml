@@ -1,4 +1,5 @@
 raw:
+# Organisations
     - type: organisations
       details: 
         uid: ICANN
@@ -11,10 +12,72 @@ raw:
       details: 
         uid: Internet
         comments: "A notional entity representing the Terra Incognita outside the detailed areas of this model"
+# ASNs
     - type: asns
       details: 
         uid: 0
         comments: "The internet"
+# Service levels
+    - type: serviceLevels
+      details:
+          uid: gold
+    - type: serviceLevels
+      details:
+          uid: silver
+    - type: serviceLevels
+      details:
+          uid: bronze
+# Device types
+    - type: deviceTypes
+      details:
+          uid: physical
+    - type: deviceTypes
+      details:
+          uid: virtual
+    - type: deviceTypes
+      details:
+          uid: cluster
+    - type: deviceTypes
+      details:
+          uid: stack
+# Environments
+    - type: environments
+      details:
+          uid: development
+    - type: environments
+      details:
+          uid: testing
+    - type: environments
+      details:
+          uid: staging
+    - type: environments
+      details:
+          uid: production
+# Lifecycle phases
+    - type: lifeCyclePhases
+      details:
+          uid: ordered
+    - type: lifeCyclePhases
+      details:
+          uid: received
+    - type: lifeCyclePhases
+      details:
+          uid: installing
+    - type: lifeCyclePhases
+      details:
+          uid: in_service
+    - type: lifeCyclePhases
+      details:
+          uid: decommissioned
+    - type: lifeCyclePhases
+      details:
+          uid: transferring
+    - type: lifeCyclePhases
+      details:
+          uid: in_stock
+    - type: lifeCyclePhases
+      details:
+          uid: disposed
 
 subnets:
     - organisations: Internet
