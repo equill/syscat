@@ -39,6 +39,8 @@ def inject_schema():
     infile = open(SCHEMAPATH, 'r')
     schema = yaml.load(infile)
     infile.close()
+    # Prepare the session
+    session = requests.Session()
     # First, create the resourcetypes
     for resourcetype, details in schema['resourcetypes'].items():
         # Accumulate the resourcetype's attributes
@@ -49,7 +51,7 @@ def inject_schema():
         if 'attributes' in details:
             payload['attributes'] = ','.join(details['attributes'])
         # Create the resourcetype
-        result = requests.post('%s/resourcetype/%s' % (URL, resourcetype), data=payload)
+        result = session.post('%s/resourcetype/%s' % (URL, resourcetype), data=payload)
         # Report any failed requests
         if result.status_code != 201:
             print('ERROR %s - %s: /resourcetype/%s'
@@ -62,7 +64,7 @@ def inject_schema():
             if attribute in details:
                 payload[attribute] = details[attribute]
         # Create the relationship
-        result = requests.post('%s/relationship%s' % (URL, details['uri']), data=payload)
+        result = session.post('%s/relationship%s' % (URL, details['uri']), data=payload)
         if result.status_code != 201:
             print('ERROR %s - %s: %s' % (result.status_code, result.text, details['uri']))
 
