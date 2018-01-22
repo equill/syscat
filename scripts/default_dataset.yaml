@@ -1,0 +1,21 @@
+raw:
+    - type: organisations
+      details: 
+        uid: ICANN
+        comments: "The Internet Corporation for Assigned Names and Numbers. They manage DNS at its top level, and allocate AS numbers for use in BGP."
+    - type: organisations
+      details: 
+        uid: IANA
+        comments: "The Internet Assigned Numbers Authority. They allocate new subnets  and IP addresses to other organisations."
+    - type: organisations
+      details: 
+        uid: Internet
+        comments: "A notional entity representing the Terra Incognita outside the detailed areas of this model"
+    - type: asns
+      details: 
+        uid: 0
+        comments: "The internet"
+
+subnets:
+    - organisations: Internet
+      subnet: "0.0.0.0/0"

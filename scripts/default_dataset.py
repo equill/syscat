@@ -25,6 +25,7 @@ import requests
 
 # Build-in modules
 import re
+import yaml
 
 
 # Config variables
@@ -58,27 +59,38 @@ def sanitise_uid(uid):
     '''
     return re.sub('[/ ]', '_', uid)
 
+def install_resources(resources):
+    '''
+    Install a set of resources.
+    Expected to be the 'resources' subset of a YAML model.
+    '''
+    session = requests.Session()
+    for resource in resources:
+        resourcetype = resource['type']
+        details = resource['details']
+        response = session.post('{url}/{raw}/{type}'.format(url=BASE_URL,
+                                                            raw=RAWPREFIX,
+                                                            type=resourcetype),
+                                data=details)
+        if response.status_code != 201:
+            print('ERROR: {code} {text} for /{resourcetype} with details {details}'.format(
+                code=response.status_code,
+                text=response.text,
+                resourcetype=resourcetype,
+                details=details))
 
-def insert_model():
-    "Insert the actual model into Syscat."
-    # Organisations
-    #
-    post_raw('/organisations', data={'uid': 'ICANN', 'comments': 'The Internet Corporation for Assigned Names and Numbers. They manage DNS at its top level, and allocate AS numbers for use in BGP.'})
-    post_raw('/organisations', data={'uid': 'IANA', 'comments': 'The Internet Assigned Numbers Authority. They allocate new subnets  and IP addresses to other organisations.'})
-    post_raw('/organisations', data={'uid': 'Internet', 'comments': 'A notional entity representing the Terra Incognita outside the detailed areas of this model'})
+def read_model(path):
+    """
+    Read the data model from the specified filepath.
+    """
+    infile = open(path, 'r')
+    model = yaml.load(infile)
+    infile.close()
+    return model
 
-    # ASNs
-    # Associate them with their owning organisations - in both directions.
-    # Why both directions? To enable search in both directions via this API.
-    # Note that the UIDs for the organisations have been canonicalised,
-    # with underscores replacing the original spaces.
-    #
-    post_raw('/asns', data={'uid': '0', 'comments': "The Internet."})
-
-    # IPAM
-    #
-    # The internet at large
-    post_ipam('subnets', data={'organisations': 'Internet', 'subnet': '0.0.0.0/0'})
+def main(path):
+    model = read_model(path)
+    install_resources(model['raw'])
 
 if __name__ == '__main__':
-    insert_model()
+    main('./default_dataset.yaml')
