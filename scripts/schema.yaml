@@ -219,10 +219,20 @@ resourcetypes:
     - comments
     - name
     notes: "BGP Autonomous System Numbers. The UID should be the ASN, and the ´name´ should be its human-friendly tag."
-  bgp4peerings:
+  bgp4Instances:
       dependent: true
       attributes:
           - description
+          - routerid
+  bgp4Peerings:
+      dependent: true
+      attributes:
+          - description
+            # Index for the bgpPeerEntry SNMP table
+          - bgpPeerIdentifier
+          - bgpPeerLocalPort
+          - bgpPeerRemotePort
+
 relationships:
 - cardinality: many:many
   uri: /any/Tag/tags
@@ -621,6 +631,7 @@ relationships:
   cardinality: many:1
 #
 # BGP4
+# Many attributes refer to the BGP4-MIB described in RFC 4273
 #
 # ASNs
 - uri: /organisations/Asns/asns
@@ -631,30 +642,27 @@ relationships:
   cardinality: many:1
 - uri: /asns/AllocatedBy/organisations
   cardinality: many:1
+# BGP instances
+- uri: /devices/Bgp4Instance/bgp4Instances
+  cardinality: 1:many
+- uri: /bgp4Instances/HostedOn/devices
+  cardinality: many:1
+- uri: /routingInstances/Bgp4Instance/bgp4Instances
+  cardinality: 1:1
+- uri: /bgp4Instances/HostedOn/routingInstances
+  cardinality: 1:1
+- uri: /bgp4Instances/LocalAs/asns
+  cardinality: many:1
+- uri: /asns/Bgp4Instances/bgp4Instances
+  cardinality: 1:many
 # Peerings
-- uri: /devices/Bgp4Peering/bgp4peerings
+- uri: /bgp4Instances/Bgp4Peering/bgp4Peerings
   cardinality: 1:many
-- uri: /bgp4peerings/HostedOn/devices
+- uri: /bgp4Peerings/HostedOn/bgp4Instances
   cardinality: many:1
-- uri: /routingInstances/Bgp4Peering/bgp4peerings
-  cardinality: 1:many
-- uri: /bgp4peerings/HostedOn/routingInstances
+- uri: /bgp4Peerings/BgpRemoteAs/asns
   cardinality: many:1
-# Peering-ASN associations
-- uri: /bgp4peerings/LocalAsn/asns
+- uri: /bgp4Peerings/BgpRemoteAddress/ipv4Addresses
   cardinality: many:1
-- uri: /asns/LocalAsnFor/bgp4peerings
-  cardinality: 1:many
-- uri: /asns/RemoteAsnFor/bgp4peerings
-  cardinality: 1:many
-- uri: /bgp4peerings/RemoteAsn/asns
+- uri: /bgp4Peerings/BgpRemoteAddress/ipv6Addresses
   cardinality: many:1
-# Peering-ASN associations
-- uri: /bgp4peerings/RemoteAddress/ipv4Addresses
-  cardinality: many:1
-- uri: /ipv4Addresses/RemoteAddressFor/ipv4Addresses
-  cardinality: 1:many
-- uri: /bgp4peerings/LocalAddress/ipv4Addresses
-  cardinality: many:1
-- uri: /ipv4Addresses/LocalAddressFor/ipv4Addresses
-  cardinality: 1:many
