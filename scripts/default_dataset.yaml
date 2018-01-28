@@ -40,6 +40,19 @@ raw:
     - type: deviceTypes
       details:
           uid: stack
+# Device roles
+    - type: deviceRoles
+      details:
+          uid: vmhost
+    - type: deviceRoles
+      details:
+          uid: switch
+    - type: deviceRoles
+      details:
+          uid: router
+    - type: deviceRoles
+      details:
+          uid: firewall
 # Environments
     - type: environments
       details:
