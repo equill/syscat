@@ -50,6 +50,9 @@ resourcetypes:
     - serial_number
     - asset_number
     notes: Any kind of device that interacts with a network, be it L1, L2 or L3.
+  cpus:
+    attributes:
+      - comments
   emailAddresses:
     attributes:
     - comments
@@ -311,6 +314,11 @@ relationships:
   uri: /devices/Location/racks
 - cardinality: 1:many
   dependent: 'true'
+  uri: /devices/Cpus/cpus
+- cardinality: many:1
+  uri: /cpus/InstalledOn/devices
+- cardinality: 1:many
+  dependent: 'true'
   uri: /devices/Interfaces/networkInterfaces
 - cardinality: many:1
   uri: /devices/OperatingSystem/operatingSystems
@@ -320,6 +328,8 @@ relationships:
   uri: /devices/Member/devices
 - cardinality: many:1
   uri: /devices/HostedOn/devices
+- cardinality: many:1
+  uri: /devices/HostedOn/cpus
 - cardinality: '1:1'
   dependent: 'true'
   uri: /devices/ManagementAddress/ipv4Addresses
