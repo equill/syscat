@@ -53,6 +53,13 @@ raw:
     - type: deviceRoles
       details:
           uid: firewall
+# RoutingInstance types
+    - type: routingInstanceTypes
+      details:
+          uid: vrf
+    - type: routingInstanceTypes
+      details:
+          uid: forwarding
 # Environments
     - type: environments
       details:

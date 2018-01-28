@@ -180,6 +180,9 @@ resourcetypes:
     attributes:
     - snmp_community
     dependent: 'true'
+  routingInstanceTypes:
+    attributes:
+      - comments
   serviceLevels:
     attributes:
     - comments
@@ -380,6 +383,10 @@ relationships:
 - cardinality: 1:many
   dependent: 'true'
   uri: /devices/RoutingInstance/routingInstances
+- cardinality: many:1
+  uri: /routingInstances/HostedOn/devices
+- cardinality: many:1
+  uri: /routingInstances/Type/routingInstanceTypes
 - cardinality: 1:many
   dependent: 'true'
   uri: /routingInstances/Interface/networkInterfaces
