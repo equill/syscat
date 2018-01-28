@@ -344,7 +344,7 @@ relationships:
 - cardinality: many:1
   uri: /networkInterfaces/Member/networkInterfaces
 - cardinality: '1:1'
-  uri: /networkInterfaces/Connectsto/networkInterfaces
+  uri: /networkInterfaces/ConnectedTo/networkInterfaces
 - cardinality: 1:many
   dependent: 'true'
   uri: /brands/Produces/models
@@ -367,15 +367,15 @@ relationships:
 - cardinality: many:1
   uri: /parts/StorageLocation/cabinets
 - cardinality: many:many
-  uri: /devices/ConnectsTo/l1Links
+  uri: /devices/ConnectedTo/l1Links
 - cardinality: many:1
-  uri: /networkInterfaces/ConnectsTo/l1Links
+  uri: /networkInterfaces/ConnectedTo/l1Links
 - cardinality: many:many
-  uri: /devices/ConnectsTo/l1Circuits
+  uri: /devices/ConnectedTo/l1Circuits
 - cardinality: many:1
-  uri: /networkInterfaces/ConnectsTo/l1Circuits
+  uri: /networkInterfaces/ConnectedTo/l1Circuits
 - cardinality: many:1
-  uri: /l1Links/ConnectsTo/l1Links
+  uri: /l1Links/ConnectedTo/l1Links
 - cardinality: many:1
   uri: /l1Links/Member/l1Circuits
 - cardinality: many:1
@@ -424,13 +424,13 @@ relationships:
   dependent: 'true'
   uri: /networkInterfaces/Vlan/vlans
 - cardinality: many:many
-  uri: /devices/ConnectsTo/l2Links
+  uri: /devices/ConnectedTo/l2Links
 - cardinality: many:many
-  uri: /networkInterfaces/ConnectsTo/l2Links
+  uri: /networkInterfaces/ConnectedTo/l2Links
 - cardinality: many:many
-  uri: /devices/ConnectsTo/l2Circuits
+  uri: /devices/ConnectedTo/l2Circuits
 - cardinality: many:many
-  uri: /networkInterfaces/ConnectsTo/l2Circuits
+  uri: /networkInterfaces/ConnectedTo/l2Circuits
 - cardinality: 1:many
   dependent: 'true'
   uri: /devices/Addresses/ipv4Addresses
@@ -447,9 +447,9 @@ relationships:
   dependent: 'true'
   uri: /devices/RoutingInstance/routingInstances
 - cardinality: many:1
-  uri: /devices/ConnectsTo/l3Tunnels
+  uri: /devices/ConnectedTo/l3Tunnels
 - cardinality: many:1
-  uri: /networkInterfaces/Connectsto/l3Tunnels
+  uri: /networkInterfaces/ConnectedTo/l3Tunnels
 - cardinality: many:1
   uri: /brands/Vendor/organisations
 - cardinality: many:1
@@ -467,7 +467,7 @@ relationships:
 - cardinality: many:1
   uri: /l1Circuits/BusinessOwner/organisations
 - cardinality: many:many
-  uri: /l2Links/Connectsto/l2Links
+  uri: /l2Links/ConnectedTo/l2Links
 - cardinality: many:1
   uri: /l2Links/LinkType/l2LinkTypes
 - cardinality: many:1
@@ -514,9 +514,9 @@ relationships:
   dependent: 'true'
   uri: /ipv6Subnets/Addresses/ipv6Addresses
 - cardinality: many:1
-  uri: /ipv4Addresses/ConnectsTo/l3Tunnels
+  uri: /ipv4Addresses/ConnectedTo/l3Tunnels
 - cardinality: many:1
-  uri: /ipv6Addresses/ConnectsTo/l3Tunnels
+  uri: /ipv6Addresses/ConnectedTo/l3Tunnels
 - cardinality: '1:1'
   uri: /ipv4Subnets/AllocatedTo/organisations
 - cardinality: '1:1'
