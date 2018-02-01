@@ -12,6 +12,7 @@ resourcetypes:
     attributes:
     - comments
     notes: Individual buildings.
+    dependent: 'true'
   cabinets:
     attributes:
     - comments
@@ -49,6 +50,7 @@ resourcetypes:
     - snmp_community
     - serial_number
     - asset_number
+    - in_service
     notes: Any kind of device that interacts with a network, be it L1, L2 or L3.
   cpus:
     attributes:
@@ -176,6 +178,7 @@ resourcetypes:
     attributes:
     - comments
     notes: Rooms within a floor or a building.
+    dependent: 'true'
   routingInstances:
     attributes:
     - snmp_community
@@ -622,8 +625,9 @@ relationships:
   uri: /contracts/Supports/cabinets
 - cardinality: many:1
   uri: /sites/Organisation/organisations
-- uri: /sites/Building/buildings
+- uri: /sites/Buildings/buildings
   cardinality: 1:many
+  dependent: 'true'
 - uri: /buildings/Site/sites
   cardinality: many:1
 - cardinality: many:1
