@@ -7,25 +7,6 @@
 (fiveam:in-suite main)
 
 
-;; Utility functions
-
-(fiveam:test
-  ipv4-network-address
-  "Test the function ipv4-network-address"
-  (fiveam:is (equal "192.168.35.43"
-                    (syscat::ipv4-network-address "192.168.35.43/32")))
-  (fiveam:is (equal "192.168.35.0"
-                    (syscat::ipv4-network-address "192.168.35.223/24")))
-  (fiveam:is (equal "192.168.34.0"
-                    (syscat::ipv4-network-address "192.168.35.223/23"))))
-
-(fiveam:test
-  parent-ipv4-subnet-p
-  "Test the function parent-ipv4-subnet-p"
-  (fiveam:is (not (syscat::parent-ipv4-subnet-p "172.16.18.0/24" "172.16.19.0/24")))
-  (fiveam:is (syscat::parent-ipv4-subnet-p "172.16.18.0/23" "172.16.19.0/24")))
-
-
 ;; Database interactions
 
 (fiveam:test
@@ -33,13 +14,13 @@
   "Basic create/read/delete test on subnets. Depth of 1, no VRF"
   (let
     ((org "internet")
-     (subnet1 "172.16.0.0/12"))
+     (subnet1 (ipaddress:make-ipv4-subnet "172.16.0.0/12")))
     ;; Confirm the fixtures aren't already present
     (fiveam:is (null (restagraph:get-resources *server* (format nil "/organisations/~A" org))))
     ;; Add the fixtures
     (restagraph:store-resource *server* "organisations" `(("uid" . ,org)))
     ;; Add a top-level subnet; this should return NIL.
-    (fiveam:is (not (syscat::insert-subnet *server* org "" subnet1)))
+    (fiveam:is (syscat::insert-subnet *server* org "" subnet1))
     ;; Confirm the subnet is there
     (fiveam:is (syscat::find-subnet *server* org "" subnet1))
     ;; Remove the subnet
@@ -47,7 +28,7 @@
     ;; Confirm the subnet is gone
     (fiveam:is (not (syscat::find-subnet *server* org "" subnet1)))
     ;; Remove the fixtures
-    (restagraph:delete-resource-by-path *server* (format nil "/organisations/~A" org))))
+    (restagraph:delete-resource-by-path *server* (format nil "/organisations/~A" org) :recursive t)))
 
 (fiveam:test
   ipam-subnets-one-vrf
@@ -55,7 +36,7 @@
   (let
     ((org "internet")
      (vrf "red")
-     (subnet1 "172.16.0.0/12"))
+     (subnet1 (ipaddress:make-ipv4-subnet "172.16.0.0/12")))
     ;; Confirm the fixtures aren't already present
     (fiveam:is (null (restagraph:get-resources *server* (format nil "/organisations/~A" org))))
     ;; Add the fixtures
@@ -64,7 +45,7 @@
       *server*
       (format nil "/organisations/~A/VrfGroups/vrfGroups" org) `(("uid" . ,vrf)))
     ;; Add a top-level subnet; this should return NIL.
-    (fiveam:is (not (syscat::insert-subnet *server* org vrf subnet1)))
+    (fiveam:is (syscat::insert-subnet *server* org vrf subnet1))
     ;; Confirm the subnet is there
     (fiveam:is (syscat::find-subnet *server* org vrf subnet1))
     ;; Remove the subnet
@@ -79,8 +60,8 @@
   "Create/read/delete tests on nested subnets directly under an organisation."
   (let
     ((org "testco")
-     (subnet1 "172.16.0.0/12")
-     (subnet2 "172.18.0.0/23"))
+     (subnet1 (ipaddress:make-ipv4-subnet "172.16.0.0/12"))
+     (subnet2 (ipaddress:make-ipv4-subnet "172.18.0.0/23")))
     ;; Confirm the fixtures aren't already present
     (fiveam:is (null (restagraph:get-resources *server* (format nil "/organisations/~A" org))))
     ;; Add the fixtures
@@ -88,13 +69,13 @@
     (restagraph:store-resource *server* "organisations" `(("uid" . ,org)))
     ;; Add a top-level subnet; this should return NIL.
     (restagraph:log-message :debug "TEST Add a top-level subnet.")
-    (fiveam:is (not (syscat::insert-subnet *server* org "" subnet1)))
+    (fiveam:is (syscat::insert-subnet *server* org "" subnet1))
     ;; Confirm the subnet is there
     (restagraph:log-message :debug "TEST Confirm the top-level subnet is present.")
     (fiveam:is (syscat::find-subnet *server* org "" subnet1))
     ;; Add another subnet
     (restagraph:log-message :debug "TEST Add a second-level subnet.")
-    (fiveam:is (not (syscat::insert-subnet *server* org "" subnet2)))
+    (fiveam:is (syscat::insert-subnet *server* org "" subnet2))
     ;; Confirm that's also there
     (restagraph:log-message :debug "TEST Confirm the second-level subnet is present.")
     (fiveam:is (syscat::find-subnet *server* org "" subnet2))
@@ -108,16 +89,16 @@
     (fiveam:is (not (syscat::find-subnet *server* org "" subnet1)))
     ;; Remove the fixtures
     (restagraph:log-message :debug "TEST Deleting the fixtures.")
-    (restagraph:delete-resource-by-path *server* (format nil "/organisations/~A" org))))
+    (restagraph:delete-resource-by-path *server* (format nil "/organisations/~A" org) :recursive t)))
 
 (fiveam:test
   ipam-subnets-3-levels-no-vrf
   "Create/read/delete tests on nested subnets directly under an organisation."
   (let
     ((org "testco")
-     (subnet1 "172.16.0.0/12")
-     (subnet2 "172.16.19.0/24")
-     (subnet3 "172.16.18.0/23"))
+     (subnet1 (ipaddress:make-ipv4-subnet "172.16.0.0/12"))
+     (subnet2 (ipaddress:make-ipv4-subnet "172.16.19.0/24"))
+     (subnet3 (ipaddress:make-ipv4-subnet "172.16.18.0/23")))
     ;; Confirm the fixtures aren't already present
     (fiveam:is (null (restagraph:get-resources *server* (format nil "/organisations/~A" org))))
     ;; Add the fixtures
@@ -125,31 +106,35 @@
     (restagraph:store-resource *server* "organisations" `(("uid" . ,org)))
     ;; Add a top-level subnet; this should return NIL.
     (restagraph:log-message :debug "TEST Add a top-level subnet.")
-    (fiveam:is (not (syscat::insert-subnet *server* org "" subnet1)))
+    (fiveam:is (syscat::insert-subnet *server* org "" subnet1))
     ;; Confirm the subnet is there
     (restagraph:log-message :debug "TEST Confirm the top-level subnet is present.")
-    (fiveam:is (equal (list (first (cl-ppcre:split "/" subnet1)))
-                      (syscat::find-subnet *server* org "" subnet1)))
+    (fiveam:is (equal (list (syscat::make-subnet-uid subnet1))
+                      (mapcar #'syscat::make-subnet-uid
+                              (syscat::find-subnet *server* org "" subnet1))))
     ;; Add a second subnet
     (restagraph:log-message :debug "TEST Add a second-level subnet.")
-    (fiveam:is (not (syscat::insert-subnet *server* org "" subnet2)))
+    (fiveam:is (syscat::insert-subnet *server* org "" subnet2))
     ;; Confirm that's also there
     (restagraph:log-message :debug "TEST Confirm the second-level subnet is present.")
-    (fiveam:is (equal (list (first (cl-ppcre:split "/" subnet1))
-                            (first (cl-ppcre:split "/" subnet2)))
-                      (syscat::find-subnet *server* org "" subnet2)))
+    (fiveam:is (equal
+                 (mapcar #'syscat::make-subnet-uid
+                         (list subnet1 subnet2))
+                 (mapcar #'syscat::make-subnet-uid
+                         (syscat::find-subnet *server* org "" subnet2))))
     ;; Add a third subnet
     (restagraph:log-message :debug "TEST Add a third subnet between the first two.")
-    (fiveam:is (not (syscat::insert-subnet *server* org "" subnet3)))
+    (fiveam:is (syscat::insert-subnet *server* org "" subnet3))
     ;; Confirm that's also there
     (restagraph:log-message :debug "TEST Confirm the new second-level subnet is present.")
     (fiveam:is (syscat::find-subnet *server* org "" subnet3))
     ;; Confirm it's correctly moved the second subnet
-    (restagraph:log-message :debug "TEST Confirm the origina second-level subnet is now third.")
-    (fiveam:is (equal (list (first (cl-ppcre:split "/" subnet1))
-                            (first (cl-ppcre:split "/" subnet3))
-                            (first (cl-ppcre:split "/" subnet2)))
-                      (syscat::find-subnet *server* org "" subnet2)))
+    (restagraph:log-message :debug "TEST Confirm the original second-level subnet is now third.")
+    (fiveam:is (equal
+                 (mapcar #'syscat::make-subnet-uid
+                         (list subnet1 subnet3 subnet2))
+                 (mapcar #'syscat::make-subnet-uid
+                         (syscat::find-subnet *server* org "" subnet2))))
     ;; Remove the top-level subnet
     (restagraph:log-message :debug "TEST Delete the top-level subnet.")
     (fiveam:is (syscat::delete-subnet *server* org "" subnet1))
@@ -166,9 +151,9 @@
   ipv4address-basic
   "Basic create/find/delete operations on an IPv4 address"
   (let ((org "example")
-        (address "172.17.2.3")
+        (address (ipaddress:make-ipv4-address "172.17.2.3"))
         (vrf "green")
-        (subnet "172.17.2.0/24"))
+        (subnet (ipaddress:make-ipv4-subnet "172.17.2.0/24")))
     ;; Ensure we're clear to start
     (fiveam:is (null (restagraph:get-resources *server* (format nil "/organisations/~A" org))))
     ;; Create fixtures
@@ -181,14 +166,15 @@
     (syscat::insert-subnet *server* org vrf subnet)
     ;; Tests
     (restagraph:log-message :debug "TEST Address is absent")
-    (fiveam:is (null (syscat::find-ipv4address *server* address org vrf)))
+    (fiveam:is (null (syscat::find-ipaddress *server* address org vrf)))
     (restagraph:log-message :debug "TEST Insert address")
-    (fiveam:is (null (syscat::insert-ipv4address *server* address org vrf)))
-    (fiveam:is (equal (list (first (cl-ppcre:split "/" subnet)) address)
-                      (syscat::find-ipv4address *server* address org vrf)))
+    (fiveam:is (null (syscat::insert-ipaddress *server* address org vrf)))
+    (fiveam:is (equal (ipaddress:as-string address)
+                      (ipaddress:as-string
+                        (car (last (syscat::find-ipaddress *server* address org vrf))))))
     (restagraph:log-message :debug "TEST Delete address")
-    (fiveam:is (null (syscat::delete-ipv4address *server* address org vrf)))
-    (fiveam:is (null (syscat::find-ipv4address *server* address org vrf)))
+    (fiveam:is (null (syscat::delete-ipaddress *server* address org vrf)))
+    (fiveam:is (null (syscat::find-ipaddress *server* address org vrf)))
     ;; Remove fixtures
     (restagraph:delete-resource-by-path *server* (format nil "/organisations/~A" org) :recursive t)
     ;; Ensure the fixtures are gone
@@ -199,9 +185,9 @@
   "Basic tests for adding and removing subnets with addresses"
   (let
     ((org "sample")
-     (subnet1 "192.168.0.0/16")
-     (subnet2 "192.168.32.0/23")
-     (address "192.168.32.3"))
+     (subnet1 (ipaddress:make-ipv4-subnet "192.168.0.0/16"))
+     (subnet2 (ipaddress:make-ipv4-subnet "192.168.32.0/23"))
+     (address (ipaddress:make-ipv4-address "192.168.32.3")))
     ;; Confirm the fixtures aren't already present
     (fiveam:is (null (restagraph:get-resources *server* (format nil "/organisations/~A" org))))
     ;; Add the fixtures
@@ -210,37 +196,38 @@
     (syscat::insert-subnet *server* org "" subnet1)
     ;; Add the IP address
     (restagraph:log-message :info "TEST Add the IP address")
-    (fiveam:is (null (syscat::insert-ipv4address *server* address org "")))
+    (fiveam:is (null (syscat::insert-ipaddress *server* address org "")))
     ;; Confirm the address is there
     (restagraph:log-message :info "TEST Confirm the address is present.")
-    (fiveam:is (syscat::find-ipv4address *server* address org ""))
-    (fiveam:is (equal (list (first (cl-ppcre:split "/" subnet1))
-                            address)
-                      (syscat::find-ipv4address *server* address org "")))
+    (fiveam:is (syscat::find-ipaddress *server* address org ""))
+    (fiveam:is (equal (ipaddress:as-string address)
+                      (ipaddress:as-string
+                        (car (last (syscat::find-ipaddress *server* address org ""))))))
     ;; Add another subnet
     (restagraph:log-message :info "TEST Add a second-level subnet.")
-    (fiveam:is (not (syscat::insert-subnet *server* org "" subnet2)))
+    (fiveam:is (syscat::insert-subnet *server* org "" subnet2))
     ;; Confirm that's also there
     (restagraph:log-message :info "TEST Confirm the second-level subnet is present.")
-    (fiveam:is (equal
-                 (list (first (cl-ppcre:split "/" subnet1))
-                       (first (cl-ppcre:split "/" subnet2)))
-                 (syscat::find-subnet *server* org "" subnet2)))
+    (fiveam:is (equal (mapcar #'ipaddress:as-cidr (list subnet1 subnet2))
+                      (mapcar #'ipaddress:as-cidr (syscat::find-subnet *server* org "" subnet2))))
     ;; Confirm the address has the correct new path
     (restagraph:log-message :info "TEST Confirm the address has been correctly moved.")
-    (fiveam:is (equal (list (first (cl-ppcre:split "/" subnet1))
-                            (first (cl-ppcre:split "/" subnet2))
-                            address)
-                      (syscat::find-ipv4address *server* address org "")))
+    (let ((newpath (syscat::find-ipaddress *server* address org "")))
+      (fiveam:is (equal (mapcar #'ipaddress:as-cidr (list subnet1 subnet2))
+                        (mapcar #'ipaddress:as-cidr (butlast newpath))))
+      (fiveam:is (equal (ipaddress:as-string address)
+                        (ipaddress:as-string (car (last newpath))))))
     ;; Remove the second subnet
     (restagraph:log-message :info "TEST Delete the second-level subnet.")
     (fiveam:is (syscat::delete-subnet *server* org "" subnet2))
     ;; Confirm the address has moved back again
     (restagraph:log-message :info "TEST Confirm the address is back under the top-level subnet.")
-    (fiveam:is (syscat::find-ipv4address *server* address org ""))
-    (fiveam:is (equal (list (first (cl-ppcre:split "/" subnet1))
-                            address)
-                      (syscat::find-ipv4address *server* address org "")))
+    (fiveam:is (syscat::find-ipaddress *server* address org ""))
+    (let ((newpath (syscat::find-ipaddress *server* address org "")))
+      (fiveam:is (equal (list (ipaddress:as-cidr subnet1))
+                        (mapcar #'ipaddress:as-cidr (butlast newpath))))
+      (fiveam:is (equal (ipaddress:as-string address)
+                        (ipaddress:as-string (car (last newpath))))))
     ;; Remove the fixtures
     (restagraph:log-message :info "TEST Deleting the fixtures.")
     (restagraph:delete-resource-by-path *server* (format nil "/organisations/~A" org) :recursive t)))

@@ -4,9 +4,7 @@
 
 An API-based network catalogue/configuration database that actually covers everything, from hardware assets up to application interdependencies, through to the people and organisations that have any kind of stake in them.
 
-The REST API is its primary interface; anything else will be built on that. This is to make it automation-friendly, as well as to make it possible for dissatisfied/impatient users to build the interface that suits them.
-
-Its schema is user-extendable, so you can add whatever network elements it doesn't already cover.
+The REST API is its primary interface; anything else, such as a web GUI, can be built on that. This is to make it automation-friendly, as well as to make it viable for users to build the interface that suits them.
 
 
 ## Usage
@@ -47,7 +45,7 @@ If it was supplied as a standalone executable, it checks for the following envir
 
 A web application server fronting a Neo4j graph database.
 
-The schema is defined within the database itself, so you can reliably find the current version.
+The schema is defined within the database itself, so you can query it to confirm the API that is actually in use.
 
 There's a raw API, which provides the core functionality, plus domain-specific APIs for things such as IPAM which can't be fully served that way.
 
@@ -58,18 +56,18 @@ This provides most of the functionality, is rooted at `/raw/v<version/` and uses
 
 It dynamically generates the API according to what's in the database, so keeps up automatically with any updates. This is what enables you to extend the schema according to your needs.
 
-It looks slightly cumbersome, using a `/<type>/<uid>/<relationship>/<type>/<uid>...` format, but this has the virtues of consistency and predictability, which makes automation easier.
+It looks slightly cumbersome, using a `/<type>/<uid>/<relationship>/<type>/<uid>...` format, but its consistency and predictability make automation easier.
 
 
 ### IPAM (IP Address Management) API
 
-Some things do need their own API; among them are creating and removing IP subnets and addresses.
+Some things warrant their own API, such as creating and removing IP subnets and addresses.
 
 While nothing actually _stops_ you using the Raw API to add, change and remove subnets and addresses, it's a tedious and error-prone process, especially if you add and remove subnets by hand - finding the parent subnet, moving the new child subnets and addresses under a new mid-level subnet, and doing all that in reverse when you remove them.
 
-It's aware of ASes and VRFs, in keeping with the rest of the system.
+The IPAM API is aware of organisations and VRF-groups, in keeping with the rest of the system.
 
-New subnets are automatically created under the most appropriate supernet, and subnets and IP addresses are automatically rehomed as subnets are created, deleted and resized.
+New subnets are automatically inserted under the most appropriate supernet, and subnets and IP addresses are automatically rehomed as subnets are created, deleted and resized.
 
 GET requests are the search interface to the IPAM section:
 
@@ -78,9 +76,29 @@ GET requests are the search interface to the IPAM section:
 
 Both return the URI for interacting with the subnet or address in question via the Raw API, which is what you need when you then link them to/from other resources, such as delegating a subnet to another suborganisation, or allocating an address to a device.
 
-Search for subnet 192.168.0.0/16 under ASN 64496:
-```
-GET http://localhost:4950/ipam/v1/subnets?asns=64496?subnet=192.168.0.0/16
+Note that the forward-slash in CIDR notation is replaced with an underscore, for URL friendliness. Thus, `198.51.100.0/24` becomes `198.51.100.0_24`. The address and prefix-length attributes are stored within the object in the database, so no information is actually lost.
 
-/asns/64496/Subnets/ipv4Subnets/192.168.0.0
+#### Examples
+
+We'll use the organisation `myCompany`, the subnet `192.0.2.0/24` and [curl](https://curl.haxx.se/) as the HTTP client.
+
+Insert the subnet:
 ```
+curl -X POST -d 'org=myCompany' -d 'subnet=192.0.2.0/24' http://localhost:4950/ipam/v1/subnets
+
+/organisations/myCompany/Subnets/ipv4Subnets/192.0.2.0_24
+```
+
+Find the subnet:
+```
+curl 'http://localhost:4950/ipam/v1/subnets?org=myCompany&subnet=192.0.2.0/24'
+
+/organisations/myCompany/Subnets/ipv4Subnets/192.0.2.0_24
+```
+
+Delete it:
+```
+curl -X DELETE -d 'org=myCompany' -d 'subnet=192.0.2.0/24' http://localhost:4950/ipam/v1/subnets
+```
+
+Addresses work the same way, except with a URI ending in `/addresses` instead of `/subnets`.

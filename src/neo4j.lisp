@@ -3,281 +3,365 @@
 (defmethod find-subnet ((db neo4cl:neo4j-rest-server)
                         (org string)
                         (vrf string)
-                        (subnet string)
+                        (subnet ipaddress:ip-subnet)
                         &optional path)
+  (restagraph:log-message :debug "find-subnet invoked")
   (restagraph:log-message
     :debug
-    (format nil "find-subnet: Search for subnet ~A in path /~A~A~{/~A~}"
-            subnet
-            org
-            (if (equal vrf "")
-              ""
-              (format nil "/~A" vrf))
-            path))
-  ;; Sanity-check
-  (unless (ipv4-subnet-p subnet)
-    (error 'restagraph:client-error
-           :message "This is not a CIDR-FORMAT IPv4 subnet"))
-  ;; Isolate the components of the subnet
-  (let* ((parts (cl-ppcre:split "/" subnet))
-         (net-addr (restagraph::sanitise-uid (first parts)))
-         (prefix (second parts)))
-    ;; Check whether we already have a match on this path
-    (let ((match
-            (restagraph:get-resources
-              db
-              (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets/ipv4Subnets/~A"
-                      org
-                      (if (equal vrf "")
+    (format nil "find-subnet: searching for subnet ~A" (ipaddress:as-cidr subnet)))
+  (let ((match
+          (restagraph:get-resources
+            db
+            (format nil
+                    (if (= 6 (ipaddress:ip-version subnet))
+                        "/organisations/~A~A~{/Subnets/ipv6Subnets/~A~}/Subnets/ipv6Subnets/~A"
+                        "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets/ipv4Subnets/~A")
+                    org
+                    (if (equal vrf "")
                         ""
                         (format nil "/VrfGroups/vrfGroups/~A" vrf))
-                      path
-                      net-addr))))
-      ;; If we have a match, return the path to it
-      (if (and
-            match
-            (equal prefix (cdr (assoc :prefixlength match))))
+                    (mapcar #'make-subnet-uid path)
+                    (make-subnet-uid subnet)))))
+    ;; If we have a match, return the path to it
+    (if (and
+          match
+          (equal (ipaddress:prefix-length subnet)
+                 (cdr (assoc :prefixlength match))))
         (progn
           (restagraph:log-message :debug (format nil "Found match: ~A" match))
-          (let ((newpath (append path (list (cdr (assoc :uid match))))))
+          (let ((newpath (append
+                           path
+                           (list (make-instance (if (= 6 (ipaddress:ip-version subnet))
+                                                    'ipaddress:ipv6-subnet
+                                                    'ipaddress:ipv4-subnet)
+                                                :address (cdr (assoc :netaddress match))
+                                                :prefix-length (cdr (assoc :prefixlength match)))))))
             (restagraph:log-message
               :debug
               (format nil "Found exact match for '~A'. Returning subnet path '~{/~A~}'."
-                      match newpath))
+                      match (mapcar #'ipaddress:as-cidr newpath)))
             newpath))
         ;; If not, check whether we have a supernet of the subnet we're looking for
         (let* ((candidates
-                 (restagraph:get-resources
-                   db
-                   (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets"
-                           org
-                           (if (equal vrf "") "" (format nil "/VrfGroups/vrfGroups/~A" vrf))
-                           path)))
-               (supernet
+                 (mapcar #'(lambda (s)
+                             (make-instance (if (= 6 (ipaddress:ip-version subnet))
+                                                'ipaddress:ipv6-subnet
+                                                'ipaddress:ipv4-subnet)
+                                            :address (cdr (assoc :netaddress s))
+                                            :prefix-length (cdr (assoc :prefixlength s))))
+                         (restagraph:get-resources
+                           db
+                           (format nil
+                                   (if (= 6 (ipaddress:ip-version subnet))
+                                       "/organisations/~A~A~{/Subnets/ipv6Subnets/~A~}/Subnets"
+                                       "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets")
+                                   org
+                                   (if (equal vrf "") "" (format nil "/VrfGroups/vrfGroups/~A" vrf))
+                                   (mapcar #'make-subnet-uid path)))))
+               (supernets
                  (remove-if-not
-                   #'(lambda (s)
-                       (restagraph:log-message
-                         :debug
-                         (format nil "Testing ~A/~A from ~A"
-                                 (cdr (assoc :original--uid s)) (cdr (assoc :prefixlength s)) s))
-                       (parent-ipv4-subnet-p
-                         (format nil "~A/~A"
-                                 (cdr (assoc :original--uid s)) (cdr (assoc :prefixlength s)))
-                         subnet))
+                   #'(lambda (candidate)
+                       (restagraph:log-message :debug (format nil "Testing ~A" (ipaddress:as-cidr candidate)))
+                       (when (ipaddress:subnetp subnet candidate)
+                         candidate))
                    candidates)))
           (progn
             (restagraph:log-message
               :debug
-              (format nil "Exact match not found. Looking for a supernet in ~A" candidates))
+              (format nil "Exact match not found. Looking for a supernet in ~A"
+                      (mapcar #'make-subnet-uid candidates)))
             ;; Do we have a supernet (and only one) to check under?
-            (if (equal (length supernet) 1)
-              (progn
-                (restagraph:log-message :debug (format nil "Supernet found: ~A" supernet))
-                (let ((newpath (append path (list (cdr (assoc :uid (car supernet)))))))
+            (if (equal (length supernets) 1)
+                (progn
                   (restagraph:log-message
                     :debug
-                    (format nil "Supernet identified. Finding the location of ~A under /~A~A~{/~A~}"
-                            subnet
-                            org
-                            (if (equal vrf "")
-                              ""
-                              (format nil "/~A" vrf))
-                            newpath))
-                  (find-subnet db org vrf subnet newpath)))
-              ;; No candidate supernet found
-              (restagraph:log-message :debug "No exact match or supernet found on this path."))))))))
+                    (format nil "Supernet found: ~A" (ipaddress:as-cidr (car supernets))))
+                  (let ((newpath (append path (list (car supernets)))))
+                    (restagraph:log-message
+                      :debug
+                      (format nil "Supernet identified. Finding the location of ~A under /~A~A~{/~A~}"
+                              (ipaddress:as-cidr subnet)
+                              org
+                              (if (equal vrf "")
+                                  ""
+                                  (format nil "/~A" vrf))
+                              (mapcar #'make-subnet-uid newpath)))
+                    (find-subnet db org vrf subnet newpath)))
+                ;; No candidate supernet found
+                (restagraph:log-message :debug "No exact match or supernet found on this path.")))))))
+
 
 (defmethod find-parent-subnet ((db neo4cl:neo4j-rest-server)
-                               (subnet string)
+                               (subnet ipaddress:ip-address)
                                (org string)
                                (vrfgroup string)
                                (path list))
   (restagraph:log-message
     :debug
     (format nil "Searching for parent subnet for ~A under organisation '~A' and VRF '~A'."
-            subnet org vrfgroup))
+            (ipaddress:as-cidr subnet) org vrfgroup))
   ;; Get a list of candidate supernets
-  (let ((candidates
-          ;; Remove nulls from the list returned by the coming filter
-          (remove-if
-            #'null
-            (mapcar #'(lambda (c)
-                        (restagraph:log-message
-                          :debug
-                          (format nil "Testing candidate parent subnet ~A" c))
-                        (when (parent-ipv4-subnet-p
-                                (format nil "~A/~A"
-                                        (cdr (assoc :uid c))
-                                        (cdr (assoc :prefixlength c)))
-                                subnet)
-                          (cdr (assoc :uid c))))
-                    ;; Extract the list of candidate supernets
-                    (restagraph:get-resources
-                      db
-                      (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets"
-                              org
-                              (if (equal vrfgroup "")
-                                ""
-                                (format nil "/VrfGroups/vrfGroups/~A" vrfgroup))
-                              path))))))
+  (let* ((candidates
+           ;; Remove nulls from the list returned by the enclosed query
+           (remove-if #'null
+                      (mapcar
+                        #'(lambda
+                            (c)
+                            (restagraph:log-message
+                              :debug (format nil "Testing candidate parent subnet ~A" c))
+                            ;; Create an ip-subnet object from the candidate
+                            ;; - make the comparison code simpler by a call to ipaddress:subnetp
+                            ;; - we now already have a subnet object to return
+                            (let ((supernet (make-instance (if (= 6 (ipaddress:ip-version subnet))
+                                                               'ipaddress:ipv6-subnet
+                                                               'ipaddress:ipv4-subnet)
+                                                           :address (cdr (assoc :netaddress c))
+                                                           :prefix-length (cdr (assoc :prefixlength c)))))
+                              ;; Test whether it's plausibly a supernet of this subnet
+                              (when (ipaddress:subnetp subnet supernet)
+                                ;; If it is, return the supernet. Otherwise, default to NIL.
+                                supernet)))
+                        ;; Extract the list of candidate supernets
+                        (restagraph:get-resources
+                          db
+                          (format nil (if (= 6 (ipaddress:ip-version subnet))
+                                          "/organisations/~A~A~{/Subnets/ipv6Subnets/~A~}/Subnets"
+                                          "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets")
+                                  org
+                                  (if (equal vrfgroup "")
+                                      ""
+                                      (format nil "/VrfGroups/vrfGroups/~A" vrfgroup))
+                                  (mapcar 'make-subnet-uid path)))))))
     (restagraph:log-message
       :debug
-      (format nil "Candidate supernets for ~A under ~{/~A~}: ~A" subnet path candidates))
+      (format nil "Candidate supernets for ~A under ~{/~A~}: ~{~A~^, ~}"
+      (make-subnet-uid subnet)
+      (mapcar #'make-subnet-uid path)
+      (mapcar #'make-subnet-uid candidates)))
     (cond
       ;; If there's no candidate, this is where the search stops. Return the path to this point.
       ((null candidates)
-       (restagraph:log-message
-         :debug
-         (format nil "End of the line. Using the parent path ~{/~A~}" path))
+       (restagraph:log-message :debug
+                               (format nil "End of the line. Using the parent path ~{/~A~}"
+                                       (mapcar #'make-subnet-uid path)))
        path)
       ;; If there's more than one candidate, return an error because this is illegal.
       ;; FIXME: report the path so the user can fix the problem.
       ((> (length candidates) 1)
        (error 'restagraph:integrity-error
               :message (format nil "More than one candidate supernet; this is not a valid situation.")))
-      ;; Remaining option: there's one candidate. Test it.
+      ;; Remaining option: there's one candidate.
+      ;; Test it by recursing through this function.
       (t
-       (restagraph:log-message
-         :debug
-         (format nil "Found a candidate supernet for ~A: recursing into ~{/~A~}."
-                 subnet (append path (list (car candidates)))))
-       (find-parent-subnet db subnet org vrfgroup (append path (list (car candidates))))))))
+       (let ((newpath (append path (list (car candidates)))))
+         (restagraph:log-message
+           :debug
+           (format nil "Found a candidate supernet for ~A: recursing into ~{/~A~}."
+                   (ipaddress:as-cidr subnet) (mapcar #'make-subnet-uid newpath)))
+         (find-parent-subnet db subnet org vrfgroup newpath))))))
+
 
 (defmethod insert-subnet ((db neo4cl:neo4j-rest-server)
                           (org string)
                           (vrf string)
-                          (subnet string))
+                          (subnet ipaddress:ip-subnet))
   (restagraph:log-message
     :debug
     (format nil "Attempting to insert subnet '~A' under organisation '~A' and VRF-group '~A'."
-            subnet org vrf))
+            (ipaddress:as-cidr subnet) org vrf))
   ;; Sanity check: is it already there?
-  (when (find-subnet db org vrf subnet)
-    (error 'restagraph:client-error :message "Subnet already exists"))
-  ;; Precalculate stuff
-  (let* ((subnet-parts (cl-ppcre:split "/" subnet))
-         (net-addr (restagraph::sanitise-uid (first subnet-parts)))
-         (prefixlength (second subnet-parts))
-         (parent-path (find-parent-subnet db subnet org vrf ()))
-         ;; Pre-extract the list of candidate subnets for relocation.
-         ;; If we do this now, we don't accidentally include the one we just inserted.
-         (subnets
-           (remove-if #'null
-                      (mapcar #'(lambda (s)
-                                  (when (parent-ipv4-subnet-p
-                                          subnet
-                                          (format nil "~A/~A"
-                                                  (cdr (assoc :uid s))
-                                                  (cdr (assoc :prefixlength s))))
-                                    s))
-                              (restagraph::get-resources
-                                db
-                                (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets"
-                                        org
-                                        (if (equal vrf "")
-                                          ""
-                                          (format nil "/VrfGroups/vrfGroups/~A" vrf))
-                                        parent-path)))))
-         ;; Pre-extract the list of candidate addresses for relocation.
-         (addresses
-           (remove-if-not
-             #'(lambda (a)
-                 (parent-ipv4-subnet-p subnet (cdr (assoc :uid a))))
-             (restagraph::get-resources
-               db
-               (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses"
+  (restagraph:log-message
+    :debug
+    (format nil "Checking whether ~A is already present" (ipaddress:as-cidr subnet)))
+  (if (find-subnet db org vrf subnet)
+      ;; Already present: log the fact, and return now.
+      (progn
+        (restagraph:log-message
+          :warn
+          (format nil "Attempting to insert subnet ~A, which is already present"
+                  (ipaddress:as-cidr subnet)))
+        nil)
+      ;; Doesn't already exist; carry on
+      (let* ((subnet-uid (make-subnet-uid subnet))
+             (parent-path (find-parent-subnet db subnet org vrf ()))
+             ;; Pre-extract the list of candidate subnets for relocation.
+             ;; If we do this now, we don't accidentally include the one we just inserted.
+             (subnets
+               (progn
+                 (restagraph:log-message
+                   :debug
+                   (format nil "Checking for subnets to relocate under ~A after creating it"
+                           (ipaddress:as-cidr subnet)))
+                 (remove-if
+                           #'null
+                           (mapcar #'(lambda (s)
+                                       ;; Create an ip-subnet object from the candidate
+                                       ;; - make the comparison code simpler by a call to ipaddress:subnetp
+                                       ;; - we now already have a subnet object to return
+                                       (let ((c_subnet (make-instance
+                                                         (if (= 6 (ipaddress:ip-version subnet))
+                                                             'ipaddress:ipv6-subnet
+                                                             'ipaddress:ipv4-subnet)
+                                                         :address (cdr (assoc :netaddress s))
+                                                         :prefix-length (cdr (assoc :prefixlength s)))))
+                                         ;; If it's a subnet of the new one, return the object
+                                         (restagraph:log-message
+                                           :debug
+                                           (format nil "Checking whether candidate subnet ~A is a subnet of ~A"
+                                                   (ipaddress:as-cidr c_subnet)
+                                                   (ipaddress:as-cidr subnet)))
+                                         (when (ipaddress:subnetp c_subnet subnet) c_subnet)))
+                                   (restagraph:get-resources
+                                     db
+                                     (format nil (if (= 6 (ipaddress:ip-version subnet))
+                                                     "/organisations/~A~A~{/Subnets/ipv6Subnets/~A~}/Subnets"
+                                                     "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets")
+                                             org
+                                             (if (equal vrf "")
+                                                 ""
+                                                 (format nil "/VrfGroups/vrfGroups/~A" vrf))
+                                             (mapcar #'make-subnet-uid parent-path)))))))
+             ;; Pre-extract the list of candidate addresses for relocation.
+             (addresses
+               (progn
+                 (restagraph:log-message
+                   :debug
+                   (format nil "Checking for addresses to relocate under ~A after creating it"
+                           (ipaddress:as-cidr subnet)))
+                 (remove-if
+                           #'null
+                           (mapcar #'(lambda (a)
+                                       (let ((c_addr (make-instance
+                                                       (if (= 6 (ipaddress:ip-version subnet))
+                                                           'ipaddress:ipv6-address
+                                                           'ipaddress:ipv4-address)
+                                                       :address (cdr (assoc :uid a)))))
+                                         (restagraph:log-message
+                                           :debug
+                                           (format nil "Checking whether address ~A belongs in new subnet ~A"
+                                                   (ipaddress:as-string c_addr)
+                                                   (ipaddress:as-cidr subnet)))
+                                         (when (ipaddress:subnetp c_addr subnet) c_addr)))
+                                   (restagraph::get-resources
+                                     db
+                                     (format nil (if (= 6 (ipaddress:ip-version subnet))
+                                                     "/organisations/~A~A~{/Subnets/ipv6Subnets/~A~}/Addresses/ipv6Addresses"
+                                                     "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses/ipv4Addresses")
+                                             org
+                                             (if (equal vrf "")
+                                                 ""
+                                                 (format nil "/VrfGroups/vrfGroups/~A" vrf))
+                                             (mapcar #'make-subnet-uid parent-path)))))))
+             ;; Build the path to insert the new subnet
+             (insert-path
+               (format nil (if (= 6 (ipaddress:ip-version subnet))
+                               "/organisations/~A~A~{/Subnets/ipv6Subnets/~A~}/Subnets/ipv6Subnets"
+                               "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets/ipv4Subnets")
                        org
                        (if (equal vrf "")
-                         ""
-                         (format nil "/VrfGroups/vrfGroups/~A" vrf))
-                       parent-path))))
-         ;; Build the path to insert the new subnet
-         (insert-path
-           (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets/ipv4Subnets"
-                   org
-                   (if (equal vrf "")
-                     ""
-                     (format nil "/VrfGroups/vrfGroups/~A" vrf))
-                   parent-path)))
-    ;; Insert the subnet
-    (restagraph:log-message
-      :debug
-      (format nil "Inserting the subnet ~A/~A using the path ~A."
-              net-addr prefixlength insert-path))
-    (restagraph:store-dependent-resource db
-                                         insert-path
-                                         `(("uid" . ,net-addr)
-                                           ("prefixlength" . ,prefixlength)))
-    ;; Using the list of candidates we retrieved earlier,
-    ;; identify subnets of the one we just inserted, and move them under it.
-    (if subnets
-      (mapcar #'(lambda (s)
-                  (restagraph:log-message
-                    :debug
-                    (format nil "Relocating subnet ~A under its new parent." s))
-                  ;; Now actually move it
-                  (restagraph:move-dependent-resource
-                    db
-                    ;; Existing path of subnet
-                    (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}"
-                            org
-                            (if (equal vrf "")
-                              ""
-                              (format nil "/VrfGroups/vrfGroups/~A" vrf))
-                            (append parent-path (list (cdr (assoc :uid s)))))
-                    ;; New parent for subnet
-                    (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets"
-                            org
-                            (if (equal vrf "")
-                              ""
-                              (format nil "/VrfGroups/vrfGroups/~A" vrf))
-                            (append parent-path (list net-addr)))))
-              subnets)
-      (restagraph:log-message :debug "No subnets to relocate"))
-    ;; Find all IP addresses directly attached to the supernet which fit in this subnet;
-    ;; move them under this one.
-    (if addresses
-      (mapcar #'(lambda (a)
-                  (restagraph:log-message
-                    :debug
-                    (format nil "Relocating address ~A under its new parent." a))
-                  ;; Now actually move it
-                  (restagraph:move-dependent-resource
-                    db
-                    ;; Existing path of subnet
-                    (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses/ipv4Addresses/~A"
-                            org
-                            (if (equal vrf "")
-                              ""
-                              (format nil "/VrfGroups/vrfGroups/~A" vrf))
-                            parent-path
-                            (cdr (assoc :uid a)))
-                    ;; New parent for subnet
-                    (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses"
-                            org
-                            (if (equal vrf "")
-                              ""
-                              (format nil "/VrfGroups/vrfGroups/~A" vrf))
-                            (append parent-path (list net-addr)))))
-              addresses)
-      (restagraph:log-message :debug "No addresses to relocate")))
-  ;; Return nil, because the test suite expects this.
-  ;; Seriously, there's nothing useful to actually report,
-  ;; and we raise error conditions when anything goes wrong anyway.
-  nil)
+                           ""
+                           (format nil "/VrfGroups/vrfGroups/~A" vrf))
+                       (mapcar #'make-subnet-uid parent-path))))
+        ;; Finished with the let-section
+        ;;
+        ;; Now actually insert the subnet
+        (restagraph:log-message
+          :debug
+          (format nil "Inserting the subnet ~A using the path ~A."
+                  (ipaddress:as-cidr subnet) insert-path))
+        (restagraph:store-dependent-resource db
+                                             insert-path
+                                             `(("uid" . ,subnet-uid)
+                                               ("netaddress" . ,(ipaddress:as-string subnet))
+                                               ("prefixlength" . ,(ipaddress:prefix-length subnet))))
+        ;; Using the list of candidates we retrieved earlier,
+        ;; identify subnets of the one we just inserted, and move them under it.
+        (if subnets
+            (mapcar #'(lambda (s)
+                        (restagraph:log-message
+                          :debug
+                          (format nil "Relocating subnet ~A under its new parent." (ipaddress:as-cidr s)))
+                        ;; Now actually move it
+                        (restagraph:move-dependent-resource
+                          db
+                          ;; Existing path of subnet
+                          (format nil (if (= 6 (ipaddress:ip-version subnet))
+                                          "/organisations/~A~A~{/Subnets/ipv6Subnets/~A~}"
+                                          "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}")
+                                  org
+                                  (if (equal vrf "")
+                                      ""
+                                      (format nil "/VrfGroups/vrfGroups/~A" vrf))
+                                  (append
+                                    (mapcar #'make-subnet-uid parent-path)
+                                    (list (make-subnet-uid s))))
+                          ;; New parent for subnet
+                          (format nil (if (= 6 (ipaddress:ip-version subnet))
+                                          "/organisations/~A~A~{/Subnets/ipv6Subnets/~A~}/Subnets"
+                                          "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets")
+                                  org
+                                  (if (equal vrf "")
+                                      ""
+                                      (format nil "/VrfGroups/vrfGroups/~A" vrf))
+                                  (append (mapcar #'make-subnet-uid parent-path)
+                                          (list subnet-uid)))))
+                    subnets)
+            (restagraph:log-message :debug "No subnets to relocate"))
+        ;; Find all IP addresses directly attached to the supernet which fit in this subnet;
+        ;; move them under this one.
+        (if addresses
+            (mapcar #'(lambda (a)
+                        (restagraph:log-message
+                          :debug
+                          (format nil "Relocating address ~A under its new parent." (ipaddress:as-string a)))
+                        ;; Now actually move it
+                        (restagraph:move-dependent-resource
+                          db
+                          ;; Existing path of address
+                          (format nil
+                                  (if (= 6 (ipaddress:ip-version subnet))
+                                      "/organisations/~A~A~{/Subnets/ipv6Subnets/~A~}/Addresses/ipv6Addresses/~A"
+                                      "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses/ipv4Addresses/~A")
+                                  org
+                                  (if (equal vrf "")
+                                      ""
+                                      (format nil "/VrfGroups/vrfGroups/~A" vrf))
+                                  (mapcar #'make-subnet-uid parent-path)
+                                  (ipaddress:as-string a))
+                          ;; New parent for address
+                          (format nil
+                                  (if (= 6 (ipaddress:ip-version subnet))
+                                      "/organisations/~A~A~{/Subnets/ipv6Subnets/~A~}/Addresses"
+                                      "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses")
+                                  org
+                                  (if (equal vrf "")
+                                      ""
+                                      (format nil "/VrfGroups/vrfGroups/~A" vrf))
+                                  (append
+                                    (mapcar #'make-subnet-uid parent-path)
+                                    (list subnet-uid)))))
+                    addresses)
+            (restagraph:log-message :debug "No addresses to relocate"))
+        ;; Return t, to indicate success.
+        t)))
+
 
 (defmethod delete-subnet ((db neo4cl:neo4j-rest-server)
                           (org string)
                           (vrf string)
-                          (subnet string))
+                          (subnet ipaddress:ip-subnet))
   (let* ((subnet-path (find-subnet db org vrf subnet))
          (parent-path (butlast subnet-path)))
     ;; Sanity-check
     (unless subnet-path
       (error 'restagraph:client-error :message "No such subnet."))
     ;; Move subnets to the parent
+    (restagraph:log-message
+      :debug
+      (format nil "Relocating subnets of ~A before deleting it" (ipaddress:as-cidr subnet)))
     (mapcar #'(lambda (s)
-                (restagraph:log-message :debug (format nil "Relocating subnet ~A" s))
+                (restagraph:log-message :debug (format nil "Relocating subnet ~A"
+                                                       (cdr (assoc :uid s))))
                 (restagraph:move-dependent-resource
                   db
                   ;; Existing path
@@ -286,89 +370,124 @@
                           (if (equal vrf "")
                               ""
                               (format nil "/VrfGroups/vrfGroups/~A" vrf))
-                          (append subnet-path (list (cdr (assoc :uid s)))))
+                          (append (mapcar #'make-subnet-uid subnet-path)
+                                  (list (cdr (assoc :uid s)))))
                   ;; New parent path
                   (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets"
                           org
                           (if (equal vrf "")
                               ""
                               (format nil "/VrfGroups/vrfGroups/~A" vrf))
-                          parent-path)))
+                          (mapcar #'make-subnet-uid parent-path))))
             ;; Get a list of subnets
-            (car
-              (restagraph:get-resources
-                db
-                (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets/ipv4Subnets"
-                        org
-                        (if (equal vrf "")
-                            ""
-                            (format nil "/VrfGroups/vrfGroups/~A" vrf))
-                        subnet-path))))
+            (restagraph:get-resources
+              db
+              (format nil
+                      (if (= 6 (ipaddress:ip-version subnet))
+                          "/organisations/~A~A~{/Subnets/ipv6Subnets/~A~}/Subnets/ipv6Subnets"
+                          "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets/ipv4Subnets")
+                      org
+                      (if (equal vrf "")
+                          ""
+                          (format nil "/VrfGroups/vrfGroups/~A" vrf))
+                      (mapcar #'make-subnet-uid subnet-path))))
     ;; Addresses: move them to the parent
+    (restagraph:log-message
+      :debug
+      (format nil "Relocating addresses under ~A before deleting it" (ipaddress:as-cidr subnet)))
     (mapcar #'(lambda (a)
                 (restagraph:log-message :debug (format nil "Relocating address ~A" a))
                 (restagraph:move-dependent-resource
                   db
                   ;; Existing path
-                  (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses/ipv4Addresses/~A"
+                  (format nil
+                          (if (= 6 (ipaddress:ip-version subnet))
+                              "/organisations/~A~A~{/Subnets/ipv6Subnets/~A~}/Addresses/ipv6Addresses/~A"
+                              "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses/ipv4Addresses/~A")
                           org
                           (if (equal vrf "")
                               ""
                               (format nil "/VrfGroups/vrfGroups/~A" vrf))
-                          subnet-path
+                          (mapcar #'make-subnet-uid subnet-path)
                           (cdr (assoc :uid a)))
                   ;; New parent path
-                  (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses"
+                  (format nil
+                          (if (= 6 (ipaddress:ip-version subnet))
+                              "/organisations/~A~A~{/Subnets/ipv6Subnets/~A~}/Addresses"
+                              "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses")
                           org
                           (if (equal vrf "")
                               ""
                               (format nil "/VrfGroups/vrfGroups/~A" vrf))
-                          parent-path)))
+                          (mapcar #'make-subnet-uid parent-path))))
             ;; Get a list of addresses
-            (car
-              (restagraph:get-resources
-                db
-                (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses/ipv4Addresses"
-                        org
-                        (if (equal vrf "")
-                            ""
-                            (format nil "/VrfGroups/vrfGroups/~A" vrf))
-                        subnet-path))))
+            (restagraph:get-resources
+              db
+              (format nil
+                      (if (= 6 (ipaddress:ip-version subnet))
+                          "/organisations/~A~A~{/Subnets/ipv6Subnets/~A~}/Addresses/ipv6Addresses"
+                          "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses/ipv4Addresses")
+                      org
+                      (if (equal vrf "")
+                          ""
+                          (format nil "/VrfGroups/vrfGroups/~A" vrf))
+                      (mapcar #'make-subnet-uid subnet-path))))
     ;; Delete the subnet itself
     (restagraph:delete-resource-by-path
       db
-      (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}"
+      (format nil
+              (if (= 6 (ipaddress:ip-version subnet))
+                  "/organisations/~A~A~{/Subnets/ipv6Subnets/~A~}"
+                  "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}")
               org
               (if (equal vrf "")
                   ""
                   (format nil "/VrfGroups/vrfGroups/~A" vrf))
-              subnet-path)
+              (mapcar #'make-subnet-uid subnet-path))
       :delete-dependent t)))
 
-(defmethod find-ipv4address ((db neo4cl:neo4j-rest-server)
-                             (address string)
-                             (org string)
-                             (vrf string))
+
+(defmethod find-ipaddress ((db neo4cl:neo4j-rest-server)
+                           (address ipaddress:ip-address)
+                           (org string)
+                           (vrf string))
   (let ((parent-path (find-parent-subnet db address org vrf ())))
     (when parent-path
       (let ((result (restagraph:get-resources
                       db
-                      (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses/ipv4Addresses/~A"
+                      (format nil
+                              (if (= 6 (ipaddress:ip-version address))
+                                  "/organisations/~A~A~{/Subnets/ipv6Subnets/~A~}/Addresses/ipv6Addresses/~A"
+                                  "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses/ipv4Addresses/~A")
                               org
                               (if (equal vrf "")
                                   ""
                                   (format nil "/VrfGroups/vrfGroups/~A" vrf))
-                              parent-path
-                              address))))
+                              (mapcar #'make-subnet-uid parent-path)
+                              (ipaddress:as-string address)))))
         (when result
-          (append parent-path (list (cdr (assoc :uid result)))))))))
+          (append parent-path
+                  (list
+                    (make-instance (if (= 6 (ipaddress:ip-version address))
+                                       'ipaddress:ipv6-address
+                                       'ipaddress:ipv4-address)
+                                   :address (cdr (assoc :uid result))))))))))
 
-(defmethod insert-ipv4address ((db neo4cl:neo4j-rest-server)
-                               (address string)
-                               (org string)
-                               (vrf string))
-  (let ((parent-subnet (find-parent-subnet db address org vrf ())))
+
+(defmethod insert-ipaddress ((db neo4cl:neo4j-rest-server)
+                             (address ipaddress:ip-address)
+                             (org string)
+                             (vrf string))
+  (let ((parent-subnet-path (find-parent-subnet db address org vrf ())))
+    (restagraph:log-message
+      :debug
+      (format nil "Found parent subnet for ~A: ~{/~A~}"
+              (ipaddress:as-string address)
+              (mapcar #'make-subnet-uid parent-subnet-path)))
     ;; Sanity-check: is it already there?
+    (restagraph:log-message
+      :debug
+      (format nil "Checking whether ~A is already present" (ipaddress:as-string address)))
     (if (restagraph:get-resources
           db
           (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses/ipv4Addresses/~A"
@@ -376,12 +495,16 @@
                   (if (equal vrf "")
                       ""
                       (format nil "/VrfGroups/vrfGroups/~A" vrf))
-                  parent-subnet
-                  address))
-        ;; It's a duplicate; raise an error
-        (error 'restagraph:integrity-error :message "Address already exists.")
+                  (mapcar #'make-subnet-uid parent-subnet-path)
+                  (ipaddress:as-string address)))
+        ;; It's a duplicate; return nil because there's nothing to do.
+        nil
         ;; All is well; carry on
         (progn
+          (restagraph:log-message
+            :debug
+            (format nil "No duplicate address found; proceeding to store address ~A"
+                    (ipaddress:as-string address)))
           (restagraph:store-dependent-resource
             db
             (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses/ipv4Addresses"
@@ -389,24 +512,27 @@
                     (if (equal vrf "")
                         ""
                         (format nil "/VrfGroups/vrfGroups/~A" vrf))
-                    parent-subnet)
-            `(("uid" . ,address)))
+                    (mapcar #'make-subnet-uid parent-subnet-path))
+            `(("uid" . ,(ipaddress:as-string address))))
           ;; Return NIL, because there's no earthly reason to return anything else.
           nil))))
 
-(defmethod delete-ipv4address ((db neo4cl:neo4j-rest-server)
-                               (address string)
+(defmethod delete-ipaddress ((db neo4cl:neo4j-rest-server)
+                               (address ipaddress:ip-address)
                                (org string)
                                (vrf string))
   (restagraph:delete-resource-by-path
     db
-    (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses/ipv4Addresses/~A"
+    (format nil
+            (if (= 6 (ipaddress:ip-version address))
+                "/organisations/~A~A~{/Subnets/ipv6Subnets/~A~}/Addresses/ipv6Addresses/~A"
+                "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses/ipv4Addresses/~A")
             org
             (if (equal vrf "")
                 ""
                 (format nil "/VrfGroups/vrfGroups/~A" vrf))
-            (find-parent-subnet db address org vrf ())
-            address)
-            :delete-dependent t)
+            (mapcar #'make-subnet-uid (find-parent-subnet db address org vrf ()))
+            (ipaddress:as-string address))
+    :delete-dependent t)
   ;; Return NIL, because there's no earthly reason to return anything else.
   nil)

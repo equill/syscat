@@ -10,22 +10,28 @@
                                       &rest format-arguments)
   (restagraph:log-message log-level (append (list format-string) format-arguments)))
 
-(defun format-ipv4-subnet (org vrf subnet-list)
-  (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}"
+(defun format-subnet-path (org vrf subnet-list)
+  "Generate a URI for the path to a subnet."
+  (format nil
+          (if (= 6 (ipaddress:ip-version (car subnet-list)))
+              "/organisations/~A~A~{/Subnets/ipv6Subnets/~A~}"
+              "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}")
           org
           (if (and vrf (not (equal vrf "")))
-            (format nil "/vrfGroups/~A" vrf)
-            "")
-          subnet-list))
+              (format nil "/vrfGroups/~A" vrf)
+              "")
+          (mapcar #'make-subnet-uid subnet-list)))
+
+(defmethod make-subnet-uid ((subnet ipaddress:ip-address))
+  (with-output-to-string (str)
+    (write (ipaddress:as-string subnet) :stream str :escape nil)
+    (write "_" :stream str :escape nil)
+    (write (ipaddress:prefix-length subnet) :stream str)))
 
 (defun subnet-dispatcher-v1 ()
   "Hunchentoot dispatch function for the IPAM-specific REST API, version 1. Subnet subset."
   (handler-case
     (cond
-      ;; Methods we don't support.
-      ;; Take the whitelist approach
-      ((not (member (tbnl:request-method*) '(:POST :GET :DELETE)))
-       (restagraph::method-not-allowed))
       ;;
       ;; Create a subnet
       ((and (equal (tbnl:request-method*) :POST)
@@ -35,24 +41,37 @@
                                (format nil "Dispatching POST request for URI ~A"
                                        (tbnl:request-uri*)))
        ;; Insert it
-       (insert-subnet (restagraph::datastore *syscat-acceptor*)
-                      (tbnl:post-parameter "org")
-                      (or (tbnl:post-parameter "vrf") "")
-                      (tbnl:post-parameter "subnet"))
-       ;; Return it to the client for confirmation
-       (restagraph:log-message
-         :debug
-         (format nil "Stored subnet ~A. Now retrieving it for positive confirmation."
-                 (tbnl:post-parameter "subnet")))
-       (setf (tbnl:content-type*) "application/json")
-       (setf (tbnl:return-code*) tbnl:+http-created+)
-       (format-ipv4-subnet
-         (tbnl:post-parameter "org")
-         (tbnl:post-parameter "vrf")
-         (find-subnet (restagraph::datastore *syscat-acceptor*)
-                      (tbnl:post-parameter "org")
-                      (or (tbnl:post-parameter "vrf") "")
-                      (tbnl:post-parameter "subnet"))))
+       (let ((result
+               (insert-subnet (restagraph::datastore *syscat-acceptor*)
+                              (tbnl:post-parameter "org")
+                              (or (tbnl:post-parameter "vrf") "")
+                              (if (ipaddress:ipv4-subnet-p (tbnl:post-parameter "subnet"))
+                                  (ipaddress:make-ipv4-subnet (tbnl:post-parameter "subnet"))
+                                  (ipaddress:make-ipv6-subnet (tbnl:post-parameter "subnet"))))))
+         ;; Return it to the client for confirmation
+         (if result
+             (restagraph:log-message
+               :debug
+               (format nil "Stored subnet ~A. Now retrieving it for positive confirmation."
+                       (tbnl:post-parameter "subnet")))
+             (restagraph:log-message
+               :debug
+               (format nil "Subnet ~A was already present. Retrieving it for positive confirmation."
+                       (tbnl:post-parameter "subnet"))))
+         (setf (tbnl:content-type*) "application/json")
+         (setf (tbnl:return-code*)
+               (if result
+                   tbnl:+http-created+
+                   tbnl:+http-ok+))
+         (format-subnet-path
+           (tbnl:post-parameter "org")
+           (tbnl:post-parameter "vrf")
+           (find-subnet (restagraph::datastore *syscat-acceptor*)
+                        (tbnl:post-parameter "org")
+                        (or (tbnl:post-parameter "vrf") "")
+                        (if (ipaddress:ipv4-subnet-p (tbnl:post-parameter "subnet"))
+                            (ipaddress:make-ipv4-subnet (tbnl:post-parameter "subnet"))
+                            (ipaddress:make-ipv6-subnet (tbnl:post-parameter "subnet")))))))
       ;;
       ;; Search for a subnet
       ((and (equal (tbnl:request-method*) :GET)
@@ -66,23 +85,28 @@
          (let ((result (find-subnet (restagraph::datastore *syscat-acceptor*)
                                     (tbnl:get-parameter "org")
                                     (or (tbnl:get-parameter "vrf") "")
-                                    (tbnl:get-parameter "subnet"))))
+                                    (if (ipaddress:ipv4-subnet-p (tbnl:get-parameter "subnet"))
+                                        (ipaddress:make-ipv4-subnet (tbnl:get-parameter "subnet"))
+                                        (ipaddress:make-ipv6-subnet (tbnl:get-parameter "subnet"))))))
            ;; Did we find one?
            (if (or (null result)
                    (equal result ""))
-             ;; Not found
-             (progn
-               (setf (tbnl:content-type*) "text/plain")
-               (setf (tbnl:return-code*) tbnl:+http-not-found+)
-               "No such subnet")
-             ;; Found it!
-             (progn
-               (setf (tbnl:content-type*) "application/json")
-               (setf (tbnl:return-code*) tbnl:+http-ok+)
-               (format-ipv4-subnet
-                 (tbnl:get-parameter "org")
-                 (tbnl:get-parameter "vrf")
-                 result))))
+               ;; Not found
+               (progn
+                 (setf (tbnl:content-type*) "text/plain")
+                 (setf (tbnl:return-code*) tbnl:+http-not-found+)
+                 "No such subnet")
+               ;; Found it!
+               (progn
+                 (setf (tbnl:content-type*) "application/json")
+                 (setf (tbnl:return-code*) tbnl:+http-ok+)
+                 (let ((output (format-subnet-path
+                                 (tbnl:get-parameter "org")
+                                 (tbnl:get-parameter "vrf")
+                                 result)))
+                   (restagraph:log-message :debug "Retrieved subnet path ~A" output)
+                   ;; Actually return it to the appserver
+                   output))))
          ;; Attempted violation of db integrity
          (restagraph:integrity-error (e) (restagraph::return-integrity-error (restagraph:message e)))
          ;; Generic client errors
@@ -98,10 +122,16 @@
        (delete-subnet (restagraph::datastore *syscat-acceptor*)
                       (tbnl:post-parameter "org")
                       (or (tbnl:post-parameter "vrf") "")
-                      (tbnl:post-parameter "subnet"))
+                      (if (ipaddress:ipv4-subnet-p (tbnl:post-parameter "subnet"))
+                                        (ipaddress:make-ipv4-subnet (tbnl:post-parameter "subnet"))
+                                        (ipaddress:make-ipv6-subnet (tbnl:post-parameter "subnet"))))
        (setf (tbnl:content-type*) "text/plain")
        (setf (tbnl:return-code*) tbnl:+http-no-content+)
        "")
+      ;; Methods we don't support.
+      ;; Take the whitelist approach
+      ((not (member (tbnl:request-method*) '(:POST :GET :DELETE)))
+       (restagraph::method-not-allowed))
       ;;
       ;; Handle all other cases
       (t
@@ -109,29 +139,30 @@
     ;; Handle general errors
     ;;
     ;; Generic client errors
+    (restagraph:client-error (e) (restagraph::return-client-error (restagraph:message e)))
     (neo4cl:client-error (e) (restagraph::return-client-error (neo4cl:message e)))
     ;; Transient error
     (neo4cl:transient-error (e) (restagraph::return-transient-error e))
     ;; Database error
     (neo4cl:database-error (e) (restagraph::return-database-error e))))
 
-(defun format-ipv4-address (org vrf address-list)
-  (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses/ipv4Addresses/~A"
+(defun format-address-path (org vrf address-path)
+  "Generate a URI for the path to an address."
+  (format nil
+          (if (= 6 (ipaddress:ip-version (car address-path)))
+              "/organisations/~A~A~{/Subnets/ipv6Subnets/~A~}/Addresses/ipv6Addresses/~A"
+              "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses/ipv4Addresses/~A")
           org
           (if (and vrf (not (equal vrf "")))
-            (format nil "/vrfGroups/~A" vrf)
-            "")
-          (butlast address-list)
-          (car (last address-list))))
+              (format nil "/vrfGroups/~A" vrf)
+              "")
+          (mapcar #'make-subnet-uid (butlast address-path))
+          (car (last address-path))))
 
 (defun address-dispatcher-v1 ()
   "Hunchentoot dispatch function for the IPAM-specific REST API, version 1. Address subset."
   (handler-case
     (cond
-      ;; Methods we don't support.
-      ;; Take the whitelist approach
-      ((not (member (tbnl:request-method*) '(:POST :GET :DELETE)))
-       (restagraph::method-not-allowed))
       ;;
       ;; Create an address
       ((and (equal (tbnl:request-method*) :POST)
@@ -139,11 +170,13 @@
             (tbnl:post-parameter "org"))
        (restagraph:log-message
          :debug (format nil "Dispatching POST request for URI ~A" (tbnl:request-uri*)))
-       ;; Insert it
-       (insert-ipv4address (restagraph::datastore *syscat-acceptor*)
-                           (tbnl:post-parameter "address")
-                           (tbnl:post-parameter "org")
-                           (or (tbnl:post-parameter "vrf") ""))
+       (insert-ipaddress (restagraph::datastore *syscat-acceptor*)
+                         (make-instance (if (ipaddress:ipv4-address-p (tbnl:post-parameter "address"))
+                                            'ipaddress:ipv4-address
+                                            'ipaddress:ipv6-address)
+                                        :address (tbnl:post-parameter "address"))
+                         (tbnl:post-parameter "org")
+                         (or (tbnl:post-parameter "vrf") ""))
        ;; Return it to the client for confirmation
        (restagraph:log-message
          :debug
@@ -152,8 +185,11 @@
        (setf (tbnl:content-type*) "application/json")
        (setf (tbnl:return-code*) tbnl:+http-created+)
        (cl-json:encode-json-to-string
-         (find-ipv4address (restagraph::datastore *syscat-acceptor*)
-                           (tbnl:post-parameter "address")
+         (find-ipaddress (restagraph::datastore *syscat-acceptor*)
+                           (make-instance (if (ipaddress:ipv4-address-p (tbnl:post-parameter "address"))
+                                            'ipaddress:ipv4-address
+                                            'ipaddress:ipv6-address)
+                                        :address (tbnl:post-parameter "address"))
                            (tbnl:post-parameter "org")
                            (or (tbnl:post-parameter "vrf") ""))))
       ;;
@@ -165,25 +201,29 @@
          :debug (format nil "Dispatching GET request for URI ~A" (tbnl:request-uri*)))
        ;; Go look for it
        (handler-case
-         (let ((result (find-ipv4address (restagraph::datastore *syscat-acceptor*)
-                                         (tbnl:get-parameter "address")
-                                         (tbnl:get-parameter "org")
-                                         (or (tbnl:get-parameter "vrf") ""))))
+         (let ((result (find-ipaddress
+                         (restagraph::datastore *syscat-acceptor*)
+                         (make-instance (if (ipaddress:ipv4-address-p (tbnl:get-parameter "address"))
+                                            'ipaddress:ipv4-address
+                                            'ipaddress:ipv6-address)
+                                        :address (tbnl:get-parameter "address"))
+                         (tbnl:get-parameter "org")
+                         (or (tbnl:get-parameter "vrf") ""))))
            ;; Did we find one?
            (if (or (null result)
                    (equal result ""))
-             ;; Not found
-             (progn
-               (setf (tbnl:content-type*) "text/plain")
-               (setf (tbnl:return-code*) tbnl:+http-not-found+)
-               "No such address")
-             ;; Found it!
-             (progn
-               (setf (tbnl:content-type*) "application/json")
-               (setf (tbnl:return-code*) tbnl:+http-ok+)
-               (format-ipv4-address (tbnl:get-parameter "org")
-                               (or (tbnl:get-parameter "vrf") "")
-                               result))))
+               ;; Not found
+               (progn
+                 (setf (tbnl:content-type*) "text/plain")
+                 (setf (tbnl:return-code*) tbnl:+http-not-found+)
+                 "No such address")
+               ;; Found it!
+               (progn
+                 (setf (tbnl:content-type*) "application/json")
+                 (setf (tbnl:return-code*) tbnl:+http-ok+)
+                 (format-address-path (tbnl:get-parameter "org")
+                                      (or (tbnl:get-parameter "vrf") "")
+                                      result))))
          ;; Attempted violation of db integrity
          (restagraph:integrity-error (e) (restagraph::return-integrity-error (restagraph:message e)))
          ;; Generic client errors
@@ -196,13 +236,20 @@
        (restagraph:log-message :debug
                                (format nil "Dispatching DELETE request for URI ~A"
                                        (tbnl:request-uri*)))
-       (delete-ipv4address (restagraph::datastore *syscat-acceptor*)
-                           (tbnl:post-parameter "address")
+       (delete-ipaddress (restagraph::datastore *syscat-acceptor*)
+                           (make-instance (if (ipaddress:ipv4-address-p (tbnl:post-parameter "address"))
+                                            'ipaddress:ipv4-address
+                                            'ipaddress:ipv6-address)
+                                        :address (tbnl:post-parameter "address"))
                            (tbnl:post-parameter "org")
                            (or (tbnl:post-parameter "vrf") ""))
        (setf (tbnl:content-type*) "text/plain")
        (setf (tbnl:return-code*) tbnl:+http-no-content+)
        "")
+      ;; Reject any methods we don't support.
+      ;; Take the whitelist approach
+      ((not (member (tbnl:request-method*) '(:POST :GET :DELETE)))
+       (restagraph::method-not-allowed))
       ;;
       ;; Handle all other cases
       (t
