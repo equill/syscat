@@ -1,7 +1,10 @@
 (in-package #:syscat-test)
 
 (defparameter *server*
-  (restagraph::datastore restagraph::*restagraph-acceptor*))
+  (make-instance 'neo4cl:neo4j-rest-server
+                 :hostname (getf restagraph::*config-vars* :dbhostname)
+                 :dbpasswd (getf restagraph::*config-vars* :dbpasswd)
+                 :dbuser (getf restagraph::*config-vars* :dbusername)))
 
 (fiveam:def-suite main)
 (fiveam:in-suite main)
