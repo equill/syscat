@@ -2,6 +2,7 @@
 
 (in-package #:restagraph)
 
+;; Forcibly override the existing variables
 (defparameter *config-vars*
   `(:listen-address "localhost"
     :listen-port 4950
