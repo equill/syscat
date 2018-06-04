@@ -261,92 +261,58 @@
     ;; Transient error
     (neo4cl:transient-error (e) (restagraph::return-transient-error e))
     ;; Database error
-    (neo4cl:database-error (e) (restagraph::return-database-error e))))
+    (neo4cl:database-error (e) (restagraph::return-database-error e))
+    ;; Service errors, e.g. connection refused
+    (neo4cl:service-error (e) (restagraph::return-service-error (neo4cl:message e)))))
+
+(defun make-syscat-acceptor ()
+  (make-instance
+    'restagraph::restagraph-acceptor
+    :address (or (sb-ext:posix-getenv "SYSCAT_LISTEN_ADDR")
+                 (getf restagraph::*config-vars* :listen-address))
+    :port (or (when(sb-ext:posix-getenv "SYSCAT_LISTEN_PORT")
+                (parse-integer (sb-ext:posix-getenv "SYSCAT_LISTEN_PORT")))
+              (getf restagraph::*config-vars* :listen-port))
+    ;; Send all logs to STDOUT, and let Docker sort 'em out
+    :access-log-destination (make-synonym-stream 'cl:*standard-output*)
+    :message-log-destination (make-synonym-stream 'cl:*standard-output*)
+    ;; Datastore object - for specialising all the db methods on
+    :datastore (make-instance
+                 'neo4cl:neo4j-rest-server
+                 :hostname (or (sb-ext:posix-getenv "SYSCAT_NEO4J_HOSTNAME")
+                               (getf restagraph::*config-vars* :dbhostname))
+                 :port (or (sb-ext:posix-getenv "SYSCAT_NEO4J_PORT")
+                               (getf restagraph::*config-vars* :dbport))
+                 :dbpasswd (or (sb-ext:posix-getenv "SYSCAT_NEO4J_PASSWORD")
+                               (getf restagraph::*config-vars* :dbpasswd))
+                 :dbuser (or (sb-ext:posix-getenv "SYSCAT_NEO4J_USER")
+                             (getf restagraph::*config-vars* :dbusername)))))
+
+(defun read-schema ()
+  "Read the Syscat schema from disk,
+   and return it in a suitable form for handing to Restagraph."
+  (let ((path
+          (if (probe-file (asdf:system-source-directory :syscat))
+              (asdf:system-source-directory :syscat)
+              "/")))
+    (cl-yaml:parse
+      (merge-pathnames path "schema.yaml"))))
 
 (defun startup (&key docker)
-  (if *syscat-acceptor*
-      ;; There's an acceptor already in play; bail out.
-      (restagraph:log-message :warn "Acceptor already exists; refusing to create a new one.")
-      ;; No existing acceptor; we're good to go.
-      (progn
-        ;; Create the acceptor
-        (defparameter *syscat-acceptor*
-          (make-instance
-            'restagraph::restagraph-acceptor
-            :address (or (sb-ext:posix-getenv "SYSCAT_LISTEN_ADDR")
-                         (getf restagraph::*config-vars* :listen-address))
-            :port (or (when(sb-ext:posix-getenv "SYSCAT_LISTEN_PORT")
-                        (parse-integer (sb-ext:posix-getenv "SYSCAT_LISTEN_PORT")))
-                      (getf restagraph::*config-vars* :listen-port))
-            ;; Send all logs to STDOUT, and let Docker sort 'em out
-            :access-log-destination (make-synonym-stream 'cl:*standard-output*)
-            :message-log-destination (make-synonym-stream 'cl:*standard-output*)
-            ;; Datastore object - for specialising all the db methods on
-            :datastore (make-instance
-                         'neo4cl:neo4j-rest-server
-                         :hostname (or (sb-ext:posix-getenv "SYSCAT_NEO4J_HOSTNAME")
-                                       (getf restagraph::*config-vars* :dbhostname))
-                         :dbpasswd (or (sb-ext:posix-getenv "SYSCAT_NEO4J_PASSWORD")
-                                       (getf restagraph::*config-vars* :dbpasswd))
-                         :dbuser (or (sb-ext:posix-getenv "SYSCAT_NEO4J_USER")
-                                     (getf restagraph::*config-vars* :dbusername)))))
-        (restagraph:log-message :info "Configuring the dispatch table")
-        ;; Set the dispatch table
-        (setf tbnl:*dispatch-table*
-              (list
-                (tbnl:create-prefix-dispatcher "/ipam/v1/subnets" 'subnet-dispatcher-v1)
-                (tbnl:create-prefix-dispatcher "/ipam/v1/addresses" 'address-dispatcher-v1)
-                (tbnl:create-prefix-dispatcher
-                  (getf restagraph::*config-vars* :api-uri-base)
-                  'restagraph::api-dispatcher-v1)
-                (tbnl:create-prefix-dispatcher
-                  (getf restagraph::*config-vars* :schema-uri-base)
-                  'restagraph::schema-dispatcher-v1)
-                (tbnl:create-prefix-dispatcher "/" 'restagraph::four-oh-four)))
-        ;; Start up the server
-        (restagraph:log-message
-          :info
-          (format nil "Starting up Hunchentoot to serve HTTP requests on ~A:~D"
-                  (tbnl:acceptor-address *syscat-acceptor*)
-                  (tbnl:acceptor-port *syscat-acceptor*)))
-        (handler-case
-          (tbnl:start *syscat-acceptor*)
-          (usocket:address-in-use-error
-            () (restagraph:log-message
-                 :error
-                 (format nil "Socket already in use"))))
-        (when docker
-          (sb-thread:join-thread
-            (find-if
-                    (lambda (th)
-                      (string= (sb-thread:thread-name th)
-                               (format nil "hunchentoot-listener-~A:~A"
-                                       (tbnl:acceptor-address *syscat-acceptor*)
-                                       (tbnl:acceptor-port *syscat-acceptor*))))
-                    (sb-thread:list-all-threads)))))))
+  ;; This needs to be a dynamic variable for the dispatcher to grab
+  (defparameter *syscat-acceptor*
+    (make-syscat-acceptor))
+  ;; Having set the dynamic variable, invoke the appserver
+  (restagraph:startup
+    :acceptor *syscat-acceptor*
+    :dispatchers (list
+                   (tbnl:create-prefix-dispatcher "/ipam/v1/subnets" 'subnet-dispatcher-v1)
+                   (tbnl:create-prefix-dispatcher "/ipam/v1/addresses" 'address-dispatcher-v1))
+    :docker docker
+    :schema (read-schema)))
 
 (defun dockerstart ()
   (startup :docker t))
 
-(defun save-image (&optional (path "/tmp/syscat"))
-  (sb-ext:save-lisp-and-die path :executable t :toplevel 'syscat::dockerstart))
-
 (defun shutdown ()
-  ;; Check whether there's something to shut down
-  (if *syscat-acceptor*
-      ;; There is; go ahead
-      (progn
-        (restagraph:log-message
-          :info
-          (format nil "Shutting down the restagraph application server"))
-        (handler-case
-          ;; Perform a soft shutdown: finish serving any requests in flight
-          (tbnl:stop *syscat-acceptor* :soft t)
-          ;; Catch the case where it's already shut down
-          (tbnl::unbound-slot
-            ()
-            (restagraph:log-message :info "Attempting to shut down Hunchentoot, but it's not running.")))
-        ;; Nuke the acceptor
-        (setf *syscat-acceptor* nil))
-      ;; No acceptor. Note the fact and do nothing.
-      (restagraph:log-message :warn "No acceptor present, so nothing to shut down.")))
+  (restagraph:shutdown))

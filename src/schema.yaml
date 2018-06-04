@@ -1,0 +1,696 @@
+name: syscat
+version: 1
+
+resourcetypes:
+  any:
+    notes: Represents any type of resource.
+  applications:
+    attributes:
+    - comments
+  brands:
+    attributes:
+    - comments
+    notes: "Also known as ´make´."
+  buildings:
+    attributes:
+    - comments
+    notes: Individual buildings.
+    dependent: 'true'
+  cabinets:
+    attributes:
+    - comments
+    notes: A frame for rack-mounting equipment in. May be in the form of a lockable
+      cabinet.
+  cages:
+    attributes:
+    - comments
+    notes: Lockable areas within a room, containing racks. Usually found in data centres.
+  cities:
+    dependent: 'true'
+    notes: The geographic kind.
+  contracts:
+    attributes:
+    - comments
+    - reference_number
+    - start_date
+    - end_date
+  countries:
+    notes: The geographic kind.
+  deviceRoles:
+    attributes:
+    - comments
+    notes: Classification of the device, e.g. host, router or switch.
+  deviceTypes:
+    attributes:
+    - comments
+    notes: Type of device, e.g. physical, cluster or virtual.
+  devices:
+    attributes:
+    - comments
+    - sysdescr
+    - sysname
+    - sysobjectid
+    - snmp_community
+    - serial_number
+    - asset_number
+    - in_service
+    notes: Any kind of device that interacts with a network, be it L1, L2 or L3.
+  cpus:
+    attributes:
+      - comments
+  emailAddresses:
+    attributes:
+    - comments
+    dependent: 'true'
+  environments:
+    attributes:
+    - comments
+    notes: Development, testing, staging, production etc.
+  floors:
+    attributes:
+    - comments
+    notes: Floors within a building.
+  ipv4Addresses:
+    attributes:
+    - prefixlength
+    - comments
+    dependent: 'true'
+  ipv4Subnets:
+    attributes:
+    - netaddress
+    - prefixlength
+    - comments
+    dependent: 'true'
+  ipv6Addresses:
+    attributes:
+    - prefixlength
+    - comments
+    dependent: 'true'
+  ipv6Subnets:
+    attributes:
+    - netaddress
+    - prefixlength
+    - comments
+    dependent: 'true'
+  l1Circuits:
+    attributes:
+    - comments
+    - our_id
+    - vendor_id
+    notes: Logical circuits of one or more layer 1 links.
+  l1LinkTypes:
+    attributes:
+    - comments
+    notes: Types of L1 link, e.g. cat5Ethernet, MMF, serialCable.
+  l1Links:
+    attributes:
+    - comments
+    - our_id
+    - vendor_id
+    notes: Layer 1 network links, e.g. ethernet or fibre-optic cables.
+  l2Circuits:
+    attributes:
+    - comments
+    - our_id
+    - vendor_id
+    notes: Logical circuits of one or more layer 2 links.
+  l2LinkTypes:
+    attributes:
+    - comments
+    notes: Types of L2 link, e.g. cat5Ethernet, MMF, serialCable.
+  l2Links:
+    attributes:
+    - comments
+    - our_id
+    - vendor_id
+  l3TunnelTypes:
+    attributes:
+    - comments
+  l3Tunnels:
+    attributes:
+    - comments
+    notes: 'Any kind of tunnel above layer 2: MPLS, SSL etc.'
+  lifeCyclePhases:
+    attributes:
+    - comments
+    notes: Where the device currently is, in its lifecycle. E.g. ordered, installed,
+      in service or decommissioned.
+  models:
+    dependent: 'true'
+  networkInterfaces:
+    attributes:
+    - comments
+    - snmpindex
+    - ifname
+    - ifdescr
+    - ifalias
+    - iftype
+    - ifspeed
+    - ifhighspeed
+    - ifphysaddress
+    dependent: 'true'
+  operatingSystemVersions:
+    dependent: 'true'
+  operatingSystems:
+    dependent: 'true'
+  organisations:
+    attributes:
+    - comments
+    notes: 'Any kind of organisation: professional, social or other.'
+  parts:
+    attributes:
+    - comments
+    dependent: 'true'
+    notes: Spare parts, swappable components, anything of the kind
+  people:
+    attributes:
+    - given_name
+    - surname
+    notes: UID should be their login name or some other compact reference
+  phoneNumbers:
+    attributes:
+    - comments
+  postbox_addresses:
+    notes: The UID is the PO Box number.
+  postcodes:
+    notes: What else does this need?
+  racks:
+    attributes:
+    - comments
+    notes: The rack location within a cabinet where a device is mounted. Usually the
+      topmost rack number, in the case of multi-unit-height hardware.
+  rooms:
+    attributes:
+    - comments
+    notes: Rooms within a floor or a building.
+    dependent: 'true'
+  routingInstances:
+    attributes:
+    - snmp_community
+    dependent: 'true'
+  routingInstanceTypes:
+    attributes:
+      - comments
+  serviceLevels:
+    attributes:
+    - comments
+    notes: Sets the expectations for responses to issues, e.g. gold, silver, bronze,
+      plastic.
+  sites:
+    attributes:
+    - longname
+    - comments
+    notes: Like a campus, a site contains one or more buildings.
+  states:
+    dependent: 'true'
+    notes: The geographic kind.
+  street_numbers:
+    attributes:
+    - floor
+    - name
+    dependent: 'true'
+    notes: The UID is the street number
+  streets:
+    dependent: 'true'
+  tags:
+    notes: For categorising resources of any type.
+  vlanGroups:
+    attributes:
+    - default_vlan_id
+    - comments
+    notes: A notional VLAN, the sum of the VLANs of one or more devices. Often confused
+      as being the VLAN itself.
+  vlans:
+    attributes:
+    - name
+    dependent: 'true'
+    notes: Layer 2 spans, i.e. ethernet segments. Not to be confused with subnets.
+  vrfGroups:
+    dependent: 'true'
+# BGP4
+  asns:
+    attributes:
+    - comments
+    - name
+    notes: "BGP Autonomous System Numbers. The UID should be the ASN, and the ´name´ should be its human-friendly tag."
+  bgp4Instances:
+      dependent: true
+      attributes:
+          - description
+          - routerid
+  bgp4Peerings:
+      dependent: true
+      attributes:
+          - description
+            # Index for the bgpPeerEntry SNMP table
+          - bgpPeerIdentifier
+          - bgpPeerLocalPort
+          - bgpPeerRemotePort
+
+relationships:
+- cardinality: many:many
+  uri: /any/Tag/tags
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /countries/State/states
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /countries/City/cities
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /countries/Postcode/postcodes
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /states/City/cities
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /states/Postcode/postcodes
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /cities/Postcode/postcodes
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /cities/Street/streets
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /streets/StreetNumber/street_numbers
+- cardinality: many:1
+  uri: /buildings/Addresses/street_numbers
+- cardinality: many:1
+  uri: /street_numbers/postcode/postcodes
+- cardinality: many:1
+  uri: /postbox_addresses/postcode/postcodes
+- cardinality: many:1
+  uri: /buildings/Location/countries
+- cardinality: many:1
+  uri: /buildings/Location/states
+- cardinality: many:1
+  uri: /buildings/Location/cities
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /buildings/Floor/floors
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /buildings/Room/rooms
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /floors/Room/rooms
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /rooms/Cage/cages
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /rooms/Cabinet/cabinets
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /cages/Cabinet/cabinets
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /cabinets/Rack/racks
+- cardinality: many:1
+  uri: /devices/PurchasedFrom/organisations
+- cardinality: many:1
+  uri: /devices/Location/sites
+- cardinality: many:1
+  uri: /devices/Location/buildings
+- cardinality: many:1
+  uri: /devices/Location/floors
+- cardinality: many:1
+  uri: /devices/Location/rooms
+- cardinality: many:1
+  uri: /devices/Location/cages
+- cardinality: many:1
+  uri: /devices/Location/cabinets
+- cardinality: many:1
+  uri: /devices/Location/racks
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /devices/Cpus/cpus
+- cardinality: many:1
+  uri: /cpus/InstalledOn/devices
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /devices/Interfaces/networkInterfaces
+- cardinality: many:1
+  uri: /devices/OperatingSystem/operatingSystems
+- cardinality: many:1
+  uri: /devices/OperatingSystem/operatingSystemVersions
+- cardinality: many:1
+  uri: /devices/Member/devices
+- cardinality: many:1
+  uri: /devices/HostedOn/devices
+- cardinality: 1:many
+  uri: /devices/Hosts/devices
+- cardinality: many:1
+  uri: /devices/HostedOn/cpus
+- cardinality: '1:1'
+  dependent: 'true'
+  uri: /devices/ManagementAddress/ipv4Addresses
+- cardinality: '1:1'
+  uri: /devices/ManagementAddress/ipv6Addresses
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /networkInterfaces/Subinterfaces/networkInterfaces
+- cardinality: many:1
+  uri: /networkInterfaces/Member/networkInterfaces
+- cardinality: '1:1'
+  uri: /networkInterfaces/ConnectedTo/networkInterfaces
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /brands/Produces/models
+- cardinality: many:1
+  uri: /parts/Model/models
+- cardinality: many:1
+  uri: /parts/PurchasedFrom/organisations
+- cardinality: many:many
+  uri: /models/CompatibleWith/models
+- cardinality: many:1
+  uri: /parts/InstalledIn/devices
+- cardinality: many:1
+  uri: /parts/StorageLocation/sites
+- cardinality: many:1
+  uri: /parts/StorageLocation/buildings
+- cardinality: many:1
+  uri: /parts/StorageLocation/rooms
+- cardinality: many:1
+  uri: /parts/StorageLocation/cages
+- cardinality: many:1
+  uri: /parts/StorageLocation/cabinets
+- cardinality: many:many
+  uri: /devices/ConnectedTo/l1Links
+- cardinality: many:1
+  uri: /networkInterfaces/ConnectedTo/l1Links
+- cardinality: many:many
+  uri: /devices/ConnectedTo/l1Circuits
+- cardinality: many:1
+  uri: /networkInterfaces/ConnectedTo/l1Circuits
+- cardinality: many:1
+  uri: /l1Links/ConnectedTo/l1Links
+- cardinality: many:1
+  uri: /l1Links/Member/l1Circuits
+- cardinality: many:1
+  uri: /l1Links/LinkType/l1LinkTypes
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /devices/RoutingInstance/routingInstances
+- cardinality: many:1
+  uri: /routingInstances/HostedOn/devices
+- cardinality: many:1
+  uri: /routingInstances/Type/routingInstanceTypes
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /routingInstances/Interface/networkInterfaces
+- cardinality: many:1
+  uri: /routingInstances/Member/vrfGroups
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /brands/Produces/operatingSystems
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /operatingSystems/Version/operatingSystemVersions
+- cardinality: many:1
+  uri: /devices/Model/models
+- cardinality: many:many
+  uri: /models/Capability/deviceRoles
+- cardinality: many:1
+  uri: /devices/DeviceType/deviceTypes
+- cardinality: many:many
+  uri: /devices/Role/deviceRoles
+- cardinality: many:1
+  uri: /devices/LifeCyclePhase/lifeCyclePhases
+- cardinality: many:1
+  uri: /devices/Environment/environments
+- cardinality: many:1
+  uri: /devices/ServiceLevel/serviceLevels
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /brands/Produces/parts
+- cardinality: 1:many
+  uri: /vlans/Member/vlanGroups
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /devices/Vlan/vlans
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /networkInterfaces/Vlan/vlans
+- cardinality: many:many
+  uri: /devices/ConnectedTo/l2Links
+- cardinality: many:many
+  uri: /networkInterfaces/ConnectedTo/l2Links
+- cardinality: many:many
+  uri: /devices/ConnectedTo/l2Circuits
+- cardinality: many:many
+  uri: /networkInterfaces/ConnectedTo/l2Circuits
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /devices/Addresses/ipv4Addresses
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /devices/Addresses/ipv6Addresses
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /networkInterfaces/Addresses/ipv4Addresses
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /networkInterfaces/Addresses/ipv6Addresses
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /devices/RoutingInstance/routingInstances
+- cardinality: many:1
+  uri: /devices/ConnectedTo/l3Tunnels
+- cardinality: many:1
+  uri: /networkInterfaces/ConnectedTo/l3Tunnels
+- cardinality: many:1
+  uri: /brands/Vendor/organisations
+- cardinality: many:1
+  uri: /devices/TechnicalOwner/people
+- cardinality: many:1
+  uri: /devices/BusinessOwner/people
+- cardinality: many:1
+  uri: /devices/BusinessOwner/organisations
+- cardinality: many:1
+  uri: /l1Links/BusinessOwner/people
+- cardinality: many:1
+  uri: /l1Links/BusinessOwner/organisations
+- cardinality: many:1
+  uri: /l1Circuits/BusinessOwner/people
+- cardinality: many:1
+  uri: /l1Circuits/BusinessOwner/organisations
+- cardinality: many:many
+  uri: /l2Links/ConnectedTo/l2Links
+- cardinality: many:1
+  uri: /l2Links/LinkType/l2LinkTypes
+- cardinality: many:1
+  uri: /l2Links/MemberOf/l2Circuits
+- cardinality: many:1
+  uri: /l2Links/ProvisionedBy/organisations
+- cardinality: many:1
+  uri: /l2Links/OperatedBy/organisations
+- cardinality: many:1
+  uri: /l2Circuits/ProvisionedBy/organisations
+- cardinality: many:1
+  uri: /l2Circuits/OperatedBy/organisations
+- cardinality: many:1
+  dependent: 'true'
+  uri: /organisations/VrfGroups/vrfGroups
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /vrfGroups/Subnets/ipv4Subnets
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /vrfGroups/Subnets/ipv6Subnets
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /organisations/Subnets/ipv4Subnets
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /organisations/Subnets/ipv6Subnets
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /organisations/Addresses/ipv4Addresses
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /organisations/Addresses/ipv6Addresses
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /ipv4Subnets/Subnets/ipv4Subnets
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /ipv6Subnets/Subnets/ipv4Subnets
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /ipv4Subnets/Addresses/ipv4Addresses
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /ipv6Subnets/Addresses/ipv6Addresses
+- cardinality: many:1
+  uri: /ipv4Addresses/ConnectedTo/l3Tunnels
+- cardinality: many:1
+  uri: /ipv6Addresses/ConnectedTo/l3Tunnels
+- cardinality: '1:1'
+  uri: /ipv4Subnets/AllocatedTo/organisations
+- cardinality: '1:1'
+  uri: /ipv6Subnets/AllocatedTo/organisations
+- cardinality: many:1
+  uri: /organisations/Allocated/ipv4Subnets
+- cardinality: many:1
+  uri: /organisations/Allocated/ipv6Subnets
+- cardinality: '1:1'
+  uri: /ipv4Subnets/AllocatedTo/sites
+- cardinality: '1:1'
+  uri: /ipv6Subnets/AllocatedTo/sites
+- cardinality: many:1
+  uri: /l3Tunnels/TunnelType/l3TunnelTypes
+- cardinality: many:1
+  uri: /ipv4Subnets/AllocatedTo/organisations
+- cardinality: many:1
+  uri: /ipv6Subnets/AllocatedTo/organisations
+- cardinality: many:1
+  uri: /ipv4Subnets/AllocatedBy/organisations
+- cardinality: many:1
+  uri: /ipv6Subnets/AllocatedBy/organisations
+- cardinality: many:1
+  uri: /ipv4Addresses/AllocatedTo/devices
+- cardinality: many:1
+  uri: /ipv6Addresses/AllocatedTo/devices
+- cardinality: many:1
+  uri: /ipv4Addresses/AllocatedBy/organisations
+- cardinality: many:1
+  uri: /ipv6Addresses/AllocatedBy/organisations
+- cardinality: many:1
+  uri: /ipv4Subnets/AllocatedTo/vlanGroups
+- cardinality: many:1
+  uri: /ipv6Subnets/AllocatedTo/vlanGroups
+- cardinality: many:many
+  uri: /applications/DependsOn/applications
+- cardinality: many:many
+  uri: /applications/RunsOn/devices
+- cardinality: many:1
+  uri: /applications/BusinessOwner/people
+- cardinality: many:1
+  uri: /applications/BusinessOwner/organisations
+- cardinality: many:1
+  uri: /applications/TechnicalOwner/people
+- cardinality: many:1
+  uri: /applications/TechnicalOwner/organisations
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /organisations/ContactMethod/emailAddresses
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /people/ContactMethod/emailAddresses
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /people/ContactMethod/phoneNumbers
+- cardinality: many:1
+  uri: /people/Member/organisations
+- cardinality: many:1
+  uri: /people/AccountManager/organisations
+- cardinality: many:1
+  uri: /people/SalesContact/organisations
+- cardinality: many:1
+  uri: /people/SupportContact/organisations
+- uri: /organisations/Subsidiary/organisations
+  cardinality: 1:many
+- uri: /organisations/Parent/organisations
+  cardinality: many:1
+- cardinality: many:1
+  uri: /contracts/Subcontracts/contracts
+- cardinality: many:1
+  uri: /contracts/Vendor/organisations
+- cardinality: many:1
+  uri: /contracts/Customer/organisations
+- cardinality: many:many
+  uri: /contracts/NegotiatedBy/people
+- cardinality: 1:many
+  uri: /contracts/Supplies/devices
+- cardinality: 1:many
+  uri: /contracts/Supports/devices
+- cardinality: 1:many
+  uri: /contracts/Supplies/parts
+- cardinality: 1:many
+  uri: /contracts/Supports/parts
+- cardinality: 1:many
+  uri: /contracts/Supplies/buildings
+- cardinality: 1:many
+  uri: /contracts/Supports/buildings
+- cardinality: 1:many
+  uri: /contracts/Supplies/floors
+- cardinality: 1:many
+  uri: /contracts/Supports/floors
+- cardinality: 1:many
+  uri: /contracts/Supplies/rooms
+- cardinality: 1:many
+  uri: /contracts/Supports/rooms
+- cardinality: 1:many
+  uri: /contracts/Supplies/cages
+- cardinality: 1:many
+  uri: /contracts/Supports/cages
+- cardinality: 1:many
+  uri: /contracts/Supplies/cabinets
+- cardinality: 1:many
+  uri: /contracts/Supports/cabinets
+- cardinality: many:1
+  uri: /sites/Organisation/organisations
+- uri: /sites/Buildings/buildings
+  cardinality: 1:many
+  dependent: 'true'
+- uri: /buildings/Site/sites
+  cardinality: many:1
+- cardinality: many:1
+  uri: /organisations/Site/sites
+- cardinality: 1:many
+  uri: /buildings/Tenant/organisations
+- cardinality: many:many
+  uri: /floors/Tenant/organisations
+- cardinality: many:many
+  uri: /rooms/Tenant/organisations
+- cardinality: many:many
+  uri: /cages/Tenant/organisations
+- cardinality: many:many
+  uri: /cabinets/Tenant/organisations
+- uri: /organisations/Supplies/l1Circuits
+  cardinality: 1:many
+- uri: /l1Circuits/SuppliedBy/organisations
+  cardinality: many:1
+- uri: /organisations/Supplies/l1Links
+  cardinality: 1:many
+- uri: /l1Links/SuppliedBy/organisations
+  cardinality: many:1
+#
+# BGP4
+# Many attributes refer to the BGP4-MIB described in RFC 4273
+#
+# ASNs
+- uri: /organisations/Asns/asns
+  cardinality: 1:many
+- uri: /organisations/Allocated/asns
+  cardinality: 1:many
+- uri: /asns/AllocatedTo/organisations
+  cardinality: many:1
+- uri: /asns/AllocatedBy/organisations
+  cardinality: many:1
+# BGP instances
+- uri: /devices/Bgp4Instance/bgp4Instances
+  cardinality: 1:many
+- uri: /bgp4Instances/HostedOn/devices
+  cardinality: many:1
+- uri: /routingInstances/Bgp4Instance/bgp4Instances
+  cardinality: 1:1
+- uri: /bgp4Instances/HostedOn/routingInstances
+  cardinality: 1:1
+- uri: /bgp4Instances/LocalAs/asns
+  cardinality: many:1
+- uri: /asns/Bgp4Instances/bgp4Instances
+  cardinality: 1:many
+# Peerings
+- uri: /bgp4Instances/Bgp4Peering/bgp4Peerings
+  cardinality: 1:many
+- uri: /bgp4Peerings/HostedOn/bgp4Instances
+  cardinality: many:1
+- uri: /bgp4Peerings/BgpRemoteAs/asns
+  cardinality: many:1
+- uri: /bgp4Peerings/BgpRemoteAddress/ipv4Addresses
+  cardinality: many:1
+- uri: /bgp4Peerings/BgpRemoteAddress/ipv6Addresses
+  cardinality: many:1

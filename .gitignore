@@ -1,3 +1,6 @@
 tags
 *pyc
 venv*/
+scripts/syscat
+scripts/docker/syscat
+scripts/docker/schema.yaml
