@@ -9,6 +9,27 @@ The REST API is its primary interface; anything else, such as a web GUI, can be 
 
 ## Usage
 
+### Installation
+
+- very quick-and-dirty installation on a Linux system.
+- assumes you want to store the Neo4j data under `/opt/syscat` - change this as you see fit.
+- maps the listening ports for Syscat and Neo4j to non-default values, to avoid clashing with local (development) installations.
+
+
+Download [this docker-compose.yml file](https://github.com/equill/syscat_scripts/blob/master/docker/docker-compose.yml), and modify it as necessary.
+
+
+Now execute the following:
+```
+docker pull neo4j:3.4.1
+docker pull equill/syscat:0.2.0
+mkdir -p /opt/syscat/{logs,data}
+chown 100 /opt/syscat/{logs,data}
+docker deploy -c docker-compose.yml syscat
+```
+
+After a moment, you should be able to connect to Syscat via HTTP on port 4951, and to Neo4j via HTTP on 7676, or Bolt on 7688.
+
 ### Startup
 
 If it was supplied as a standalone executable, it checks for the following environment variables, with default values as shown:
@@ -19,10 +40,14 @@ If it was supplied as a standalone executable, it checks for the following envir
     - default: `4950`
 - `SYSCAT_NEO4J_HOSTNAME` = hostname or IP address on which the Neo4j server is listening
     - default: `localhost`
+- `SYSCAT-NEO4J_PORT` = port on which the Neo4j service is listening for HTTP requests
+    - default: 7474
 - `SYSCAT_NEO4J_USER` = username for authenticating to the Neo4j server
     - default: `neo4j`
 - `SYSCAT_NEO4J_PASSWORD` = password for authenticating that user to the Neo4j server
     - default: it really doesn't matter. Set it to something hard to crack, and keep it secret.
+
+These are also set in the `docker-compose.yml` file linked above.
 
 
 ## Basic design
@@ -30,15 +55,16 @@ If it was supplied as a standalone executable, it checks for the following envir
 ### Background thinking
 
 - model the network as it is, however messed-up that might be.
-- also model how it's intended to be, and provide means to compare the two.
+- also enable the user to model how it's intended to be, and provide means to compare the two.
 - enable users to record whatever information they _do_ have on hand, and evolve the picture as new information comes to hand
-    - e.g, you can assign an IP address to a host, then move it to the correct interface, then assign that interface to a routing instance, without losing any information.
+    - e.g, you can assign an IP address to a host, then move it to the correct interface, then assign that interface to a routing instance, without losing any information, including any incoming links from other things.
 - enforce as little policy or dogma as possible
     - you can use Syscat in a descriptive way, a prescriptive way, or any combination of the two
     - _I_ might judge how you laid out your network, but Syscat doesn't.
-- cover multiple ASes, and multiple VRF-groups within each AS, so you can model interactions between several networks.
-- automation is increasingly valuable in network management. An API-first design means that anything you can do with the GUI (when one is eventually added) can be done by a script.
-- no one GUI design suits everybody. An API-first design means you can build your own on top, if the included one doesn't suit, or if you're fed up waiting for it to come into being.
+- most networks interact with other networks in some way, so support modelling that with multiple organisations, multiple ASes and multiple VRF-groups within each organisation.
+- API-first implementation, because
+    - automation is increasingly valuable in network management. An API-first design means that anything you can do with the GUI (when one is eventually added) can be done by a script.
+    - no one GUI design suits everybody. An API-first design means you can build your own on top, if the included one doesn't suit, or if you're fed up waiting for it to come into being.
 - some things only make sense in the context of other things, e.g. interfaces only exist in the context of a device. The schema reflects this.
 
 ### Architecture
@@ -47,7 +73,7 @@ A web application server fronting a Neo4j graph database.
 
 The schema is defined within the database itself, so you can query it to confirm the API that is actually in use.
 
-There's a raw API, which provides the core functionality, plus domain-specific APIs for things such as IPAM which can't be fully served that way.
+There's a raw API, which provides the core functionality, plus domain-specific APIs for things such as IPAM, which can't be properly served via the raw API.
 
 
 ### Raw API
@@ -60,8 +86,6 @@ It looks slightly cumbersome, using a `/<type>/<uid>/<relationship>/<type>/<uid>
 
 
 ### IPAM (IP Address Management) API
-
-Some things warrant their own API, such as creating and removing IP subnets and addresses.
 
 While nothing actually _stops_ you using the Raw API to add, change and remove subnets and addresses, it's a tedious and error-prone process, especially if you add and remove subnets by hand - finding the parent subnet, moving the new child subnets and addresses under a new mid-level subnet, and doing all that in reverse when you remove them.
 
