@@ -1,5 +1,6 @@
-tags
 *pyc
+result
+tags
 venv*/
 scripts/syscat
 scripts/docker/syscat
