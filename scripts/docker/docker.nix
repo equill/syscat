@@ -25,7 +25,7 @@ let
 in
 pkgs.dockerTools.buildImage {
     name = "equill/syscat";
-    tag = "0.3";
+    tag = "0.3.1";
 
     contents = syscat_deriv;
 
