@@ -197,6 +197,7 @@ resourcetypes:
     notes: Sets the expectations for responses to issues, e.g. gold, silver, bronze,
       plastic.
   sites:
+    dependent: 'true'
     attributes:
     - longname
     - comments
@@ -252,34 +253,34 @@ relationships:
   uri: /any/Tag/tags
 - cardinality: 1:many
   dependent: 'true'
-  uri: /countries/State/states
+  uri: /countries/States/states
 - cardinality: 1:many
   dependent: 'true'
-  uri: /countries/City/cities
+  uri: /countries/Cities/cities
 - cardinality: 1:many
   dependent: 'true'
   uri: /countries/Postcode/postcodes
 - cardinality: 1:many
   dependent: 'true'
-  uri: /states/City/cities
+  uri: /states/Cities/cities
 - cardinality: 1:many
   dependent: 'true'
-  uri: /states/Postcode/postcodes
+  uri: /states/Postcodes/postcodes
 - cardinality: 1:many
   dependent: 'true'
-  uri: /cities/Postcode/postcodes
+  uri: /cities/Postcodes/postcodes
 - cardinality: 1:many
   dependent: 'true'
-  uri: /cities/Street/streets
+  uri: /cities/Streets/streets
 - cardinality: 1:many
   dependent: 'true'
-  uri: /streets/StreetNumber/street_numbers
+  uri: /streets/StreetNumbers/street_numbers
 - cardinality: many:1
   uri: /buildings/Addresses/street_numbers
 - cardinality: many:1
-  uri: /street_numbers/postcode/postcodes
+  uri: /street_numbers/Postcodes/postcodes
 - cardinality: many:1
-  uri: /postbox_addresses/postcode/postcodes
+  uri: /postbox_addresses/Postcode/postcodes
 - cardinality: many:1
   uri: /buildings/Location/countries
 - cardinality: many:1
