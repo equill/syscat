@@ -54,7 +54,7 @@ resourcetypes:
     - serial_number
     - asset_number
     - in_service
-    notes: Any kind of device that interacts with a network, be it L1, L2 or L3.
+    notes: Any kind of device that interacts with a network.
   cpus:
     attributes:
       - comments
@@ -92,44 +92,23 @@ resourcetypes:
     - prefixlength
     - comments
     dependent: 'true'
-  l1Circuits:
+  circuits:
     attributes:
     - comments
     - our_id
     - vendor_id
-    notes: Logical circuits of one or more layer 1 links.
-  l1LinkTypes:
+    notes: Network circuits, whether telco-provided or otherwise.
+  linkTypes:
     attributes:
+    - osi_layer
     - comments
-    notes: Types of L1 link, e.g. cat5Ethernet, MMF, serialCable.
-  l1Links:
-    attributes:
-    - comments
-    - our_id
-    - vendor_id
-    notes: Layer 1 network links, e.g. ethernet or fibre-optic cables.
-  l2Circuits:
+    notes: Types of network link, e.g. cat5Ethernet, MMF, serialCable. The osi_layer attribute should have an integer value of 1, 2 or 3, but 2.5 is plausible for MPLS.
+  links:
     attributes:
     - comments
     - our_id
     - vendor_id
-    notes: Logical circuits of one or more layer 2 links.
-  l2LinkTypes:
-    attributes:
-    - comments
-    notes: Types of L2 link, e.g. cat5Ethernet, MMF, serialCable.
-  l2Links:
-    attributes:
-    - comments
-    - our_id
-    - vendor_id
-  l3TunnelTypes:
-    attributes:
-    - comments
-  l3Tunnels:
-    attributes:
-    - comments
-    notes: 'Any kind of tunnel above layer 2: MPLS, SSL etc.'
+    notes: Segment or section of a network circuit.
   lifeCyclePhases:
     attributes:
     - comments
@@ -378,19 +357,19 @@ relationships:
 - cardinality: many:1
   uri: /parts/StorageLocation/cabinets
 - cardinality: many:many
-  uri: /devices/ConnectedTo/l1Links
+  uri: /devices/ConnectedTo/links
 - cardinality: many:1
-  uri: /networkInterfaces/ConnectedTo/l1Links
+  uri: /networkInterfaces/ConnectedTo/links
 - cardinality: many:many
-  uri: /devices/ConnectedTo/l1Circuits
+  uri: /devices/ConnectedTo/circuits
 - cardinality: many:1
-  uri: /networkInterfaces/ConnectedTo/l1Circuits
+  uri: /networkInterfaces/ConnectedTo/circuits
 - cardinality: many:1
-  uri: /l1Links/ConnectedTo/l1Links
+  uri: /links/ConnectedTo/links
 - cardinality: many:1
-  uri: /l1Links/Member/l1Circuits
+  uri: /links/Member/circuits
 - cardinality: many:1
-  uri: /l1Links/LinkType/l1LinkTypes
+  uri: /links/LinkType/linkTypes
 - cardinality: 1:many
   dependent: 'true'
   uri: /devices/RoutingInstance/routingInstances
@@ -434,14 +413,6 @@ relationships:
 - cardinality: 1:many
   dependent: 'true'
   uri: /networkInterfaces/Vlan/vlans
-- cardinality: many:many
-  uri: /devices/ConnectedTo/l2Links
-- cardinality: many:many
-  uri: /networkInterfaces/ConnectedTo/l2Links
-- cardinality: many:many
-  uri: /devices/ConnectedTo/l2Circuits
-- cardinality: many:many
-  uri: /networkInterfaces/ConnectedTo/l2Circuits
 - cardinality: 1:many
   dependent: 'true'
   uri: /devices/Addresses/ipv4Addresses
@@ -458,10 +429,6 @@ relationships:
   dependent: 'true'
   uri: /devices/RoutingInstance/routingInstances
 - cardinality: many:1
-  uri: /devices/ConnectedTo/l3Tunnels
-- cardinality: many:1
-  uri: /networkInterfaces/ConnectedTo/l3Tunnels
-- cardinality: many:1
   uri: /brands/Vendor/organisations
 - cardinality: many:1
   uri: /devices/TechnicalOwner/people
@@ -470,27 +437,13 @@ relationships:
 - cardinality: many:1
   uri: /devices/BusinessOwner/organisations
 - cardinality: many:1
-  uri: /l1Links/BusinessOwner/people
+  uri: /links/BusinessOwner/people
 - cardinality: many:1
-  uri: /l1Links/BusinessOwner/organisations
+  uri: /links/BusinessOwner/organisations
 - cardinality: many:1
-  uri: /l1Circuits/BusinessOwner/people
+  uri: /circuits/BusinessOwner/people
 - cardinality: many:1
-  uri: /l1Circuits/BusinessOwner/organisations
-- cardinality: many:many
-  uri: /l2Links/ConnectedTo/l2Links
-- cardinality: many:1
-  uri: /l2Links/LinkType/l2LinkTypes
-- cardinality: many:1
-  uri: /l2Links/MemberOf/l2Circuits
-- cardinality: many:1
-  uri: /l2Links/ProvisionedBy/organisations
-- cardinality: many:1
-  uri: /l2Links/OperatedBy/organisations
-- cardinality: many:1
-  uri: /l2Circuits/ProvisionedBy/organisations
-- cardinality: many:1
-  uri: /l2Circuits/OperatedBy/organisations
+  uri: /circuits/BusinessOwner/organisations
 - cardinality: many:1
   dependent: 'true'
   uri: /organisations/VrfGroups/vrfGroups
@@ -524,10 +477,6 @@ relationships:
 - cardinality: 1:many
   dependent: 'true'
   uri: /ipv6Subnets/Addresses/ipv6Addresses
-- cardinality: many:1
-  uri: /ipv4Addresses/ConnectedTo/l3Tunnels
-- cardinality: many:1
-  uri: /ipv6Addresses/ConnectedTo/l3Tunnels
 - cardinality: '1:1'
   uri: /ipv4Subnets/AllocatedTo/organisations
 - cardinality: '1:1'
@@ -540,8 +489,6 @@ relationships:
   uri: /ipv4Subnets/AllocatedTo/sites
 - cardinality: '1:1'
   uri: /ipv6Subnets/AllocatedTo/sites
-- cardinality: many:1
-  uri: /l3Tunnels/TunnelType/l3TunnelTypes
 - cardinality: many:1
   uri: /ipv4Subnets/AllocatedTo/organisations
 - cardinality: many:1
@@ -650,13 +597,13 @@ relationships:
   uri: /cages/Tenant/organisations
 - cardinality: many:many
   uri: /cabinets/Tenant/organisations
-- uri: /organisations/Supplies/l1Circuits
+- uri: /organisations/Supplies/circuits
   cardinality: 1:many
-- uri: /l1Circuits/SuppliedBy/organisations
+- uri: /circuits/SuppliedBy/organisations
   cardinality: many:1
-- uri: /organisations/Supplies/l1Links
+- uri: /organisations/Supplies/links
   cardinality: 1:many
-- uri: /l1Links/SuppliedBy/organisations
+- uri: /links/SuppliedBy/organisations
   cardinality: many:1
 #
 # BGP4

@@ -20,15 +20,16 @@ Download [this docker-compose.yml file](https://github.com/equill/syscat_scripts
 Now execute the following:
 ```
 docker pull neo4j:3.4.1
-docker pull equill/syscat:0.3.1
+docker pull equill/syscat:0.4.0a3
 mkdir -p /opt/syscat/{logs,data}
 chown 100 /opt/syscat/{logs,data}
 docker stack deploy -c docker-compose.yml syscat
 ```
 
-After a moment, you should be able to connect to Syscat via HTTP on port 4951, and to Neo4j via HTTP on 7676, or Bolt on 7688. These are set in `docker-compose.yml`, to avoid conflicting with the standalone image.
+After a moment, you should be able to connect to Syscat via HTTP on port 4951, and to Neo4j via HTTP on 7676, or Bolt on 7688. These are set in `docker-compose.yml`, to avoid conflicting with the standalone image. The delay on first startup is from it creating the schema in the database.
 
 Note that on some systems, connections to localhost hang forever. It does listen on all addresses, so if localhost hangs you can just connect on any other address, e.g. the host computer's LAN address.
+
 
 ## Startup
 
@@ -45,7 +46,7 @@ If it was supplied as a standalone executable, it checks for the following envir
 - `SYSCAT_NEO4J_USER` = username for authenticating to the Neo4j server
     - default: `neo4j`
 - `SYSCAT_NEO4J_PASSWORD` = password for authenticating that user to the Neo4j server
-    - default: it really doesn't matter. Set it to something hard to crack, and keep it secret.
+    - default: don't use that. Set it to something hard to crack, and keep it secret.
 
 These are also set in the `docker-compose.yml` file linked above.
 
@@ -66,6 +67,7 @@ These are also set in the `docker-compose.yml` file linked above.
     - no one GUI design suits everybody. An API-first design means you can build your own on top, if the included one doesn't suit, or if you're fed up waiting for me to build it.
 - some things only make sense in the context of other things, e.g. interfaces only exist in the context of a device. The schema reflects this.
 
+
 ## Architecture
 
 A web application server fronting a Neo4j graph database.
@@ -77,15 +79,21 @@ There's a raw API, which provides the core functionality, plus domain-specific A
 
 # Schema API
 
-The output is raw JSON, so you'll want to run the output through something like `jq`.
+The output is raw JSON, so if you're using `curl` you'll want to run the output through something like `jq`.
 
 To dump the whole schema: `/schema/v1`. Note that the `v1` part refers to the version of the API, *not* of the schema being reported on. There's no version-control of schemas, just a history of what versions have been installed, which is used by the engine to decide whether an update is needed.
 
-To get the details of one resourcetype: `/schema/v1?name=resourcetype`.
+To get the details of one resourcetype: `/schema/v1/resourcetype?name=newresource`.
 
-To add a resourcetype: POST
+To add a resourcetype called `newresource`:
+```
+curl -X POST -d 'name=newresource' http://localhost:4951/schema/v1/resourcetype
+```
 
-To remove a resourcetype: DELETE
+To remove a resourcetype called `newresource`:
+```
+curl -X DELETE http://localhost:4951/schema/v1/newresource
+```
 
 *CAUTION*: when you delete a resourcetype from the schema, all instances of that resourcetype are removed along with it. You can only recover from this by restoring the database from backup, so use this command with care.
 
@@ -116,6 +124,7 @@ The UID must actually be unique for each resource-type. That is, if you define a
 
 
 ## Retrieve a resource
+
 ```
 GET /api/v1/<resource-type>/<uid>
 ```
@@ -124,6 +133,7 @@ Returns a JSON representation of the resource.
 
 
 ## Retrieve all resources of a given type
+
 ```
 GET /api/v1/<resource-type>/
 ```
@@ -132,6 +142,7 @@ Returns a JSON representation of all resources of that type, or 404 if there are
 
 
 ## Delete a resource
+
 ```
 DELETE /api/v1/<resource-type>
 ```
@@ -160,7 +171,7 @@ GET /api/v1/<resource-type>/<Unique ID>/<relationship>
 ```
 
 
-## Delete a relationship to another object
+
 ```
 DELETE /api/v1/<resource-type>/<Unique ID>/<relationship>/<Unique ID>
 ```
@@ -185,6 +196,7 @@ E.g, `GET /api/v1/devices?outbound=BusinessOwner/organisations/Sales`
 
 
 ## Create a resource that depends on another for its context
+
 This is defined in the schema by adding the attribute `dependent=true` to the dependent `rgResource` definition, and by then adding the same attribute to the relationships to that resource-type from resource-types that are valid parents.
 It's valid to create resources that depend on other dependent resources, with no limit to the depth of these chains.
 ```
@@ -192,21 +204,25 @@ POST /api/v1/<parent-type>/<parent-uid>/<relationship-type>
 with parameters: 'type=<child-type>' and 'uid=<child-uid>' (both are required)
 ```
 
+
 ## Delete a dependent resource
+
 Either use the `DELETE` method on the full path to the resource in question to remove it specifically, or pass the `delete-dependent=true` parameter to the API call to one of its parents further up the chain.
 The `delete-dependent` parameter acts recursively downward from whatever resource is being deleted.
 
 
 ## Move a dependent resource from one parent to another
+
 Note that the new parent must be a valid parent for the child resource, and the new relationship must also be a valid dependent relationship.
 ```
 POST /api/v1/path/to/dependent/resource
 with parameter: 'target=/uri/path/to/new/parent/and/relationship'
 ```
 
+
 # IPAM (IP Address Management) API
 
-While nothing actually _stops_ you using the Raw API to add, change and remove subnets and addresses, it's a tedious and error-prone process, especially if you add and remove subnets by hand - finding the parent subnet, moving the new child subnets and addresses under a new mid-level subnet, and doing all that in reverse when you remove them.
+You _can_ use the Raw API to manage IP addresses and subnets, but it's a tedious and error-prone process: finding the parent subnet, moving the new child subnets and addresses under a newly-added mid-level subnet, and doing all that in reverse when you remove them.
 
 The IPAM API is aware of organisations and VRF-groups, in keeping with the rest of the system.
 
@@ -216,6 +232,14 @@ GET requests are the search interface to the IPAM section:
 
 - `/subnets`
 - `/addresses`
+
+Arguments:
+
+- org
+- subnet
+- vrf
+
+All arguments are required when searching.
 
 Both return the URI for interacting with the subnet or address in question via the Raw API, which is what you need when you then link them to/from other resources, such as delegating a subnet to another suborganisation, or allocating an address to a device.
 
@@ -227,7 +251,7 @@ We'll use the organisation `myCompany`, the subnet `192.0.2.0/24` and [curl](htt
 
 Insert the subnet:
 ```
-curl -X POST -d 'org=myCompany' -d 'subnet=192.0.2.0/24' http://localhost:4950/ipam/v1/subnets
+curl -X POST -d 'org=myCompany' -d 'subnet=192.0.2.0/24' -d 'vrf=default' http://localhost:4950/ipam/v1/subnets
 
 /organisations/myCompany/Subnets/ipv4Subnets/192.0.2.0_24
 ```
