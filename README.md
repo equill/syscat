@@ -83,23 +83,45 @@ The output is raw JSON, so if you're using `curl` you'll want to run the output 
 
 To dump the whole schema: `/schema/v1`. Note that the `v1` part refers to the version of the API, *not* of the schema being reported on. There's no version-control of schemas, just a history of what versions have been installed, which is used by the engine to decide whether an update is needed.
 
-To get the details of one resourcetype: `/schema/v1/resourcetype?name=newresource`.
+To get the details of one resourcetype: `http://localhost:4951/schema/v1/resourcetype?name=newresource`.
 
-To add a resourcetype called `newresource`:
+To add a top-level resourcetype called `newresource`:
 ```
-curl -X POST -d 'name=newresource' http://localhost:4951/schema/v1/resourcetype
+curl -X POST -d 'notes=A new type of resource' -d 'dependent=false' http://localhost:4951/schema/v1/resourcetype/newresource
 ```
 
-To remove a resourcetype called `newresource`:
+Both parameters are optional:
+
+- `notes` allows you to add a descriptive comment about the resourcetype
+- `dependent` denotes whether it exists only in the context of another resource. This defaults to false.
+
+To remove it:
 ```
-curl -X DELETE http://localhost:4951/schema/v1/newresource
+curl -X DELETE http://localhost:4951/schema/v1/resourcetype/newresource
 ```
 
 *CAUTION*: when you delete a resourcetype from the schema, all instances of that resourcetype are removed along with it. You can only recover from this by restoring the database from backup, so use this command with care.
 
-To add a relationship between resourcetypes: POST
+To add a relationship between resourcetypes:
+```
+curl -X POST -d 'dependent=false' -d 'cardinality=many:many' http://localhost:4951/schema/v1/<from-resourcetype>/<relationship>/to-resourcetype>
+```
 
-To delete a relationship between resourcetypes: DELETE
+The parameters are optional here, too:
+
+- `dependent` indicates whether the from-type is a parent of the to-type. Default is false.
+- `cardinality` controls whether this relationship is `1:1`, `many:1`, `1:many` or `many:many`. Default is `many:many`.
+- `attributes` is a comma-separated list of attributes that can be set for this resourcetype, e.g. `longname,colour`. Note that the separator is a comma only; if you follow it with a space, this will be included as the start of the next attribute's name.
+
+Example:
+```
+curl -X POST -d 'dependent=true' -d 'cardinality=1:many' http://localhost:4951/schema/v1/devices/Interfaces/networkInterfaces
+```
+
+To delete a relationship between resourcetypes:
+```
+curl -X DELETE http://localhost:4951/schema/v1/<from-resource>/<relationship>/to-resource>
+```
 
 
 ## Raw API
@@ -251,21 +273,21 @@ We'll use the organisation `myCompany`, the subnet `192.0.2.0/24` and [curl](htt
 
 Insert the subnet:
 ```
-curl -X POST -d 'org=myCompany' -d 'subnet=192.0.2.0/24' -d 'vrf=default' http://localhost:4950/ipam/v1/subnets
+curl -X POST -d 'org=myCompany' -d 'subnet=192.0.2.0/24' -d 'vrf=default' http://localhost:4951/ipam/v1/subnets
 
 /organisations/myCompany/Subnets/ipv4Subnets/192.0.2.0_24
 ```
 
 Find the subnet:
 ```
-curl 'http://localhost:4950/ipam/v1/subnets?org=myCompany&subnet=192.0.2.0/24'
+curl 'http://localhost:4951/ipam/v1/subnets?org=myCompany&subnet=192.0.2.0/24'
 
 /organisations/myCompany/Subnets/ipv4Subnets/192.0.2.0_24
 ```
 
 Delete it:
 ```
-curl -X DELETE -d 'org=myCompany' -d 'subnet=192.0.2.0/24' http://localhost:4950/ipam/v1/subnets
+curl -X DELETE -d 'org=myCompany' -d 'subnet=192.0.2.0/24' http://localhost:4951/ipam/v1/subnets
 ```
 
 Addresses work the same way, except with a URI ending in `/addresses` instead of `/subnets`.
