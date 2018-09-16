@@ -87,13 +87,14 @@ To get the details of one resourcetype: `http://localhost:4951/schema/v1/resourc
 
 To add a top-level resourcetype called `newresource`:
 ```
-curl -X POST -d 'notes=A new type of resource' -d 'dependent=false' http://localhost:4951/schema/v1/resourcetype/newresource
+curl -X POST -d 'notes=A new type of resource' -d 'dependent=false' -d 'attributes=long_name,colour' http://localhost:4951/schema/v1/resourcetype/newresource
 ```
 
 Both parameters are optional:
 
 - `notes` allows you to add a descriptive comment about the resourcetype
 - `dependent` denotes whether it exists only in the context of another resource. This defaults to false.
+- `attributes` is a comma-separated list of attributes that can be set for this resourcetype.
 
 To remove it:
 ```
@@ -111,7 +112,6 @@ The parameters are optional here, too:
 
 - `dependent` indicates whether the from-type is a parent of the to-type. Default is false.
 - `cardinality` controls whether this relationship is `1:1`, `many:1`, `1:many` or `many:many`. Default is `many:many`.
-- `attributes` is a comma-separated list of attributes that can be set for this resourcetype, e.g. `longname,colour`. Note that the separator is a comma only; if you follow it with a space, this will be included as the start of the next attribute's name.
 
 Example:
 ```
@@ -121,6 +121,11 @@ curl -X POST -d 'dependent=true' -d 'cardinality=1:many' http://localhost:4951/s
 To delete a relationship between resourcetypes:
 ```
 curl -X DELETE http://localhost:4951/schema/v1/<from-resource>/<relationship>/to-resource>
+```
+
+To add an attribute to an existing resource called `newresource`, use the PUT method and supply a comma-separated list of attributes to add as the `attributes` parameter:
+```
+curl -X PUT -d 'attributes=short_name,height' http://localhost:4951/schema/v1/resourcetype/newresource
 ```
 
 
