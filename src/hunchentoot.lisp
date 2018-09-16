@@ -40,38 +40,43 @@
        (restagraph:log-message :debug
                                (format nil "Dispatching POST request for URI ~A"
                                        (tbnl:request-uri*)))
-       ;; Insert it
-       (let ((result
-               (insert-subnet (restagraph::datastore *syscat-acceptor*)
-                              (tbnl:post-parameter "org")
-                              (or (tbnl:post-parameter "vrf") "")
-                              (if (ipaddress:ipv4-subnet-p (tbnl:post-parameter "subnet"))
-                                  (ipaddress:make-ipv4-subnet (tbnl:post-parameter "subnet"))
-                                  (ipaddress:make-ipv6-subnet (tbnl:post-parameter "subnet"))))))
-         ;; Return it to the client for confirmation
-         (if result
+       (cond
+         ;; Sanity-check: does the organisation exist?
+         ((not (restagraph:get-resources
+                 (restagraph::datastore *syscat-acceptor*)
+                 (concatenate 'string "/organisations/" (tbnl:post-parameter "org"))))
+          (restagraph::return-client-error
+            (format nil "Organisation '~A' does not exist" (tbnl:post-parameter "org"))))
+         ;; It's passed all the sanity checks so far; insert it
+         (t
+           (let ((result
+                   (insert-subnet (restagraph::datastore *syscat-acceptor*)
+                                  (tbnl:post-parameter "org")
+                                  (or (tbnl:post-parameter "vrf") "")
+                                  (if (ipaddress:ipv4-subnet-p (tbnl:post-parameter "subnet"))
+                                    (ipaddress:make-ipv4-subnet (tbnl:post-parameter "subnet"))
+                                    (ipaddress:make-ipv6-subnet (tbnl:post-parameter "subnet"))))))
+             ;; Return it to the client for confirmation
              (restagraph:log-message
                :debug
-               (format nil "Stored subnet ~A. Now retrieving it for positive confirmation."
+               (format nil
+                       (if result
+                         "Stored subnet ~A. Now retrieving it for positive confirmation."
+                         "Subnet ~A was already present. Retrieving it for positive confirmation.")
                        (tbnl:post-parameter "subnet")))
-             (restagraph:log-message
-               :debug
-               (format nil "Subnet ~A was already present. Retrieving it for positive confirmation."
-                       (tbnl:post-parameter "subnet"))))
-         (setf (tbnl:content-type*) "application/json")
-         (setf (tbnl:return-code*)
-               (if result
-                   tbnl:+http-created+
-                   tbnl:+http-ok+))
-         (format-subnet-path
-           (tbnl:post-parameter "org")
-           (tbnl:post-parameter "vrf")
-           (find-subnet (restagraph::datastore *syscat-acceptor*)
-                        (tbnl:post-parameter "org")
-                        (or (tbnl:post-parameter "vrf") "")
-                        (if (ipaddress:ipv4-subnet-p (tbnl:post-parameter "subnet"))
-                            (ipaddress:make-ipv4-subnet (tbnl:post-parameter "subnet"))
-                            (ipaddress:make-ipv6-subnet (tbnl:post-parameter "subnet")))))))
+             (setf (tbnl:content-type*) "application/json")
+             (setf (tbnl:return-code*) (if result
+                                         tbnl:+http-created+
+                                         tbnl:+http-ok+))
+             (format-subnet-path
+               (tbnl:post-parameter "org")
+               (tbnl:post-parameter "vrf")
+               (find-subnet (restagraph::datastore *syscat-acceptor*)
+                            (tbnl:post-parameter "org")
+                            (or (tbnl:post-parameter "vrf") "")
+                            (if (ipaddress:ipv4-subnet-p (tbnl:post-parameter "subnet"))
+                              (ipaddress:make-ipv4-subnet (tbnl:post-parameter "subnet"))
+                              (ipaddress:make-ipv6-subnet (tbnl:post-parameter "subnet")))))))))
       ;;
       ;; Search for a subnet
       ((and (equal (tbnl:request-method*) :GET)
@@ -86,27 +91,27 @@
                                     (tbnl:get-parameter "org")
                                     (or (tbnl:get-parameter "vrf") "")
                                     (if (ipaddress:ipv4-subnet-p (tbnl:get-parameter "subnet"))
-                                        (ipaddress:make-ipv4-subnet (tbnl:get-parameter "subnet"))
-                                        (ipaddress:make-ipv6-subnet (tbnl:get-parameter "subnet"))))))
+                                      (ipaddress:make-ipv4-subnet (tbnl:get-parameter "subnet"))
+                                      (ipaddress:make-ipv6-subnet (tbnl:get-parameter "subnet"))))))
            ;; Did we find one?
            (if (or (null result)
                    (equal result ""))
-               ;; Not found
-               (progn
-                 (setf (tbnl:content-type*) "text/plain")
-                 (setf (tbnl:return-code*) tbnl:+http-not-found+)
-                 "No such subnet")
-               ;; Found it!
-               (progn
-                 (setf (tbnl:content-type*) "application/json")
-                 (setf (tbnl:return-code*) tbnl:+http-ok+)
-                 (let ((output (format-subnet-path
-                                 (tbnl:get-parameter "org")
-                                 (tbnl:get-parameter "vrf")
-                                 result)))
-                   (restagraph:log-message :debug "Retrieved subnet path ~A" output)
-                   ;; Actually return it to the appserver
-                   output))))
+             ;; Not found
+             (progn
+               (setf (tbnl:content-type*) "text/plain")
+               (setf (tbnl:return-code*) tbnl:+http-not-found+)
+               "No such subnet")
+             ;; Found it!
+             (progn
+               (setf (tbnl:content-type*) "application/json")
+               (setf (tbnl:return-code*) tbnl:+http-ok+)
+               (let ((output (format-subnet-path
+                               (tbnl:get-parameter "org")
+                               (tbnl:get-parameter "vrf")
+                               result)))
+                 (restagraph:log-message :debug "Retrieved subnet path ~A" output)
+                 ;; Actually return it to the appserver
+                 output))))
          ;; Attempted violation of db integrity
          (restagraph:integrity-error (e) (restagraph::return-integrity-error (restagraph:message e)))
          ;; Generic client errors
@@ -123,8 +128,8 @@
                       (tbnl:post-parameter "org")
                       (or (tbnl:post-parameter "vrf") "")
                       (if (ipaddress:ipv4-subnet-p (tbnl:post-parameter "subnet"))
-                                        (ipaddress:make-ipv4-subnet (tbnl:post-parameter "subnet"))
-                                        (ipaddress:make-ipv6-subnet (tbnl:post-parameter "subnet"))))
+                        (ipaddress:make-ipv4-subnet (tbnl:post-parameter "subnet"))
+                        (ipaddress:make-ipv6-subnet (tbnl:post-parameter "subnet"))))
        (setf (tbnl:content-type*) "text/plain")
        (setf (tbnl:return-code*) tbnl:+http-no-content+)
        "")
