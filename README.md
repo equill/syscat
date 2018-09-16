@@ -20,7 +20,7 @@ Download [this docker-compose.yml file](https://github.com/equill/syscat_scripts
 Now execute the following:
 ```
 docker pull neo4j:3.4.1
-docker pull equill/syscat:0.4.0a3
+docker pull equill/syscat:0.4.0a5
 mkdir -p /opt/syscat/{logs,data}
 chown 100 /opt/syscat/{logs,data}
 docker stack deploy -c docker-compose.yml syscat
@@ -83,7 +83,7 @@ The output is raw JSON, so if you're using `curl` you'll want to run the output 
 
 To dump the whole schema: `/schema/v1`. Note that the `v1` part refers to the version of the API, *not* of the schema being reported on. There's no version-control of schemas, just a history of what versions have been installed, which is used by the engine to decide whether an update is needed.
 
-To get the details of one resourcetype: `http://localhost:4951/schema/v1/resourcetype?name=newresource`.
+To get the details of one resourcetype: `http://localhost:4951/schema/v1/resourcetype/newresource`
 
 To add a top-level resourcetype called `newresource`:
 ```
