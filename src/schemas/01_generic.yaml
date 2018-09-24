@@ -1,0 +1,12 @@
+name: meta
+version: 1
+
+resourcetypes:
+  any:
+    notes: Represents any type of resource.
+  tags:
+    notes: For categorising resources of any type.
+
+relationships:
+- cardinality: many:many
+  uri: /any/Tag/tags

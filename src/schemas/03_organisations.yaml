@@ -1,0 +1,31 @@
+name: organisations
+version: 1
+
+resourcetypes:
+  brands:
+    notes: "Also known as ´make´."
+    attributes:
+      comments:
+        description: Comments about this particular brand.
+  models:
+    dependent: 'true'
+  organisations:
+    attributes:
+      comments:
+    notes: 'Any kind of organisation: professional, social or other.'
+
+relationships:
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /brands/Produces/models
+- cardinality: many:many
+  uri: /models/CompatibleWith/models
+- cardinality: many:1
+  uri: /brands/Vendor/organisations
+- cardinality: many:1
+  uri: /people/Member/organisations
+- uri: /organisations/Subsidiary/organisations
+  cardinality: 1:many
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /organisations/ContactMethod/emailAddresses

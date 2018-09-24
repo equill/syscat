@@ -7,7 +7,7 @@ let
         args = [ ./nix-builder.sh ];
         inherit coreutils openssl libyaml;
         system = builtins.currentSystem;
-        schemapath = ../../src/schema.yaml;
+        schemapath = ../../src/schemas;
         syscatpath = ./syscat;
     };
 
@@ -25,7 +25,7 @@ let
 in
 pkgs.dockerTools.buildImage {
     name = "equill/syscat";
-    tag = "0.4.0a5";
+    tag = "0.4.0";
 
     contents = syscat_deriv;
 

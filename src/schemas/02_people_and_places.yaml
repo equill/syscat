@@ -1,0 +1,78 @@
+name: people_and_places
+version: 1
+
+resourcetypes:
+  cities:
+    dependent: 'true'
+    notes: The geographic kind.
+  countries:
+    notes: The geographic kind.
+  emailAddresses:
+    attributes:
+      comments:
+        description: Comments about this particular email address.
+    dependent: 'true'
+  people:
+    attributes:
+      given_name:
+      surname:
+    notes: UID should be their login name or some other compact reference
+  phoneNumbers:
+    attributes:
+      comments:
+  postboxAddresses:
+    notes: The UID is the PO Box number.
+  postcodes:
+    notes: What else does this need?
+  states:
+    dependent: 'true'
+    notes: The geographic kind.
+  streetNumbers:
+    attributes:
+      floor:
+      name:
+    dependent: 'true'
+    notes: The UID is the street number
+  streets:
+    dependent: 'true'
+
+relationships:
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /countries/States/states
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /countries/Cities/cities
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /countries/Postcode/postcodes
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /states/Cities/cities
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /states/Postcodes/postcodes
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /cities/Postcodes/postcodes
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /cities/Streets/streets
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /streets/StreetNumbers/streetNumbers
+- cardinality: many:1
+  uri: /streetNumbers/Postcodes/postcodes
+- cardinality: many:1
+  uri: /postboxAddresses/Postcode/postcodes
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /people/ContactMethod/emailAddresses
+- cardinality: 1:many
+  dependent: 'true'
+  uri: /people/ContactMethod/phoneNumbers
+- uri: /people/Addresses/streetNumbers
+  cardinality: 1:many
+- url: /people/Address/thisShouldFail
+- uri: /people/Address/thisShouldFailAsWell
+- uri: /thisTooShouldFail/Address/streetNumbers

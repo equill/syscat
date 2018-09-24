@@ -275,7 +275,7 @@
     'restagraph::restagraph-acceptor
     :address (or (sb-ext:posix-getenv "SYSCAT_LISTEN_ADDR")
                  (getf restagraph::*config-vars* :listen-address))
-    :port (or (when(sb-ext:posix-getenv "SYSCAT_LISTEN_PORT")
+    :port (or (when (sb-ext:posix-getenv "SYSCAT_LISTEN_PORT")
                 (parse-integer (sb-ext:posix-getenv "SYSCAT_LISTEN_PORT")))
               (getf restagraph::*config-vars* :listen-port))
     ;; Send all logs to STDOUT, and let Docker sort 'em out
@@ -293,17 +293,7 @@
                  :dbuser (or (sb-ext:posix-getenv "SYSCAT_NEO4J_USER")
                              (getf restagraph::*config-vars* :dbusername)))))
 
-(defun read-schema ()
-  "Read the Syscat schema from disk,
-   and return it in a suitable form for handing to Restagraph."
-  (let ((path
-          (if (probe-file (asdf:system-source-directory :syscat))
-              (asdf:system-source-directory :syscat)
-              "/")))
-    (cl-yaml:parse
-      (merge-pathnames path "schema.yaml"))))
-
-(defun startup (&key docker)
+(defun startup (&key docker schemapath)
   ;; This needs to be a dynamic variable for the dispatcher to grab
   (defparameter *syscat-acceptor*
     (make-syscat-acceptor))
@@ -314,10 +304,21 @@
                    (tbnl:create-prefix-dispatcher "/ipam/v1/subnets" 'subnet-dispatcher-v1)
                    (tbnl:create-prefix-dispatcher "/ipam/v1/addresses" 'address-dispatcher-v1))
     :docker docker
-    :schema (read-schema)))
+    :schemapath (cond
+                  ;; Were we passed one explicitly?
+                  (schemapath
+                    schemapath)
+                  ;; Is one set via an environment variable?
+                  ((sb-ext:posix-getenv "SCHEMAPATH")
+                   (sb-ext:posix-getenv "SCHEMAPATH"))
+                  ;; Default case
+                  (t
+                    nil))))
 
-(defun dockerstart ()
-  (startup :docker t))
+(defun dockerstart (&key schemapath)
+  (if schemapath
+    (startup :docker t :schemapath schemapath)
+    (startup :docker t)))
 
 (defun shutdown ()
   (restagraph:shutdown))

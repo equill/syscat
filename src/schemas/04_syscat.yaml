@@ -2,207 +2,163 @@ name: syscat
 version: 1
 
 resourcetypes:
-  any:
-    notes: Represents any type of resource.
   applications:
+    notes: Software application of any kind.
     attributes:
-    - comments
-  brands:
-    attributes:
-    - comments
-    notes: "Also known as ´make´."
+      comments:
+        description: Comments about this particular app.
   buildings:
     attributes:
-    - comments
+      comments:
     notes: Individual buildings.
     dependent: 'true'
+  floors:
+    attributes:
+      comments:
+    notes: Floors within a building.
   cabinets:
     attributes:
-    - comments
+      comments:
     notes: A frame for rack-mounting equipment in. May be in the form of a lockable
       cabinet.
   cages:
     attributes:
-    - comments
+      comments:
     notes: Lockable areas within a room, containing racks. Usually found in data centres.
-  cities:
-    dependent: 'true'
-    notes: The geographic kind.
   contracts:
     attributes:
-    - comments
-    - reference_number
-    - start_date
-    - end_date
-  countries:
-    notes: The geographic kind.
+      comments:
+      reference_number:
+      start_date:
+      end_date:
   deviceRoles:
     attributes:
-    - comments
+      comments:
     notes: Classification of the device, e.g. host, router or switch.
   deviceTypes:
     attributes:
-    - comments
+      comments:
     notes: Type of device, e.g. physical, cluster or virtual.
   devices:
     attributes:
-    - comments
-    - sysdescr
-    - sysname
-    - sysobjectid
-    - snmp_community
-    - serial_number
-    - asset_number
-    - in_service
+      comments:
+      sysdescr:
+      sysname:
+      sysobjectid:
+      snmp_community:
+      serial_number:
+      asset_number:
+      in_service:
     notes: Any kind of device that interacts with a network.
   cpus:
     attributes:
-      - comments
-  emailAddresses:
-    attributes:
-    - comments
-    dependent: 'true'
+      comments:
   environments:
     attributes:
-    - comments
+      comments:
     notes: Development, testing, staging, production etc.
-  floors:
-    attributes:
-    - comments
-    notes: Floors within a building.
   ipv4Addresses:
     attributes:
-    - prefixlength
-    - comments
+      comments:
+      prefixlength:
     dependent: 'true'
   ipv4Subnets:
     attributes:
-    - netaddress
-    - prefixlength
-    - comments
+      comments:
+      netaddress:
+      prefixlength:
     dependent: 'true'
   ipv6Addresses:
     attributes:
-    - prefixlength
-    - comments
+      comments:
+      prefixlength:
     dependent: 'true'
   ipv6Subnets:
     attributes:
-    - netaddress
-    - prefixlength
-    - comments
+      comments:
+      netaddress:
+      prefixlength:
     dependent: 'true'
   circuits:
     attributes:
-    - comments
-    - our_id
-    - vendor_id
+      comments:
+      our_id:
+      vendor_id:
     notes: Network circuits, whether telco-provided or otherwise.
   linkTypes:
     attributes:
-    - osi_layer
-    - comments
+      osi_layer:
+      comments:
     notes: Types of network link, e.g. cat5Ethernet, MMF, serialCable. The osi_layer attribute should have an integer value of 1, 2 or 3, but 2.5 is plausible for MPLS.
   links:
     attributes:
-    - comments
-    - our_id
-    - vendor_id
+      comments:
+      our_id:
+      vendor_id:
     notes: Segment or section of a network circuit.
   lifeCyclePhases:
     attributes:
-    - comments
+      comments:
     notes: Where the device currently is, in its lifecycle. E.g. ordered, installed,
       in service or decommissioned.
-  models:
-    dependent: 'true'
   networkInterfaces:
     attributes:
-    - comments
-    - snmpindex
-    - ifname
-    - ifdescr
-    - ifalias
-    - iftype
-    - ifspeed
-    - ifhighspeed
-    - ifphysaddress
+      comments:
+      snmpindex:
+      ifname:
+      ifdescr:
+      ifalias:
+      iftype:
+      ifspeed:
+      ifhighspeed:
+      ifphysaddress:
     dependent: 'true'
   operatingSystemVersions:
     dependent: 'true'
   operatingSystems:
     dependent: 'true'
-  organisations:
-    attributes:
-    - comments
-    notes: 'Any kind of organisation: professional, social or other.'
   parts:
     attributes:
-    - comments
+      comments:
     dependent: 'true'
     notes: Spare parts, swappable components, anything of the kind
-  people:
-    attributes:
-    - given_name
-    - surname
-    notes: UID should be their login name or some other compact reference
-  phoneNumbers:
-    attributes:
-    - comments
-  postbox_addresses:
-    notes: The UID is the PO Box number.
-  postcodes:
-    notes: What else does this need?
   racks:
     attributes:
-    - comments
+      comments:
     notes: The rack location within a cabinet where a device is mounted. Usually the
       topmost rack number, in the case of multi-unit-height hardware.
   rooms:
     attributes:
-    - comments
+      comments:
     notes: Rooms within a floor or a building.
     dependent: 'true'
   routingInstances:
     attributes:
-    - snmp_community
+      snmp_community:
     dependent: 'true'
   routingInstanceTypes:
     attributes:
-      - comments
+      comments:
   serviceLevels:
     attributes:
-    - comments
+      comments:
     notes: Sets the expectations for responses to issues, e.g. gold, silver, bronze,
       plastic.
   sites:
     dependent: 'true'
     attributes:
-    - longname
-    - comments
+      longname:
+      comments:
     notes: Like a campus, a site contains one or more buildings.
-  states:
-    dependent: 'true'
-    notes: The geographic kind.
-  street_numbers:
-    attributes:
-    - floor
-    - name
-    dependent: 'true'
-    notes: The UID is the street number
-  streets:
-    dependent: 'true'
-  tags:
-    notes: For categorising resources of any type.
   vlanGroups:
     attributes:
-    - default_vlan_id
-    - comments
+      default_vlan_id:
+      comments:
     notes: A notional VLAN, the sum of the VLANs of one or more devices. Often confused
       as being the VLAN itself.
   vlans:
     attributes:
-    - name
+      name:
     dependent: 'true'
     notes: Layer 2 spans, i.e. ethernet segments. Not to be confused with subnets.
   vrfGroups:
@@ -210,62 +166,32 @@ resourcetypes:
 # BGP4
   asns:
     attributes:
-    - comments
-    - name
+      comments:
+        name:
     notes: "BGP Autonomous System Numbers. The UID should be the ASN, and the ´name´ should be its human-friendly tag."
   bgp4Instances:
       dependent: true
       attributes:
-          - description
-          - routerid
+        description:
+        routerid:
   bgp4Peerings:
       dependent: true
       attributes:
-          - description
-            # Index for the bgpPeerEntry SNMP table
-          - bgpPeerIdentifier
-          - bgpPeerLocalPort
-          - bgpPeerRemotePort
+        description:
+        bgpPeerIdentifier:
+          description: Index for the bgpPeerEntry SNMP table
+        bgpPeerLocalPort:
+        bgpPeerRemotePort:
 
 relationships:
-- cardinality: many:many
-  uri: /any/Tag/tags
-- cardinality: 1:many
-  dependent: 'true'
-  uri: /countries/States/states
-- cardinality: 1:many
-  dependent: 'true'
-  uri: /countries/Cities/cities
-- cardinality: 1:many
-  dependent: 'true'
-  uri: /countries/Postcode/postcodes
-- cardinality: 1:many
-  dependent: 'true'
-  uri: /states/Cities/cities
-- cardinality: 1:many
-  dependent: 'true'
-  uri: /states/Postcodes/postcodes
-- cardinality: 1:many
-  dependent: 'true'
-  uri: /cities/Postcodes/postcodes
-- cardinality: 1:many
-  dependent: 'true'
-  uri: /cities/Streets/streets
-- cardinality: 1:many
-  dependent: 'true'
-  uri: /streets/StreetNumbers/street_numbers
-- cardinality: many:1
-  uri: /buildings/Addresses/street_numbers
-- cardinality: many:1
-  uri: /street_numbers/Postcodes/postcodes
-- cardinality: many:1
-  uri: /postbox_addresses/Postcode/postcodes
 - cardinality: many:1
   uri: /buildings/Location/countries
 - cardinality: many:1
   uri: /buildings/Location/states
 - cardinality: many:1
   uri: /buildings/Location/cities
+- cardinality: many:1
+  uri: /buildings/Addresses/street_numbers
 - cardinality: 1:many
   dependent: 'true'
   uri: /buildings/Floor/floors
@@ -335,15 +261,10 @@ relationships:
   uri: /networkInterfaces/Member/networkInterfaces
 - cardinality: '1:1'
   uri: /networkInterfaces/ConnectedTo/networkInterfaces
-- cardinality: 1:many
-  dependent: 'true'
-  uri: /brands/Produces/models
 - cardinality: many:1
   uri: /parts/Model/models
 - cardinality: many:1
   uri: /parts/PurchasedFrom/organisations
-- cardinality: many:many
-  uri: /models/CompatibleWith/models
 - cardinality: many:1
   uri: /parts/InstalledIn/devices
 - cardinality: many:1
@@ -428,8 +349,6 @@ relationships:
 - cardinality: 1:many
   dependent: 'true'
   uri: /devices/RoutingInstance/routingInstances
-- cardinality: many:1
-  uri: /brands/Vendor/organisations
 - cardinality: many:1
   uri: /devices/TechnicalOwner/people
 - cardinality: many:1
@@ -521,25 +440,12 @@ relationships:
   uri: /applications/TechnicalOwner/people
 - cardinality: many:1
   uri: /applications/TechnicalOwner/organisations
-- cardinality: 1:many
-  dependent: 'true'
-  uri: /organisations/ContactMethod/emailAddresses
-- cardinality: 1:many
-  dependent: 'true'
-  uri: /people/ContactMethod/emailAddresses
-- cardinality: 1:many
-  dependent: 'true'
-  uri: /people/ContactMethod/phoneNumbers
-- cardinality: many:1
-  uri: /people/Member/organisations
 - cardinality: many:1
   uri: /people/AccountManager/organisations
 - cardinality: many:1
   uri: /people/SalesContact/organisations
 - cardinality: many:1
   uri: /people/SupportContact/organisations
-- uri: /organisations/Subsidiary/organisations
-  cardinality: 1:many
 - uri: /organisations/Parent/organisations
   cardinality: many:1
 - cardinality: many:1
