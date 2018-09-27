@@ -3,10 +3,14 @@ version: 1
 
 resourcetypes:
   any:
-    notes: Represents any type of resource.
+    notes: Special-case meta-resource, representing an instance of any type of resource.
   tags:
     notes: For categorising resources of any type.
+  groups:
+    notes: For grouping things.
 
 relationships:
-- cardinality: many:many
-  uri: /any/Tag/tags
+- uri: /any/Tag/tags
+  cardinality: many:many
+- uri: /any/Group/groups
+  cardinality: many:many

@@ -1,5 +1,5 @@
 name: syscat
-version: 1
+version: 2
 
 resourcetypes:
   applications:
@@ -7,6 +7,8 @@ resourcetypes:
     attributes:
       comments:
         description: Comments about this particular app.
+      monitor:
+        description: Whether this application is to be monitored.
   buildings:
     attributes:
       comments:
@@ -49,6 +51,8 @@ resourcetypes:
       serial_number:
       asset_number:
       in_service:
+      monitor:
+        description: Whether this device is to be monitored.
     notes: Any kind of device that interacts with a network.
   cpus:
     attributes:
@@ -112,6 +116,8 @@ resourcetypes:
       ifspeed:
       ifhighspeed:
       ifphysaddress:
+      monitor:
+        description: Whether this interface is to be monitored.
     dependent: 'true'
   operatingSystemVersions:
     dependent: 'true'
@@ -182,6 +188,8 @@ resourcetypes:
           description: Index for the bgpPeerEntry SNMP table
         bgpPeerLocalPort:
         bgpPeerRemotePort:
+        monitor:
+          description: Whether this peering is to be monitored.
 
 relationships:
 - cardinality: many:1
@@ -548,3 +556,14 @@ relationships:
   cardinality: many:1
 - uri: /bgp4Peerings/BgpRemoteAddress/ipv6Addresses
   cardinality: many:1
+#
+# Monitoring
+#
+- uri: /applications/Monitor/applications
+  cardinality: many:many
+- uri: /applications/Monitor/devices
+  cardinality: many:many
+- uri: /applications/Monitor/networkInterfaces
+  cardinality: many:many
+- uri: /applications/Monitor/bgp4Peerings
+  cardinality: many:many
