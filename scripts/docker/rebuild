@@ -1,0 +1,1 @@
+./create_executable.sh && nix-build docker.nix && docker load < result
