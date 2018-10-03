@@ -1,0 +1,52 @@
+name: aws
+version: 1
+
+resourcetypes:
+  awsRegions:
+      attributes:
+        comments:
+            description: Comments about this particular region.
+  awsAvailabilityZone:
+      dependent: true
+      attributes:
+        comments:
+          description: Comments about this particular AZ.
+  awsAccounts:
+      attributes:
+        name:
+        comments:
+          description: Comments about this particular account.
+  awsVpcs:
+      dependent: true
+      attributes:
+          dhcpoptionsid:
+          instancetenancy:
+          isdefault:
+          state:
+  awsCidrBlocks:
+      dependent: true
+      attributes:
+          comments:
+          associationid:
+  awsEc2Tags:
+      dependent: true
+      attributes:
+          value:
+  awsRouteTables:
+      dependent: true
+
+relationships:
+- uri: /awsRegions/Vpcs/awsVpcs
+  cardinality: 1:many
+- uri: /awsRegions/AZ/awsAvailabilityZones
+  cardinality: 1:many
+- uri: /awsVpcs/CidrBlock/awsCidrBlocks
+  cardinality: 1:1
+- uri: /awsVpcs/CidrBlockAssociation/awsCidrBlocks
+  cardinality: 1:many
+- uri: /awsAccounts/Vpcs/awsVpcs
+  cardinality: 1:many
+- uri: /awsVpcs/RouteTable/awsRouteTables
+  cardinality: 1:many
+- uri: /awsAccounts/Owner/organisations
+  cardinality: many:1
