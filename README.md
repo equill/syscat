@@ -60,12 +60,12 @@ These are also set in the `docker-compose.yml` file linked above.
 - enable users to record whatever information they _do_ have on hand, and evolve the picture as new information comes to hand
     - e.g, you can assign an IP address to a host, then move it to the correct interface, then assign that interface to a routing instance, without losing any information, including any incoming links from other things.
 - enforce as little policy or dogma as possible
-    - _I_ might judge how you laid out your network, but Syscat doesn't.
-- most networks interact with other networks in some way; enable modelling that with multiple organisations, multiple ASes and multiple VRF-groups within each organisation.
+- most networks interact with other networks in some way; enable modelling that with multiple organisations
+- production networks in midsize and greater organisations have multiple ASes and multiple VRF groups. Model those, too.
 - API-first implementation, because
     - automation is increasingly crucial in network management. An API-first design means that anything you can do with the GUI (when one is eventually added) can be done by a script.
     - no one GUI design suits everybody. An API-first design means you can build your own on top, if the included one doesn't suit, or if you're fed up waiting for me to build it.
-- some things only make sense in the context of other things, e.g. interfaces only exist in the context of a device. The schema reflects this.
+- some things only make sense in the context of other things, e.g. interfaces only exist in the context of a device. These can be created as "dependent" resources, with relationships that denote which kinds of things they depend on.
 
 
 ## Architecture
@@ -87,14 +87,13 @@ To get the details of one resourcetype: `http://localhost:4951/schema/v1/resourc
 
 To add a top-level resourcetype called `newresource`:
 ```
-curl -X POST -d 'notes=A new type of resource' -d 'dependent=false' -d 'attributes=long_name,colour' http://localhost:4951/schema/v1/resourcetype/newresource
+curl -X POST -d 'notes=A new type of resource' -d 'dependent=false' http://localhost:4951/schema/v1/resourcetype/newresource
 ```
 
 Both parameters are optional:
 
 - `notes` allows you to add a descriptive comment about the resourcetype
 - `dependent` denotes whether it exists only in the context of another resource. This defaults to false.
-- `attributes` is a comma-separated list of attributes that can be set for this resourcetype.
 
 To remove it:
 ```
@@ -123,15 +122,10 @@ To delete a relationship between resourcetypes:
 curl -X DELETE http://localhost:4951/schema/v1/<from-resource>/<relationship>/to-resource>
 ```
 
-To add an attribute to an existing resource called `newresource`, use the PUT method and supply a comma-separated list of attributes to add as the `attributes` parameter:
-```
-curl -X PUT -d 'attributes=short_name,height' http://localhost:4951/schema/v1/resourcetype/newresource
-```
-
 
 ## Raw API
 
-This provides most of the functionality, and is rooted at `/raw/v1/`.
+This provides most of the functionality, and is rooted at `/api/v1/`.
 
 It dynamically generates the API according to what's in the database, so keeps up automatically with any updates. This is what enables you to extend the schema according to your needs.
 
