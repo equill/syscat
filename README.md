@@ -12,23 +12,24 @@ The REST API is its primary interface; anything else, such as a web GUI, can be 
 - very quick-and-dirty installation on a Linux system.
 - assumes you want to store the Neo4j data under `/opt/syscat`.
 - maps the listening ports for Syscat and Neo4j to non-default values, to avoid clashing with local (development) installations.
+- requires [Docker in swarm mode](https://docs.docker.com/engine/swarm/) to run multiple containers in their own protected network.
 
 
-Download [this docker-compose.yml file](https://github.com/equill/syscat_scripts/blob/master/docker/docker-compose.yml), and modify it as necessary.
+Download [this docker-compose.yml file](https://github.com/equill/syscat_scripts/blob/master/docker/docker-compose-expected.yml), and modify it as necessary.
 
 
 Now execute the following:
 ```
 docker pull neo4j:3.4.1
-docker pull equill/syscat:0.4.0a5
+docker pull equill/syscat:0.4.3
 mkdir -p /opt/syscat/{logs,data}
 chown 100 /opt/syscat/{logs,data}
-docker stack deploy -c docker-compose.yml syscat
+docker stack deploy -c docker-compose-expected.yml syscat
 ```
 
-After a moment, you should be able to connect to Syscat via HTTP on port 4951, and to Neo4j via HTTP on 7676, or Bolt on 7688. These are set in `docker-compose.yml`, to avoid conflicting with the standalone image. The delay on first startup is from it creating the schema in the database.
+After a moment, you should be able to connect to Syscat via HTTP on port 4952, and to Neo4j via HTTP on 7679, or Bolt on 7691. These are set in `docker-compose.yml`, to avoid conflicting with the standalone image. The delay on first startup is from it creating the schema in the database.
 
-Note that on some systems, connections to localhost hang forever. It does listen on all addresses, so if localhost hangs you can just connect on any other address, e.g. the host computer's LAN address.
+Note that on some systems, connections to localhost hang forever. It does listen on all addresses, so if localhost hangs you can just connect on any other address, e.g. the host computer's LAN address, or the gateway address for the {{docker0}} interface.
 
 
 ## Startup
