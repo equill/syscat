@@ -126,7 +126,7 @@ curl -X DELETE http://localhost:4951/schema/v1/<from-resource>/<relationship>/to
 
 ## Raw API
 
-This provides most of the functionality, and is rooted at `/api/v1/`.
+This provides most of the functionality, and is rooted at `/raw/v1/`.
 
 It dynamically generates the API according to what's in the database, so keeps up automatically with any updates. This is what enables you to extend the schema according to your needs.
 
@@ -135,7 +135,7 @@ It looks slightly cumbersome, using a `/<type>/<uid>/<relationship>/<type>/<uid>
 
 ## Create a resource
 ```
-POST /api/v1/<resource-type>/
+POST /raw/v1/<resource-type>/
 ```
 
 With payload of `uid=<uid>`, plus optionally `<attribute-name>=<value>` pairs for any subset of the attributes defined for this resource type.
@@ -148,7 +148,7 @@ The UID must actually be unique for each resource-type. That is, if you define a
 ## Retrieve a resource
 
 ```
-GET /api/v1/<resource-type>/<uid>
+GET /raw/v1/<resource-type>/<uid>
 ```
 
 Returns a JSON representation of the resource.
@@ -157,7 +157,7 @@ Returns a JSON representation of the resource.
 ## Retrieve all resources of a given type
 
 ```
-GET /api/v1/<resource-type>/
+GET /raw/v1/<resource-type>/
 ```
 
 Returns a JSON representation of all resources of that type, or 404 if there aren't any.
@@ -166,7 +166,7 @@ Returns a JSON representation of all resources of that type, or 404 if there are
 ## Delete a resource
 
 ```
-DELETE /api/v1/<resource-type>
+DELETE /raw/v1/<resource-type>
 ```
 Requires a payload of `'uid=<uid>'`, and any other parameters are ignored.
 
@@ -178,7 +178,7 @@ Returns `204 (NO CONTENT)` on success.
 Note that, due to the way Neo4J works, these are always directional.
 
 ```
-POST /api/v1/<resource-type>/<Unique ID>/<relationship>
+POST /raw/v1/<resource-type>/<Unique ID>/<relationship>
 with parameter: 'target' = '/type/uid'
 ```
 
@@ -189,19 +189,19 @@ If the destination resource doesn't already exist, it will be automatically crea
 
 ## Retrieve the type and UID of all resources to which this one has a specific relationship
 ```
-GET /api/v1/<resource-type>/<Unique ID>/<relationship>
+GET /raw/v1/<resource-type>/<Unique ID>/<relationship>
 ```
 
 
 
 ```
-DELETE /api/v1/<resource-type>/<Unique ID>/<relationship>/<Unique ID>
+DELETE /raw/v1/<resource-type>/<Unique ID>/<relationship>/<Unique ID>
 ```
 
 
 ## Search for objects to which this one has a particular kind of relationship, optionally matching a set of attribute/value pairs
 ```
-GET /api/v1/<resource-type>/<Unique ID>/<relationship>/?<attribute>=<value>
+GET /raw/v1/<resource-type>/<Unique ID>/<relationship>/?<attribute>=<value>
 ```
 
 Regular expressions based on [Java regexes](https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html) can be used. Negation can be effected by putting `!` at the start of the regex.
@@ -211,10 +211,10 @@ Regular expressions based on [Java regexes](https://docs.oracle.com/javase/7/doc
 
 This is currently limited to one hop.
 ```
-GET /api/v1/<resource-type>?outbound=<relationship>/<resource-type>/<resource-uid>
+GET /raw/v1/<resource-type>?outbound=<relationship>/<resource-type>/<resource-uid>
 ```
 
-E.g, `GET /api/v1/devices?outbound=BusinessOwner/organisations/Sales`
+E.g, `GET /raw/v1/devices?outbound=BusinessOwner/organisations/Sales`
 
 
 ## Create a resource that depends on another for its context
@@ -222,7 +222,7 @@ E.g, `GET /api/v1/devices?outbound=BusinessOwner/organisations/Sales`
 This is defined in the schema by adding the attribute `dependent=true` to the dependent `rgResource` definition, and by then adding the same attribute to the relationships to that resource-type from resource-types that are valid parents.
 It's valid to create resources that depend on other dependent resources, with no limit to the depth of these chains.
 ```
-POST /api/v1/<parent-type>/<parent-uid>/<relationship-type>
+POST /raw/v1/<parent-type>/<parent-uid>/<relationship-type>
 with parameters: 'type=<child-type>' and 'uid=<child-uid>' (both are required)
 ```
 
@@ -237,7 +237,7 @@ The `delete-dependent` parameter acts recursively downward from whatever resourc
 
 Note that the new parent must be a valid parent for the child resource, and the new relationship must also be a valid dependent relationship.
 ```
-POST /api/v1/path/to/dependent/resource
+POST /raw/v1/path/to/dependent/resource
 with parameter: 'target=/uri/path/to/new/parent/and/relationship'
 ```
 
