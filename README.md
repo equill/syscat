@@ -2,37 +2,73 @@
 
 "From spare parts to org charts"
 
+A single source of truth for an IT environment.
+
 An API-based network catalogue/configuration database that actually covers everything, from hardware assets up to application interdependencies, through to the people and organisations that have any kind of stake in them.
 
-The REST API is its primary interface; anything else, such as a web GUI, can be built on that. This is to make it automation-friendly, as well as to make it viable for users to build the interface that suits them.
+The REST API is its primary interface; anything else, such as a web GUI, can be built on that. This is to make it automation-friendly, as well as to make it feasible for users to build the interface that suits them.
+
+The storage layer is [Neo4j](https://neo4j.com), an extremely capable graph database.
+
+Current development status: early beta.
 
 
 # Installation
 
-- very quick-and-dirty installation on a Linux system.
-- assumes you want to store the Neo4j data under `/opt/syscat`.
+Summary: download and run the Docker image, using the environment variables described in the Configuration section below, along with a Neo4j database.
+
+`docker-compose` files are available to make it easier to get started and try it out.
+
+
+## Demo instance
+
+A quick-and-easy installation, best for getting a feel for how Syscat works and what it can do.
+
+- for modelling either the expected state of the network, or its discovered state, but not (sanely) both at the same time. For both, see the "full power" section below.
+- no persistent storage.
 - maps the listening ports for Syscat and Neo4j to non-default values, to avoid clashing with local (development) installations.
+- exposes endpoints for querying the Neo4j database directly, to take advantage of the full expressiveness of the [Cypher query language](https://neo4j.com/docs/developer-manual/current/cypher/).
 - requires [Docker in swarm mode](https://docs.docker.com/engine/swarm/) to run multiple containers in their own protected network.
 
 
-Download [this docker-compose.yml file](https://github.com/equill/syscat_scripts/blob/master/docker/docker-compose-expected.yml), and modify it as necessary.
+0) Download [docker-compose-expected.yml](https://github.com/equill/syscat_scripts/blob/master/docker/docker-compose-expected.yml), and modify it as necessary.
+0) Execute `docker stack deploy -c docker-compose-expected.yml syscat`
 
-
-Now execute the following:
-```
-docker pull neo4j:3.4.1
-docker pull equill/syscat:0.4.3
-mkdir -p /opt/syscat/{logs,data}
-chown 100 /opt/syscat/{logs,data}
-docker stack deploy -c docker-compose-expected.yml syscat
-```
-
-After a moment, you should be able to connect to Syscat via HTTP on port 4952, and to Neo4j via HTTP on 7679, or Bolt on 7691. These are set in `docker-compose.yml`, to avoid conflicting with the standalone image. The delay on first startup is from it creating the schema in the database.
+After a moment, you should be able to connect to Syscat via HTTP on port 4952, and to Neo4j via HTTP on 7679, or via Bolt (Neo4j's optimised protocol) on 7691. These are set in `docker-compose.yml`. The delay on startup is from creating the schema in the database.
 
 Note that on some systems, connections to localhost hang forever. It does listen on all addresses, so if localhost hangs you can just connect on any other address, e.g. the host computer's LAN address, or the gateway address for the {{docker0}} interface.
 
 
-## Startup
+## Full power
+
+More useful for real-world use: model both the expected and discovered state, but keep them separate and provide persistent storage for both.
+
+- for modelling both the expected state and the discovered state of an IT environment, each in its own instance.
+- involves two parallel instances, each with its own database, listening on separate ports.
+- provides persistent data storage.
+- as with the demo instance, exposes both databases via both protocols, and requires Docker in swarm mode.
+
+0) Download [docker-compose-combined.yml](https://github.com/equill/syscat_scripts/blob/master/docker/docker-compose-combined.yml)
+0) create two volumes: one called `disc_data` and one called `exp_data`. To create them on your workstation as a test:
+  ```
+  docker volume create --driver local disc_data
+  docker volume create --driver local exp_data
+  ```
+0) Execute `docker stack deploy -c docker-compose-combined.yml syscat`
+
+Once it's created the schemas in both databases, you should see processes listening on 6 TCP ports:
+
+- Expected state:
+    - 4952 = REST API for Syscat
+    - 7678 = HTTP API for the Neo4j database
+    - 7691 = Bolt endpoint for the Neo4j database
+- Discovered state:
+    - 4953 = REST API for Syscat
+    - 7679 = HTTP API for the Neo4j database
+    - 7692 = Bolt endpoint for the Neo4j database
+
+
+## Configuration
 
 If it was supplied as a standalone executable, it checks for the following environment variables, with default values as shown:
 
@@ -47,9 +83,9 @@ If it was supplied as a standalone executable, it checks for the following envir
 - `SYSCAT_NEO4J_USER` = username for authenticating to the Neo4j server
     - default: `neo4j`
 - `SYSCAT_NEO4J_PASSWORD` = password for authenticating that user to the Neo4j server
-    - default: don't use that. Set it to something hard to crack, and keep it secret.
+    - default: don't use that. Set it to something hard to crack and keep it secret.
 
-These are also set in the `docker-compose.yml` file linked above.
+These are set in the `docker-compose` files linked above.
 
 
 # Basic design
@@ -57,16 +93,15 @@ These are also set in the `docker-compose.yml` file linked above.
 ## Background thinking
 
 - model the network as it is, however messed-up that might be.
-- also enable the user to model how it's intended to be, and provide means to compare the two. It's up to you whether you combine these views in a single instance, or record the intended model in one instance and the discovered details in another.
-- enable users to record whatever information they _do_ have on hand, and evolve the picture as new information comes to hand
-    - e.g, you can assign an IP address to a host, then move it to the correct interface, then assign that interface to a routing instance, without losing any information, including any incoming links from other things.
-- enforce as little policy or dogma as possible
-- most networks interact with other networks in some way; enable modelling that with multiple organisations
-- production networks in midsize and greater organisations have multiple ASes and multiple VRF groups. Model those, too.
+- enable users to record whatever information they _do_ have on hand, and evolve the picture as new information comes to hand. E.g, you can assign an IP address to a host, then move it to the correct interface, then assign that interface to a routing instance, all without losing any information such as incoming links from other things.
+- most networks interact with other networks in some way, some of which are operated by other organisations.
+- production networks in midsize and greater organisations have multiple ASes and multiple VRF groups.
 - API-first implementation, because
-    - automation is increasingly crucial in network management. An API-first design means that anything you can do with the GUI (when one is eventually added) can be done by a script.
-    - no one GUI design suits everybody. An API-first design means you can build your own on top, if the included one doesn't suit, or if you're fed up waiting for me to build it.
+    - automation is crucial in network management. An API-first design means that anything you can do with the GUI (when one is eventually added) can be done by a script.
+    - no one GUI design suits everybody. An API-first design means you can build your own on top, if the included one doesn't suit, or if you've timed out while waiting for me to build it.
 - some things only make sense in the context of other things, e.g. interfaces only exist in the context of a device. These can be created as "dependent" resources, with relationships that denote which kinds of things they depend on.
+- 80% isn't good enough, nor is it sufficient to focus on one part of the stack and ignore all the others. Even if Syscat's schema started out in the network, it will eventually model everything in an IT environment, including things like user-access requirements.
+- no one model fits all use-cases, and all organisations have some custom use-cases. Provide users with a way to extend and modify it to their own requirements, that integrates seamlessly with the one provided by default.
 
 
 ## Architecture
