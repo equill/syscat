@@ -2,15 +2,22 @@
 
 "From spare parts to org charts"
 
-A single source of truth for an IT environment.
+**What problem does it solve?**
+
+Tracking all the "things" in an IT environment, and all the relationships between them.
+
+"All" is a key word here - this project was born from frustration with systems designed to cover only a subset, and that don't enable you to extend them directly to cover things they missed out.
+
+
+**What is it?**
 
 An API-based network catalogue/configuration database that actually covers everything, from hardware assets up to application interdependencies, through to the people and organisations that have any kind of stake in them.
 
 The REST API is its primary interface; anything else, such as a web GUI, can be built on that. This is to make it automation-friendly, as well as to make it feasible for users to build the interface that suits them.
 
-The storage layer is [Neo4j](https://neo4j.com), an extremely capable graph database.
+The storage layer is [Neo4j](https://neo4j.com), an extremely capable graph database. Its [Cypher query language](https://neo4j.com/docs/developer-manual/current/cypher/) is more flexible and expressive than any REST API can be.
 
-Current development status: early beta.
+Current development status: early beta. Breaking changes are still possible, but are uncommon.
 
 
 # Installation
@@ -28,15 +35,48 @@ A quick-and-easy installation, best for getting a feel for how Syscat works and 
 - no persistent storage.
 - maps the listening ports for Syscat and Neo4j to non-default values, to avoid clashing with local (development) installations.
 - exposes endpoints for querying the Neo4j database directly, to take advantage of the full expressiveness of the [Cypher query language](https://neo4j.com/docs/developer-manual/current/cypher/).
-- requires [Docker in swarm mode](https://docs.docker.com/engine/swarm/) to run multiple containers in their own protected network.
+- requires [Docker in swarm mode](https://docs.docker.com/engine/swarm/) to run multiple containers in their own protected network. This is overhead I'd rather avoid, but it's the practical way to run both the app and its database server.
 
 
-0) Download [docker-compose-expected.yml](https://github.com/equill/syscat_scripts/blob/master/docker/docker-compose-expected.yml), and modify it as necessary.
-0) Execute `docker stack deploy -c docker-compose-expected.yml syscat`
+### Installation and startup
 
-After a moment, you should be able to connect to Syscat via HTTP on port 4952, and to Neo4j via HTTP on 7679, or via Bolt (Neo4j's optimised protocol) on 7691. These are set in `docker-compose.yml`. The delay on startup is from creating the schema in the database.
+0. Ensure [Docker swarm mode is enabled](https://docs.docker.com/engine/swarm/swarm-tutorial/create-swarm/) on your workstation.
+0. Download [docker-compose-expected.yml](https://github.com/equill/syscat_scripts/blob/master/docker/docker-compose-expected.yml), and modify it as necessary.
+0. Execute `docker stack deploy -c docker-compose-expected.yml syscat`
 
-Note that on some systems, connections to localhost hang forever. It does listen on all addresses, so if localhost hangs you can just connect on any other address, e.g. the host computer's LAN address, or the gateway address for the {{docker0}} interface.
+After about a minute, you should be able to connect to Syscat via HTTP on port 4952, and to Neo4j via HTTP on 7679, or via Bolt (Neo4j's optimised protocol) on 7691. These are set in `docker-compose.yml`. The delay on startup is from creating the schema in the database.
+
+E.g: assuming `docker0`'s address is 10.255.0.1, and your shell prompt is `$`:
+```
+$ curl http://10.255.0.1:4952/raw/v1/devices
+[]
+
+$ curl -X POST -d 'uid=router1' http://10.255.0.1:4952/raw/v1/devices
+{"uid":"router1","original_uid":"router1"}
+
+$ curl -X POST -d 'uid=router2' http://10.255.0.1:4952/raw/v1/devices
+{"uid":"router2","original_uid":"router2"}
+
+$ curl http://10.255.0.1:4952/raw/v1/devices
+[{"uid":"router1","original_uid":"router1"},{"uid":"router2","original_uid":"router2"}]
+```
+
+For better readability, pipe the output through `jq`, and use the `-s` option to curl to silence the progress bar:
+```
+$ curl -s http://10.255.0.1:4952/raw/v1/devices | jq .
+[
+  {
+    "uid": "router1",
+    "original_uid": "router1"
+  },
+  {
+    "uid": "router2",
+    "original_uid": "router2"
+  }
+]
+```
+
+Note that on some systems, connections to localhost hang forever. It does listen on all addresses, so if localhost hangs you can just connect on any other address, e.g. the host computer's LAN address, or the gateway address for the `docker0` interface.
 
 
 ## Full power
@@ -48,13 +88,18 @@ More useful for real-world use: model both the expected and discovered state, bu
 - provides persistent data storage.
 - as with the demo instance, exposes both databases via both protocols, and requires Docker in swarm mode.
 
-0) Download [docker-compose-combined.yml](https://github.com/equill/syscat_scripts/blob/master/docker/docker-compose-combined.yml)
-0) create two volumes: one called `disc_data` and one called `exp_data`. To create them on your workstation as a test:
-  ```
-  docker volume create --driver local disc_data
-  docker volume create --driver local exp_data
-  ```
-0) Execute `docker stack deploy -c docker-compose-combined.yml syscat`
+
+### Installation and startup
+
+0. Ensure [Docker swarm mode is enabled](https://docs.docker.com/engine/swarm/swarm-tutorial/create-swarm/) on your workstation.
+0. Download [docker-compose-combined.yml](https://github.com/equill/syscat_scripts/blob/master/docker/docker-compose-combined.yml)
+0. create two volumes: one called `disc_data` and one called `exp_data`. To create them on your workstation as a test:
+
+    `docker volume create --driver local disc_data`
+
+    `docker volume create --driver local exp_data`
+
+0. Execute `docker stack deploy -c docker-compose-combined.yml syscat`
 
 Once it's created the schemas in both databases, you should see processes listening on 6 TCP ports:
 
@@ -67,10 +112,20 @@ Once it's created the schemas in both databases, you should see processes listen
     - 7679 = HTTP API for the Neo4j database
     - 7692 = Bolt endpoint for the Neo4j database
 
+It works exactly as in the previous example, except now you have a second instance listening on port 4953 to track the results of your discovery scripts.
+
+### Why run two instances at once?
+
+There's a crucial difference between what was _allocated_, and what is _configured_. You _can_ represent both within the same database, but it quickly gets messy and difficult to distinguish between them. A GUI can still blend both sources for presentation to the user, and good design can make it clear which is which.
+
+In terms of operational security, this also makes it much simpler to prevent your discovery scripts from messing with the desired state of the environment, and to prevent users editing the discovered state by accident.
+
+If you're using SNMP for monitoring, you can cleanly separate "this interface _should_ be monitored for availability" from "this interface's index in `ifTable` is 436".
+
 
 ## Configuration
 
-If it was supplied as a standalone executable, it checks for the following environment variables, with default values as shown:
+On startup, Syscat checks for the following environment variables, with default values as shown:
 
 - `SYSCAT_LISTEN_ADDR` = address(es) on which the application server should listen for incoming HTTP requests
     - default: `localhost`
@@ -86,31 +141,6 @@ If it was supplied as a standalone executable, it checks for the following envir
     - default: don't use that. Set it to something hard to crack and keep it secret.
 
 These are set in the `docker-compose` files linked above.
-
-
-# Basic design
-
-## Background thinking
-
-- model the network as it is, however messed-up that might be.
-- enable users to record whatever information they _do_ have on hand, and evolve the picture as new information comes to hand. E.g, you can assign an IP address to a host, then move it to the correct interface, then assign that interface to a routing instance, all without losing any information such as incoming links from other things.
-- most networks interact with other networks in some way, some of which are operated by other organisations.
-- production networks in midsize and greater organisations have multiple ASes and multiple VRF groups.
-- API-first implementation, because
-    - automation is crucial in network management. An API-first design means that anything you can do with the GUI (when one is eventually added) can be done by a script.
-    - no one GUI design suits everybody. An API-first design means you can build your own on top, if the included one doesn't suit, or if you've timed out while waiting for me to build it.
-- some things only make sense in the context of other things, e.g. interfaces only exist in the context of a device. These can be created as "dependent" resources, with relationships that denote which kinds of things they depend on.
-- 80% isn't good enough, nor is it sufficient to focus on one part of the stack and ignore all the others. Even if Syscat's schema started out in the network, it will eventually model everything in an IT environment, including things like user-access requirements.
-- no one model fits all use-cases, and all organisations have some custom use-cases. Provide users with a way to extend and modify it to their own requirements, that integrates seamlessly with the one provided by default.
-
-
-## Architecture
-
-A web application server fronting a Neo4j graph database.
-
-The schema is defined within the database itself, so you can query it to confirm the API that is actually in use via the URI `/schema/v1`.
-
-There's a raw API, which provides the core functionality, plus domain-specific APIs for things such as IPAM, which can't be properly served via the raw API.
 
 
 # Schema API
@@ -326,3 +356,37 @@ curl -X DELETE -d 'org=myCompany' -d 'subnet=192.0.2.0/24' http://localhost:4951
 ```
 
 Addresses work the same way, except with a URI ending in `/addresses` instead of `/subnets`.
+
+
+# Basic design
+
+## Background thinking
+
+- model the network as it is, however messed-up that might be.
+- model the whole thing: _all_ the things and the people, and all the relationships between them.
+- enable users to record whatever information they _do_ have on hand, and evolve the picture as new information comes to hand. E.g, you can assign an IP address to a host, then move it to the correct interface, then assign that interface to a routing instance, all without losing any information such as incoming links from other things.
+- most networks interact with other networks in some way, some of which are operated by other organisations.
+- production networks in midsize and greater organisations have multiple ASes and multiple VRF groups.
+- API-first implementation, because
+    - automation is crucial in network management. An API-first design means that anything you can do with the GUI (when one is eventually added) can be done by a script.
+    - no one GUI design suits everybody. An API-first design means you can build your own on top, if the included one doesn't suit, or if you've timed out while waiting for me to build it.
+- some things only make sense in the context of other things, e.g. interfaces only exist in the context of a device. These can be created as "dependent" resources, with relationships that denote which kinds of things they depend on.
+- no one model fits all use-cases, and all organisations have some custom use-cases. Provide users with a way to extend and modify it to their own requirements, that integrates seamlessly with the one provided by default.
+
+
+## Architecture
+
+A web application server fronting a Neo4j graph database. The schema is defined in the database, and is used to dynamically construct the API in response to each query - this is the key to Syscat's flexibility.
+
+Because the schema is in the database, you can query it to confirm the API that is actually in use via the URI `/schema/v1`.
+
+There's a domain-specific API for IPAM functionality, because that just can't be properly served via the raw API. Naturally, it's at `/ipam/v1`.
+
+
+### Why a graph database?
+
+Relational databases just run out of breath - in practical terms, they can't provide the flexibility. RDF databases are optimised for offline (very large) analysis, and this absolutely needs to be an online system that's continually being updated.
+
+Although I wasn't thinking in those terms when I began this project, it turned out that there's a crucial difference in the worldview of relational vs graph databases: graph databases separate what something _means_ from what it _is_, and use the relationships to represent that meaning in terms of context, where relational databases conflate the thing with its meaning. And Neo4j provides the ACID dependability that we've learned to rely on from an RDBMS.
+
+For any one implication of this difference, you _can_ find a way to represent it in a relational database. However, all those join tables accumulate quickly, and the DBMS eventually just grinds to a halt. Don't get me wrong: I've been a fan of relational databases since I started in IT in the '90s, and I'm still very fond of them. There are just some problems for which they're not a good fit, and this is one of them.
