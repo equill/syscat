@@ -205,7 +205,7 @@ relationships:
   uri: /buildings/Floor/floors
 - cardinality: 1:many
   dependent: 'true'
-  uri: /buildings/Room/rooms
+  uri: /buildings/Rooms/rooms
 - cardinality: 1:many
   dependent: 'true'
   uri: /floors/Room/rooms
@@ -252,11 +252,9 @@ relationships:
 - cardinality: many:1
   uri: /devices/Member/devices
 - cardinality: many:1
-  uri: /devices/HostedOn/devices
-- cardinality: 1:many
-  uri: /devices/Hosts/devices
+  uri: /devices/Host/devices
 - cardinality: many:1
-  uri: /devices/HostedOn/cpus
+  uri: /devices/HostCpu/cpus
 - cardinality: '1:1'
   dependent: 'true'
   uri: /devices/ManagementAddress/ipv4Addresses
@@ -493,7 +491,8 @@ relationships:
 - cardinality: 1:many
   uri: /contracts/Supports/cabinets
 - cardinality: many:1
-  uri: /sites/Organisation/organisations
+  uri: /organisations/Sites/sites
+  dependent: 'true'
 - uri: /sites/Buildings/buildings
   cardinality: 1:many
   dependent: 'true'
