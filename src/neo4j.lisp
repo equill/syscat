@@ -53,8 +53,8 @@
                            db
                            (format nil
                                    (if (= 6 (ipaddress:ip-version subnet))
-                                       "/organisations/~A~A~{/Subnets/ipv6Subnets/~A~}/Subnets"
-                                       "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets")
+                                       "/organisations/~A~A~{/Subnets/ipv6Subnets/~A~}/Subnets/ipv6Subnets"
+                                       "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets/ipv4Subnets")
                                    org
                                    (if (equal vrf "") "" (format nil "/VrfGroups/vrfGroups/~A" vrf))
                                    (mapcar #'make-subnet-uid path)))))
@@ -125,8 +125,8 @@
                         (restagraph:get-resources
                           db
                           (format nil (if (= 6 (ipaddress:ip-version subnet))
-                                          "/organisations/~A~A~{/Subnets/ipv6Subnets/~A~}/Subnets"
-                                          "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets")
+                                          "/organisations/~A~A~{/Subnets/ipv6Subnets/~A~}/Subnets/ipv6Subnets"
+                                          "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets/ipv4Subnets")
                                   org
                                   (if (equal vrfgroup "")
                                       ""
@@ -223,8 +223,8 @@
                            (restagraph:get-resources
                              db
                              (format nil (if (= 6 (ipaddress:ip-version subnet))
-                                           "/organisations/~A~A~{/Subnets/ipv6Subnets/~A~}/Subnets"
-                                           "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets")
+                                           "/organisations/~A~A~{/Subnets/ipv6Subnets/~A~}/Subnets/ipv6Subnets"
+                                           "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Subnets/ipv4Subnets")
                                      org
                                      (if (equal vrf "")
                                        ""
