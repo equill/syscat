@@ -10,7 +10,7 @@ resourcetypes:
     notes: For grouping things.
 
 relationships:
-- uri: /any/Tag/tags
+- uri: /any/Tags/tags
   cardinality: many:many
-- uri: /any/Group/groups
+- uri: /any/Groups/groups
   cardinality: many:many
