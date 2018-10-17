@@ -39,7 +39,7 @@
             (restagraph:log-message
               :debug
               (format nil "Found exact match for '~A'. Returning subnet path '~{/~A~}'."
-                      match (mapcar #'ipaddress:as-cidr newpath)))
+                      (ipaddress:as-cidr subnet) (mapcar #'ipaddress:as-cidr newpath)))
             newpath))
         ;; If not, check whether we have a supernet of the subnet we're looking for
         (let* ((candidates
