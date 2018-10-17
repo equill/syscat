@@ -18,7 +18,7 @@
               "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}")
           org
           (if (and vrf (not (equal vrf "")))
-              (format nil "/vrfGroups/~A" vrf)
+              (format nil "/VrfGroups/vrfGroups/~A" vrf)
               "")
           (mapcar #'make-subnet-uid subnet-list)))
 
