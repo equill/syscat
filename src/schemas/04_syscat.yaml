@@ -1,5 +1,5 @@
 name: syscat
-version: 3
+version: 4
 
 resourcetypes:
   applications:
@@ -395,7 +395,7 @@ relationships:
   uri: /ipv4Subnets/Subnets/ipv4Subnets
 - cardinality: 1:many
   dependent: 'true'
-  uri: /ipv6Subnets/Subnets/ipv4Subnets
+  uri: /ipv6Subnets/Subnets/ipv6Subnets
 - cardinality: 1:many
   dependent: 'true'
   uri: /ipv4Subnets/Addresses/ipv4Addresses
