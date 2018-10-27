@@ -1,5 +1,5 @@
 name: syscat
-version: 4
+version: 5
 
 resourcetypes:
   applications:
@@ -108,6 +108,7 @@ resourcetypes:
   networkInterfaces:
     attributes:
       comments:
+      macaddress:
       snmpindex:
       ifname:
       ifdescr:
