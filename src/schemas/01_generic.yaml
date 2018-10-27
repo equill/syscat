@@ -1,5 +1,5 @@
 name: meta
-version: 1
+version: 2
 
 resourcetypes:
   any:
@@ -8,9 +8,17 @@ resourcetypes:
     notes: For categorising resources of any type.
   groups:
     notes: For grouping things.
+  comments:
+    notes: Comments on things
+    dependent: 'true'
+    attributes:
+        fulltext:
 
 relationships:
 - uri: /any/Tags/tags
   cardinality: many:many
 - uri: /any/Groups/groups
   cardinality: many:many
+- uri: /any/Comments/comments
+  dependent: 'true'
+  cardinality: '1:many'
