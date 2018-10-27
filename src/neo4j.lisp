@@ -452,8 +452,7 @@
               (if (equal vrf "")
                   ""
                   (format nil "/VrfGroups/vrfGroups/~A" vrf))
-              (mapcar #'make-subnet-uid subnet-path))
-      :delete-dependent t)))
+              (mapcar #'make-subnet-uid subnet-path)))))
 
 
 (defmethod find-ipaddress ((db neo4cl:neo4j-rest-server)
@@ -541,7 +540,6 @@
                 ""
                 (format nil "/VrfGroups/vrfGroups/~A" vrf))
             (mapcar #'make-subnet-uid (find-parent-subnet db address org vrf ()))
-            (ipaddress:as-string address))
-    :delete-dependent t)
+            (ipaddress:as-string address)))
   ;; Return NIL, because there's no earthly reason to return anything else.
   nil)
