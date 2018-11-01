@@ -8,7 +8,7 @@ let
         inherit coreutils openssl libyaml;
         system = builtins.currentSystem;
         schemapath = ../../src/schemas;
-        syscatpath = ./syscat;
+        syscatpath = ./syscat_discovered;
     };
 
     ld_path = stdenv.lib.makeLibraryPath [
@@ -24,8 +24,8 @@ let
 
 in
 pkgs.dockerTools.buildImage {
-    name = "equill/syscat";
-    tag = "0.4.7";
+    name = "equill/syscat_discovered";
+    tag = "0.1";
 
     contents = syscat_deriv;
 

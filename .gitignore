@@ -2,6 +2,6 @@
 result
 tags
 venv*/
-scripts/syscat
-scripts/docker/syscat
+scripts/docker/syscat_allocated
+scripts/docker/syscat_discovered
 scripts/docker/schema.yaml
