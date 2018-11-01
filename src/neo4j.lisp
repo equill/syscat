@@ -465,21 +465,22 @@
                       db
                       (format nil
                               (if (= 6 (ipaddress:ip-version address))
-                                  "/organisations/~A~A~{/Subnets/ipv6Subnets/~A~}/Addresses/ipv6Addresses/~A"
-                                  "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses/ipv4Addresses/~A")
+                                "/organisations/~A~A~{/Subnets/ipv6Subnets/~A~}/Addresses/ipv6Addresses/~A"
+                                "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses/ipv4Addresses/~A")
                               org
                               (if (equal vrf "")
-                                  ""
-                                  (format nil "/VrfGroups/vrfGroups/~A" vrf))
+                                ""
+                                (format nil "/VrfGroups/vrfGroups/~A" vrf))
                               (mapcar #'make-subnet-uid parent-path)
                               (ipaddress:as-string address)))))
         (when result
           (append parent-path
                   (list
-                    (make-instance (if (= 6 (ipaddress:ip-version address))
+                    (ipaddress:as-string
+                      (make-instance (if (= 6 (ipaddress:ip-version address))
                                        'ipaddress:ipv6-address
                                        'ipaddress:ipv4-address)
-                                   :address (cdr (assoc :uid result))))))))))
+                                     :address (cdr (assoc :uid result)))))))))))
 
 
 (defmethod insert-ipaddress ((db neo4cl:neo4j-rest-server)
@@ -498,11 +499,14 @@
       (format nil "Checking whether ~A is already present" (ipaddress:as-string address)))
     (if (restagraph:get-resources
           db
-          (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses/ipv4Addresses/~A"
+          (format nil
+                  (if (= 6 (ipaddress:ip-version address))
+                    "/organisations/~A~A~{/Subnets/ipv6Subnets/~A~}/Addresses/ipv6Addresses/~A"
+                    "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses/ipv4Addresses/~A")
                   org
                   (if (equal vrf "")
-                      ""
-                      (format nil "/VrfGroups/vrfGroups/~A" vrf))
+                    ""
+                    (format nil "/VrfGroups/vrfGroups/~A" vrf))
                   (mapcar #'make-subnet-uid parent-subnet-path)
                   (ipaddress:as-string address)))
         ;; It's a duplicate; return nil because there's nothing to do.
@@ -515,15 +519,18 @@
                     (ipaddress:as-string address)))
           (restagraph:store-dependent-resource
             db
-            (format nil "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses/ipv4Addresses"
+            (format nil
+                    (if (= 6 (ipaddress:ip-version address))
+                      "/organisations/~A~A~{/Subnets/ipv6Subnets/~A~}/Addresses/ipv6Addresses"
+                      "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses/ipv4Addresses")
                     org
                     (if (equal vrf "")
-                        ""
-                        (format nil "/VrfGroups/vrfGroups/~A" vrf))
+                      ""
+                      (format nil "/VrfGroups/vrfGroups/~A" vrf))
                     (mapcar #'make-subnet-uid parent-subnet-path))
             `(("uid" . ,(ipaddress:as-string address))))
-          ;; Return NIL, because there's no earthly reason to return anything else.
-          nil))))
+          ;; Return t to indicate success.
+          t))))
 
 (defmethod delete-ipaddress ((db neo4cl:neo4j-rest-server)
                                (address ipaddress:ip-address)

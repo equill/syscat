@@ -159,7 +159,7 @@
               "/organisations/~A~A~{/Subnets/ipv4Subnets/~A~}/Addresses/ipv4Addresses/~A")
           org
           (if (and vrf (not (equal vrf "")))
-              (format nil "/vrfGroups/~A" vrf)
+              (format nil "/VrfGroups/vrfGroups/~A" vrf)
               "")
           (mapcar #'make-subnet-uid (butlast address-path))
           (car (last address-path))))
@@ -177,8 +177,8 @@
          :debug (format nil "Dispatching POST request for URI ~A" (tbnl:request-uri*)))
        (insert-ipaddress (restagraph::datastore *syscat-acceptor*)
                          (make-instance (if (ipaddress:ipv4-address-p (tbnl:post-parameter "address"))
-                                            'ipaddress:ipv4-address
-                                            'ipaddress:ipv6-address)
+                                          'ipaddress:ipv4-address
+                                          'ipaddress:ipv6-address)
                                         :address (tbnl:post-parameter "address"))
                          (tbnl:post-parameter "org")
                          (or (tbnl:post-parameter "vrf") ""))
@@ -189,14 +189,15 @@
                  (tbnl:post-parameter "address")))
        (setf (tbnl:content-type*) "application/json")
        (setf (tbnl:return-code*) tbnl:+http-created+)
-       (cl-json:encode-json-to-string
-         (find-ipaddress (restagraph::datastore *syscat-acceptor*)
-                           (make-instance (if (ipaddress:ipv4-address-p (tbnl:post-parameter "address"))
-                                            'ipaddress:ipv4-address
-                                            'ipaddress:ipv6-address)
-                                        :address (tbnl:post-parameter "address"))
-                           (tbnl:post-parameter "org")
-                           (or (tbnl:post-parameter "vrf") ""))))
+       (format-address-path (tbnl:post-parameter "org")
+                            (or (tbnl:post-parameter "vrf") "")
+                            (find-ipaddress (restagraph::datastore *syscat-acceptor*)
+                                            (make-instance (if (ipaddress:ipv4-address-p (tbnl:post-parameter "address"))
+                                                             'ipaddress:ipv4-address
+                                                             'ipaddress:ipv6-address)
+                                                           :address (tbnl:post-parameter "address"))
+                                            (tbnl:post-parameter "org")
+                                            (or (tbnl:post-parameter "vrf") ""))))
       ;;
       ;; Search for an address
       ((and (equal (tbnl:request-method*) :GET)
