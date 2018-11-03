@@ -1,0 +1,34 @@
+name: software
+version: 1
+
+resourcetypes:
+  applications:
+    notes: Software application of any kind.
+    attributes:
+      description:
+        description: Comments about this particular app.
+      monitor:
+        description: Whether this application is to be monitored.
+  operatingSystems:
+    dependent: 'true'
+  operatingSystemVersions:
+    dependent: 'true'
+    attributes:
+      endoflife:
+      endofsupport:
+
+relationships:
+- uri: /makes/Produces/operatingSystems
+  cardinality: 1:many
+  dependent: 'true'
+- uri: /operatingSystems/Version/operatingSystemVersions
+  cardinality: 1:many
+  dependent: 'true'
+- uri: /devices/OperatingSystem/operatingSystems
+  cardinality: many:1
+- uri: /devices/OperatingSystem/operatingSystemVersions
+  cardinality: many:1
+- uri: /applications/RunsOn/devices
+  cardinality: many:many
+- uri: /applications/ConnectsTo/applications
+  cardinality: many:many

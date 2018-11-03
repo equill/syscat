@@ -1,0 +1,17 @@
+name: hardware_discovered
+version: 1
+
+resourcetypes:
+  networkInterfaces:
+    attributes:
+      description:
+      macaddress:
+      snmpindex:
+      ifname:
+      ifdescr:
+      ifalias:
+      iftype:
+      ifspeed:
+      ifhighspeed:
+      ifphysaddress:
+    dependent: 'true'

@@ -1,0 +1,46 @@
+name: software_expected
+version: 1
+
+resourcetypes:
+  preferredOsVersion:
+    notes: For being specific about the circumstances under which a given version is preferred
+    attributes:
+      description:
+      mandatory:
+
+relationships:
+# Preferred OS Version
+- uri: /models/PreferredOsVersion/operatingSystemVersions
+  cardinality: many:1
+  notes: "For the simple case where there's a global preference within this instance of Syscat"
+- uri: /models/PreferredOsVersion/preferredOsVersion
+  cardinality: many:1
+- uri: /preferredOsVersions/Version/operatingSystemVersions
+  cardinality: many:1
+- uri: /preferredOsVerion/Organisation/organisations
+  cardinality: many:1
+- uri: /preferredOsVerion/Environment/environments
+  cardinality: many:1
+- uri: /preferredOsVerion/Model/models
+  cardinality: many:1
+- uri: /applications/DependsOn/applications
+  cardinality: many:many
+- uri: /applications/BusinessOwner/people
+  cardinality: many:1
+- uri: /applications/BusinessOwner/organisations
+  cardinality: many:1
+- uri: /applications/TechnicalOwner/people
+  cardinality: many:1
+- uri: /applications/TechnicalOwner/organisations
+  cardinality: many:1
+#
+# Monitoring
+#
+- uri: /applications/Monitor/applications
+  cardinality: many:many
+- uri: /applications/Monitor/devices
+  cardinality: many:many
+- uri: /applications/Monitor/networkInterfaces
+  cardinality: many:many
+- uri: /applications/Monitor/bgp4Peerings
+  cardinality: many:many

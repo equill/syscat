@@ -1,2 +1,2 @@
-./create_allocated.sh && nix-build docker_allocated.nix && docker load < result
+./create_expected.sh && nix-build docker_expected.nix && docker load < result
 ./create_discovered.sh && nix-build docker_discovered.nix && docker load < result

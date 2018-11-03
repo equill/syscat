@@ -1,0 +1,102 @@
+name: organisations_expected
+version: 1
+
+resourcetypes:
+  organisations:
+    attributes:
+      description:
+    notes: 'Any kind of organisation: professional, social or other.'
+  roles:
+    notes: Roles within an organisation.
+    dependent: 'true'
+    attributes:
+        description:
+  people:
+    attributes:
+      given_name:
+      surname:
+    notes: UID should be their login name or some other compact reference
+  contracts:
+    attributes:
+      description:
+      reference_number:
+      start_date:
+      end_date:
+
+relationships:
+- uri: /people/Members/organisations
+  cardinality: many:1
+- uri: /organisations/Subsidiaries/organisations
+  cardinality: 1:many
+- uri: /organisations/ContactMethods/emailAddresses
+  cardinality: 1:many
+  dependent: 'true'
+- uri: /organisations/ContactMethods/phoneNumbers
+  cardinality: 1:many
+  dependent: 'true'
+- uri: /organisations/Roles/roles
+  dependent: 'true'
+  cardinality: 1:many
+- uri: /people/Roles/roles
+  cardinality: many:many
+- uri: /people/AccountManager/organisations
+  cardinality: many:1
+- uri: /people/SalesContact/organisations
+  cardinality: many:1
+- uri: /people/SupportContact/organisations
+  cardinality: many:1
+- uri: /organisations/Parent/organisations
+  cardinality: many:1
+- uri: /contracts/Subcontracts/contracts
+  cardinality: many:1
+- uri: /contracts/Vendor/organisations
+  cardinality: many:1
+- uri: /contracts/Customer/organisations
+  cardinality: many:1
+- uri: /contracts/NegotiatedBy/people
+  cardinality: many:many
+- uri: /contracts/Supplies/buildings
+  cardinality: 1:many
+- uri: /contracts/Supports/buildings
+  cardinality: 1:many
+- uri: /contracts/Supplies/floors
+  cardinality: 1:many
+- uri: /contracts/Supports/floors
+  cardinality: 1:many
+- uri: /contracts/Supplies/rooms
+  cardinality: 1:many
+- uri: /contracts/Supports/rooms
+  cardinality: 1:many
+- uri: /contracts/Supplies/cages
+  cardinality: 1:many
+- uri: /contracts/Supports/cages
+  cardinality: 1:many
+- uri: /contracts/Supplies/cabinets
+  cardinality: 1:many
+- uri: /contracts/Supports/cabinets
+  cardinality: 1:many
+- uri: /organisations/Sites/sites
+  cardinality: many:1
+  dependent: 'true'
+- uri: /organisations/Site/sites
+  cardinality: many:1
+- uri: /buildings/Tenant/organisations
+  cardinality: 1:many
+- uri: /floors/Tenant/organisations
+  cardinality: many:many
+- uri: /rooms/Tenant/organisations
+  cardinality: many:many
+- uri: /cages/Tenant/organisations
+  cardinality: many:many
+- uri: /cabinets/Tenant/organisations
+  cardinality: many:many
+- uri: /people/ContactMethod/emailAddresses
+  cardinality: 1:many
+  dependent: 'true'
+- uri: /people/ContactMethod/phoneNumbers
+  cardinality: 1:many
+  dependent: 'true'
+- uri: /people/Addresses/streetNumbers
+  cardinality: 1:many
+- uri: /makes/Vendor/organisations
+  cardinality: many:1

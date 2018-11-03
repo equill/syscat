@@ -1,0 +1,29 @@
+name: make_and_model
+version: 1
+
+resourcetypes:
+  makes:
+    notes: "Also known as ´brand´."
+    attributes:
+      description:
+        description: Comments about this particular make.
+  models:
+    dependent: 'true'
+    attributes:
+      endoflife:
+      endofsupport:
+  modelVersions:
+    dependent: 'true'
+    attributes:
+      endoflife:
+      endofsupport:
+
+relationships:
+- uri: /makes/Produces/models
+  cardinality: 1:many
+  dependent: 'true'
+- uri: /models/CompatibleWith/models
+  cardinality: many:many
+- uri: /models/Versions/modelVersions
+  dependent: 'true'
+  cardinality: 1:many

@@ -1,0 +1,177 @@
+name: networks
+version: 1
+
+resourcetypes:
+# Physical
+  patchPanels:
+    attributes:
+      description:
+  patchPanelPorts:
+    dependent: 'true'
+    attributes:
+      description:
+# Links and circuits
+  links:
+    attributes:
+      description:
+      ourId:
+      vendorId:
+      bandwidth:
+        description: The committed information rate for this link
+    notes: Generic segment or section of a network circuit.
+  darkFibreLinks:
+    notes: Dark fibre network link, from one device to another
+    attributes:
+      description:
+      ourId:
+      vendorId:
+      fibretype: Single mode vs multimode.
+  ipsecVpns:
+    attributes:
+      description:
+# Layer 2
+  vlans:
+    attributes:
+      name:
+    dependent: 'true'
+    notes: Layer 2 spans, i.e. ethernet segments. Not to be confused with subnets.
+# Layer 3
+  vrfs:
+    dependent: 'true'
+    notes: VRFs as configured on devices
+    attributes:
+      description:
+  ipv4Addresses:
+    attributes:
+      description:
+      prefixlength:
+    dependent: 'true'
+  ipv6Addresses:
+    attributes:
+      description:
+      prefixlength:
+    dependent: 'true'
+# BGP4
+  asns:
+    attributes:
+      description:
+        name:
+    notes: "BGP Autonomous System Numbers. The UID should be the ASN, and the ´name´ should be its human-friendly tag."
+  bgp4Instances:
+      dependent: true
+      attributes:
+        description:
+        routerid:
+  bgp4Peerings:
+      dependent: true
+      attributes:
+        description:
+        bgpPeerIdentifier:
+          description: Index for the bgpPeerEntry SNMP table
+        bgpPeerLocalPort:
+        bgpPeerRemotePort:
+        monitor:
+          description: Whether this peering is to be monitored.
+# Within the OS
+  routingInstances:
+    attributes:
+      snmp_community:
+    dependent: 'true'
+  routingInstanceTypes:
+    attributes:
+      description:
+
+relationships:
+# Layer 3
+- uri: /devices/RoutingInstance/routingInstances
+  cardinality: 1:many
+  dependent: 'true'
+- uri: /routingInstances/Type/routingInstanceTypes
+  cardinality: many:1
+- uri: /routingInstances/Interface/networkInterfaces
+  cardinality: 1:many
+  dependent: 'true'
+- uri: /devices/Vlan/vlans
+  cardinality: 1:many
+  dependent: 'true'
+- uri: /networkInterfaces/Vlan/vlans
+  cardinality: 1:many
+  dependent: 'true'
+  notes: 'Associate a network interface with a VLAN, regardless of which way around the underlying OS sees the relationship.'
+- uri: /networkInterfaces/Addresses/ipv4Addresses
+  cardinality: 1:many
+  dependent: 'true'
+- uri: /networkInterfaces/Addresses/ipv6Addresses
+  cardinality: 1:many
+  dependent: 'true'
+# Telco circuits
+#
+# Patch-panels
+- uri: /patchPanels/Location/sites
+  cardinality: many:1
+- uri: /patchPanels/Location/buildings
+  cardinality: many:1
+- uri: /patchPanels/Location/floors
+  cardinality: many:1
+- uri: /patchPanels/Location/rooms
+  cardinality: many:1
+- uri: /patchPanels/Location/cages
+  cardinality: many:1
+- uri: /patchPanels/Location/cabinets
+  cardinality: many:1
+- uri: /patchPanels/Location/racks
+  cardinality: many:1
+- uri: /patchPanels/Ports/patchPanelPorts
+  cardinality: many:1
+  dependent: 'true'
+# Generic links
+- uri: /links/ConnectedTo/devices
+  cardinality: many:many
+- uri: /links/ConnectedTo/networkInterfaces
+  cardinality: many:1
+- uri: /links/ConnectedTo/patchPanelPorts
+  cardinality: 1:many
+- uri: /links/ConnectedTo/links
+  cardinality: many:1
+# Dark fibre
+- uri: /darkFibreLinks/ConnectedTo/devices
+  cardinality: many:many
+- uri: /darkFibreLinks/ConnectedTo/networkInterfaces
+  cardinality: many:1
+- uri: /links/ConnectedTo/patchPanelPorts
+  cardinality: 1:many
+- uri: /darkFibreLinks/ConnectedTo/darkFibreLinks
+  cardinality: many:1
+- uri: /darkFibreLinks/ConnectedTo/links
+  cardinality: many:1
+# L3 tunnels
+- uri: /ipsecVpns/ConnectedTo/devices
+  cardinality: many:many
+- uri: /ipsecVpns/ConnectedTo/networkInterfaces
+  cardinality: many:1
+- uri: /ipsecVpns/ConnectedTo/ipv4Addresses
+  cardinality: many:many
+- uri: /ipsecVpns/ConnectedTo/ipv6Addresses
+  cardinality: many:many
+#
+# BGP4
+# Many attributes refer to the BGP4-MIB described in RFC 4273
+#
+# BGP instances
+- uri: /devices/Bgp4Instance/bgp4Instances
+  cardinality: 1:many
+- uri: /routingInstances/Bgp4Instance/bgp4Instances
+  cardinality: 1:1
+- uri: /bgp4Instances/LocalAs/asns
+  cardinality: many:1
+# Bgp Peerings
+- uri: /bgp4Instances/Bgp4Peering/bgp4Peerings
+  cardinality: 1:many
+- uri: /bgp4Peerings/HostedOn/bgp4Instances
+  cardinality: many:1
+- uri: /bgp4Peerings/BgpRemoteAs/asns
+  cardinality: many:1
+- uri: /bgp4Peerings/BgpRemoteAddress/ipv4Addresses
+  cardinality: many:1
+- uri: /bgp4Peerings/BgpRemoteAddress/ipv6Addresses
+  cardinality: many:1

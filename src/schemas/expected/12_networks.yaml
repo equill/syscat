@@ -1,0 +1,162 @@
+name: networks_expected
+version: 1
+
+resourcetypes:
+# Links and circuits
+  circuits:
+    attributes:
+      description:
+      our_id:
+      vendor_id:
+    notes: Network circuits, whether telco-provided or otherwise.
+# Layer 2
+  vlanGroups:
+    attributes:
+      default_vlan_id:
+      description:
+    notes: A notional VLAN, the sum of the VLANs of one or more devices. Often confused as being the VLAN itself.
+# Layer 3
+  ipv4Subnets:
+    attributes:
+      description:
+      netaddress:
+      prefixlength:
+    dependent: 'true'
+  ipv6Subnets:
+    attributes:
+      description:
+      netaddress:
+      prefixlength:
+    dependent: 'true'
+  vrfGroups:
+    dependent: 'true'
+    notes: VRF Groups allocated for use
+    attributes:
+      description:
+
+relationships:
+- uri: /devices/ManagementAddress/ipv4Addresses
+  cardinality: '1:1'
+  dependent: 'true'
+- uri: /devices/ManagementAddress/ipv6Addresses
+  cardinality: '1:1'
+  dependent: 'true'
+- uri: /routingInstances/Member/vrfGroups
+  cardinality: many:1
+- uri: /vlans/Member/vlanGroups
+  cardinality: 1:many
+- uri: /devices/Addresses/ipv4Addresses
+  cardinality: 1:many
+  dependent: 'true'
+- uri: /devices/Addresses/ipv6Addresses
+  cardinality: 1:many
+  dependent: 'true'
+- uri: /ipv4Subnets/AllocatedTo/organisations
+  cardinality: many:1
+- uri: /ipv6Subnets/AllocatedTo/organisations
+  cardinality: many:1
+- uri: /ipv4Subnets/AllocatedTo/sites
+  cardinality: many:1
+- uri: /ipv6Subnets/AllocatedTo/sites
+  cardinality: many:1
+- uri: /ipv4Subnets/AllocatedTo/organisations
+  cardinality: many:1
+- uri: /ipv6Subnets/AllocatedTo/organisations
+  cardinality: many:1
+- uri: /ipv4Subnets/AllocatedBy/organisations
+  cardinality: many:1
+- uri: /ipv6Subnets/AllocatedBy/organisations
+  cardinality: many:1
+- uri: /ipv4Addresses/AllocatedTo/devices
+  cardinality: many:1
+- uri: /ipv6Addresses/AllocatedTo/devices
+  cardinality: many:1
+- uri: /ipv4Addresses/AllocatedBy/organisations
+  cardinality: many:1
+- uri: /ipv6Addresses/AllocatedBy/organisations
+  cardinality: many:1
+- uri: /ipv4Subnets/AllocatedTo/vlanGroups
+  cardinality: many:1
+- uri: /ipv6Subnets/AllocatedTo/vlanGroups
+  cardinality: many:1
+# Telco circuits
+#
+# Circuits
+- uri: /devices/ConnectedTo/circuits
+  cardinality: many:many
+- uri: /networkInterfaces/ConnectedTo/circuits
+  cardinality: many:1
+- uri: /organisations/Supplier/circuits
+  cardinality: 1:many
+- uri: /patchPanels/BusinessOwner/organisations
+  cardinality: many:1
+- uri: /patchPanels/BusinessOwner/people
+  cardinality: many:1
+- uri: /links/BusinessOwner/people
+  cardinality: many:1
+- uri: /links/BusinessOwner/organisations
+  cardinality: many:1
+- uri: /circuits/BusinessOwner/people
+  cardinality: many:1
+- uri: /circuits/BusinessOwner/organisations
+  cardinality: many:1
+# Layer 3
+- uri: /organisations/VrfGroups/vrfGroups
+  cardinality: many:1
+  dependent: 'true'
+- uri: /vrfGroups/Subnets/ipv4Subnets
+  cardinality: 1:many
+  dependent: 'true'
+- uri: /vrfGroups/Subnets/ipv6Subnets
+  cardinality: 1:many
+  dependent: 'true'
+- uri: /organisations/Subnets/ipv4Subnets
+  cardinality: 1:many
+  dependent: 'true'
+- uri: /organisations/Subnets/ipv6Subnets
+  cardinality: 1:many
+  dependent: 'true'
+- uri: /organisations/Addresses/ipv4Addresses
+  cardinality: 1:many
+  dependent: 'true'
+- uri: /organisations/Addresses/ipv6Addresses
+  cardinality: 1:many
+  dependent: 'true'
+- uri: /ipv4Subnets/Subnets/ipv4Subnets
+  cardinality: 1:many
+  dependent: 'true'
+- uri: /ipv6Subnets/Subnets/ipv6Subnets
+  cardinality: 1:many
+  dependent: 'true'
+- uri: /ipv4Subnets/Addresses/ipv4Addresses
+  cardinality: 1:many
+  dependent: 'true'
+- uri: /ipv6Subnets/Addresses/ipv6Addresses
+  cardinality: 1:many
+  dependent: 'true'
+# Generic links
+- uri: /links/Members/circuits
+  cardinality: many:1
+- uri: /links/Supplier/organisations
+  cardinality: 1:many
+# Dark fibre
+- uri: /darkFibreLinks/Members/circuits
+  cardinality: many:1
+- uri: /darkFibreLinks/Supplier/organisations
+  cardinality: 1:many
+# L3 tunnels
+- uri: /darkFibreLinks/Supplier/organisations
+  cardinality: 1:many
+#
+# BGP4
+# Many attributes refer to the BGP4-MIB described in RFC 4273
+#
+# ASNs
+- uri: /organisations/Asns/asns
+  cardinality: 1:many
+- uri: /organisations/Allocated/asns
+  cardinality: 1:many
+- uri: /asns/AllocatedTo/organisations
+  cardinality: many:1
+- uri: /asns/AllocatedBy/organisations
+  cardinality: many:1

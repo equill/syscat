@@ -15,6 +15,8 @@ An API-based network catalogue/configuration database that actually covers every
 
 The REST API is its primary interface; anything else, such as a web GUI, can be built on that. This is to make it automation-friendly, as well as to make it feasible for users to build the interface that suits them.
 
+It's designed to represent the network you have, in whatever level of detail you actually have, without trying to force opinions about how you _should_ have architected it. It just has opinions about how that should be represented.
+
 The storage layer is [Neo4j](https://neo4j.com), an extremely capable graph database. Its [Cypher query language](https://neo4j.com/docs/developer-manual/current/cypher/) is more flexible and expressive than any REST API can be.
 
 Current development status: early beta. Breaking changes are still possible, but are uncommon.
