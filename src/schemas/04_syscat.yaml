@@ -1,49 +1,49 @@
 name: syscat
-version: 5
+version: 6
 
 resourcetypes:
   applications:
     notes: Software application of any kind.
     attributes:
-      comments:
+      description:
         description: Comments about this particular app.
       monitor:
         description: Whether this application is to be monitored.
   buildings:
     attributes:
-      comments:
+      description:
     notes: Individual buildings.
     dependent: 'true'
   floors:
     attributes:
-      comments:
+      description:
     notes: Floors within a building.
   cabinets:
     attributes:
-      comments:
+      description:
     notes: A frame for rack-mounting equipment in. May be in the form of a lockable
       cabinet.
   cages:
     attributes:
-      comments:
+      description:
     notes: Lockable areas within a room, containing racks. Usually found in data centres.
   contracts:
     attributes:
-      comments:
+      description:
       reference_number:
       start_date:
       end_date:
   deviceRoles:
     attributes:
-      comments:
+      description:
     notes: Classification of the device, e.g. host, router or switch.
   deviceTypes:
     attributes:
-      comments:
+      description:
     notes: Type of device, e.g. physical, cluster or virtual.
   devices:
     attributes:
-      comments:
+      description:
       sysdescr:
       sysname:
       sysobjectid:
@@ -56,58 +56,58 @@ resourcetypes:
     notes: Any kind of device that interacts with a network.
   cpus:
     attributes:
-      comments:
+      description:
   environments:
     attributes:
-      comments:
+      description:
     notes: Development, testing, staging, production etc.
   ipv4Addresses:
     attributes:
-      comments:
+      description:
       prefixlength:
     dependent: 'true'
   ipv4Subnets:
     attributes:
-      comments:
+      description:
       netaddress:
       prefixlength:
     dependent: 'true'
   ipv6Addresses:
     attributes:
-      comments:
+      description:
       prefixlength:
     dependent: 'true'
   ipv6Subnets:
     attributes:
-      comments:
+      description:
       netaddress:
       prefixlength:
     dependent: 'true'
   circuits:
     attributes:
-      comments:
+      description:
       our_id:
       vendor_id:
     notes: Network circuits, whether telco-provided or otherwise.
   linkTypes:
     attributes:
       osi_layer:
-      comments:
+      description:
     notes: Types of network link, e.g. cat5Ethernet, MMF, serialCable. The osi_layer attribute should have an integer value of 1, 2 or 3, but 2.5 is plausible for MPLS.
   links:
     attributes:
-      comments:
+      description:
       our_id:
       vendor_id:
     notes: Segment or section of a network circuit.
   lifeCyclePhases:
     attributes:
-      comments:
+      description:
     notes: Where the device currently is, in its lifecycle. E.g. ordered, installed,
       in service or decommissioned.
   networkInterfaces:
     attributes:
-      comments:
+      description:
       macaddress:
       snmpindex:
       ifname:
@@ -126,17 +126,17 @@ resourcetypes:
     dependent: 'true'
   parts:
     attributes:
-      comments:
+      description:
     dependent: 'true'
     notes: Spare parts, swappable components, anything of the kind
   racks:
     attributes:
-      comments:
+      description:
     notes: The rack location within a cabinet where a device is mounted. Usually the
       topmost rack number, in the case of multi-unit-height hardware.
   rooms:
     attributes:
-      comments:
+      description:
     notes: Rooms within a floor or a building.
     dependent: 'true'
   routingInstances:
@@ -145,22 +145,22 @@ resourcetypes:
     dependent: 'true'
   routingInstanceTypes:
     attributes:
-      comments:
+      description:
   serviceLevels:
     attributes:
-      comments:
+      description:
     notes: Sets the expectations for responses to issues, e.g. gold, silver, bronze,
       plastic.
   sites:
     dependent: 'true'
     attributes:
       longname:
-      comments:
+      description:
     notes: Like a campus, a site contains one or more buildings.
   vlanGroups:
     attributes:
       default_vlan_id:
-      comments:
+      description:
     notes: A notional VLAN, the sum of the VLANs of one or more devices. Often confused
       as being the VLAN itself.
   vlans:
@@ -173,7 +173,7 @@ resourcetypes:
 # BGP4
   asns:
     attributes:
-      comments:
+      description:
         name:
     notes: "BGP Autonomous System Numbers. The UID should be the ASN, and the ´name´ should be its human-friendly tag."
   bgp4Instances:

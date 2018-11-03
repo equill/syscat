@@ -1,17 +1,17 @@
 name: organisations
-version: 1
+version: 2
 
 resourcetypes:
   brands:
     notes: "Also known as ´make´."
     attributes:
-      comments:
+      description:
         description: Comments about this particular brand.
   models:
     dependent: 'true'
   organisations:
     attributes:
-      comments:
+      description:
     notes: 'Any kind of organisation: professional, social or other.'
 
 relationships:
