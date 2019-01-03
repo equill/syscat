@@ -1,5 +1,5 @@
 name: networks
-version: 1
+version: 3
 
 resourcetypes:
 # Physical
@@ -88,15 +88,14 @@ relationships:
   dependent: 'true'
 - uri: /routingInstances/Type/routingInstanceTypes
   cardinality: many:1
-- uri: /routingInstances/Interface/networkInterfaces
+- uri: /networkInterfaces/Member/routingInstances
   cardinality: 1:many
-  dependent: 'true'
+  notes: 'Denotes that an interface is associated with a VRF or routing instance.'
 - uri: /devices/Vlan/vlans
   cardinality: 1:many
   dependent: 'true'
 - uri: /networkInterfaces/Vlan/vlans
   cardinality: 1:many
-  dependent: 'true'
   notes: 'Associate a network interface with a VLAN, regardless of which way around the underlying OS sees the relationship.'
 - uri: /networkInterfaces/Addresses/ipv4Addresses
   cardinality: 1:many
@@ -160,15 +159,16 @@ relationships:
 # BGP instances
 - uri: /devices/Bgp4Instance/bgp4Instances
   cardinality: 1:many
+  dependent: true
 - uri: /routingInstances/Bgp4Instance/bgp4Instances
   cardinality: 1:1
+  dependent: true
 - uri: /bgp4Instances/LocalAs/asns
   cardinality: many:1
 # Bgp Peerings
 - uri: /bgp4Instances/Bgp4Peering/bgp4Peerings
   cardinality: 1:many
-- uri: /bgp4Peerings/HostedOn/bgp4Instances
-  cardinality: many:1
+  dependent: true
 - uri: /bgp4Peerings/BgpRemoteAs/asns
   cardinality: many:1
 - uri: /bgp4Peerings/BgpRemoteAddress/ipv4Addresses

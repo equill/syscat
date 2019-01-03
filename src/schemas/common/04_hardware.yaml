@@ -1,5 +1,5 @@
 name: hardware
-version: 1
+version: 2
 
 resourcetypes:
   deviceTypes:
@@ -53,6 +53,8 @@ relationships:
 - uri: /devices/Interfaces/networkInterfaces
   cardinality: 1:many
   dependent: 'true'
+- uri: /devices/Type/Devicetypes
+  cardinality: many:1
 - uri: /devices/Members/devices
   cardinality: many:1
   notes: "Indicates that this device is a member of that stack/cluster."
