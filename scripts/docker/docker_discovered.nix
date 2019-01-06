@@ -11,6 +11,7 @@ let
         syscatpath = ./syscat_discovered;
     };
 
+    # Prepare the value of LD_LIBRARY_PATH
     ld_path = stdenv.lib.makeLibraryPath [
         pkgs.openssl
         pkgs.libyaml
@@ -25,7 +26,7 @@ let
 in
 pkgs.dockerTools.buildImage {
     name = "equill/syscat_discovered";
-    tag = "0.1.4a6";
+    tag = "0.1.4";
 
     contents = syscat_deriv;
 

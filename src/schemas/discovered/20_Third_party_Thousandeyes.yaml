@@ -1,0 +1,183 @@
+name: thousandeyes
+version: 1
+
+resourcetypes:
+  # Agents
+  thousandeyesCloudAgents:
+    notes: "ThousandEyes Cloud Agents. UID = agentname."
+    attributes:
+      agentid:
+        description: "unique ID of the agent"
+      agentname:
+        description: "display name of the agent"
+      countryid:
+        description: "UID = ISO-3166-1 alpha-2 country code of the agent."
+      location:
+        description: "Location of the agent. Free-text string."
+      target:
+        description: "Target address or hostname."
+      protocol:
+        description: "Protocol used for connecting to the target."
+      port:
+        description: "Destination port for check."
+  thousandeyesEnterpriseAgents:
+    notes: "ThousandEyes Cloud Agents. UID = agentname."
+    attributes:
+      agentid:
+        description: "unique ID of the agent"
+      agentname:
+        description: display name of the agent
+      countryid:
+        description: "UID = ISO-3166-1 alpha-2 country code of the agent."
+      location:
+        description: "Location of the agent. Free-text string."
+      hostname:
+        description: "fully qualified domain name of the agent"
+      prefix:
+        description: "Network prefix, expressed in CIDR format"
+      enabled:
+        description: "1 for enabled, 0 for disabled"
+      network:
+        description: "name of the autonomous system in which the Agent is found"
+      agentstate:
+        description: "Online, Offline or Disabled"
+      verifysslcertificates:
+        description: "1 for enabled, 0 for disabled"
+      keepbrowsercache:
+        description: "1 for enabled, 0 for disabled"
+      ipv6policy:
+        description: "IP version policy, can be FORCE_IPV4, PREFER_IPV6 or FORCE_IPV6 (Enterprise Agents and Enterprise Clusters only)"
+  thousandeyesEnterpriseClusters:
+    notes: "Groupings of agents. According to the API, a subtype of them. UID = agentname."
+    attributes:
+      agentid:
+        description: "unique ID of the agent"
+      agentname:
+        description: display name of the agent
+      countryid:
+        description: "UID = ISO-3166-1 alpha-2 country code of the agent."
+      enabled:
+        description: "1 for enabled, 0 for disabled (Enterprise Agents only)"
+      location:
+        description: "Location of the agent. Free-text string."
+      verifysslcertificates:
+        description: "1 for enabled, 0 for disabled"
+      keepbrowsercache:
+        description: "1 for enabled, 0 for disabled"
+      ipv6policy:
+        description: "IP version policy, can be FORCE_IPV4, PREFER_IPV6 or FORCE_IPV6 (Enterprise Agents and Enterprise Clusters only)"
+  thousandeyesEnterpriseClusterMembers:
+    notes: "An Enterprise Agent that's a member of a cluster. Represented separately because the TE API witholds the agent ID when enumerating a cluster's members."
+    dependent: true
+    attributes:
+      name:
+      ipaddresses:
+        description: "array of ipAddress entries"
+      publicipaddresses:
+        description: "array of ipAddress entries"
+      prefix:
+        description: "Network prefix, expressed in CIDR format"
+      network:
+        description: "name of the autonomous system in which the Agent is found"
+      agentstate:
+        description: "Online, Offline or Disabled"
+  # Alerts
+  thousandeyesAlertRules:
+    notes: "Rules for ThousandEyes tests. UID == ruleId. Retrieve from /alert-rules endpoint."
+    attributes:
+      rulename:
+        description: "Name of the alert rule."
+      expression:
+        description: "String expression of alert rule."
+      direction:
+        description: "Optional field with one of the following values: TO_TARGET, FROM_TARGET, BIDIRECTIONAL, for applicable alert types (eg. path trace, End-to-End (Agent) etc.)"
+      notifyonclear:
+        description: "1 to send notification when alert clears"
+      default:
+         description: "Alert rules allow up to 1 alert rule to be selected as a default for each type. By checking the default option, this alert rule will be automatically included on subsequently created tests that test a metric used in alerting here"
+      alerttype:
+        description: "Type of alert rule, as determined by metric selection"
+      minimumsources:
+        description: "The minimum number of agents or monitors that must meet the specified criteria in order to trigger the alert."
+      sourcespct:
+        description: "The minimum percentage of all assigned agents or monitors that must meet the specified criteria in order to trigger the alert."
+      roundsviolatingoutof:
+        description: 'Specifies the divisor (y value) for the “X of Y times” condition.'
+      roundsviolatingrequired:
+        description: 'Specifies the numerator (x value) for the X of Y times” condition'
+  # Users
+  thousandeyesUsers:
+    notes: "Role that can create tests. UID = uid. TE API endpoint: /v6/users"
+    attributes:
+      name:
+        description: "The name of the user."
+      email:
+      dateRegistered:
+        description: "The date the user registered their account (UTC)."
+  # Tests
+  thousandeyesTests:
+    notes: "Generic ThousandEyes test, to be used where we don't have a resourcetype for that specific test type. UID = testId"
+    attributes:
+      alertsEnabled:
+        description: "1 for enabled, 0 for disabled."
+      createddate:
+        description: "YYYY-MM-DD HH:mm:ss formatted date in UTC"
+      description:
+        description: "Text description of this test."
+      enabled:
+        description: "1 for enabled, 0 for disabled."
+      modifieddate:
+        description: "YYYY-MM-DD HH:mm:ss formatted date in UTC"
+      savedevent:
+        description: "0 for saved event, 1 for normal test."
+      testname:
+      test_type:
+        description: "Type of test. This attribute departs from the 'type' attribute name for obvious reasons."
+      interval:
+        description: "Period between successive tests, in seconds."
+
+relationships:
+    ## Agents
+  - uri: /thousandEyesEnterpriseAgents/Host/devices
+    cardinality: 1:1
+    dependent: false
+    # Clusters
+  - uri: /thousandeyesEnterpriseClusters/Member/thousandeyesEnterpriseClusterMembers
+    cardinality: 1:many
+    dependent: true
+    # Addresses
+  - uri: /thousandeyesCloudAgents/Addresses/ipv4Addresses
+    cardinality: 1:many
+    dependent: true
+  - uri: /thousandeyesCloudAgents/Addresses/ipv6Addresses
+    cardinality: 1:many
+    dependent: true
+  - uri: /thousandeyesEnterpriseAgents/Addresses/ipv4Addresses
+    cardinality: 1:many
+    dependent: true
+  - uri: /thousandeyesEnterpriseAgents/Addresses/ipv6Addresses
+    cardinality: 1:many
+    dependent: true
+  - uri: /thousandeyesEnterpriseClusterMembers/Addresses/ipv4Addresses
+    cardinality: 1:many
+    dependent: true
+  - uri: /thousandeyesEnterpriseClusterMembers/Addresses/ipv6Addresses
+    cardinality: 1:many
+    dependent: true
+  - uri: /thousandeyesEnterpriseAgents/Prefix/ipv4Subnets
+    cardinality: many:1
+    dependent: true
+    ## Tests
+    # Generic
+  - uri: /thousandeyesTests/Created/thousandeyesUsers
+    cardinality: many:1
+  - uri: /thousandeyesTests/Modified/thousandeyesUsers
+    cardinality: many:many
+  - uri: /thousandeyesTests/Associated/thousandeyesAlertRules
+    cardinality: many:many
+  - uri: /thousandeyesTests/Agents/thousandeyesCloudAgents
+    cardinality: many:many
+  - uri: /thousandeyesTests/Agents/thousandeyesEnterpriseAgents
+    cardinality: many:many
+  - uri: /thousandeyesTests/Agents/thousandeyesEnterpriseClusters
+    cardinality: many:many
