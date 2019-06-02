@@ -4,8 +4,6 @@ stdenv.mkDerivation rec {
     name = "syscat";
 
     buildInputs = [
-        pkgs.gcc_multi
-        pkgs.gcc
         pkgs.libyaml
         pkgs.openssl
         pkgs.sbcl
