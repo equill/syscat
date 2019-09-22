@@ -1,5 +1,5 @@
 name: networks
-version: 3
+version: 4
 
 resourcetypes:
 # Physical
@@ -35,12 +35,6 @@ resourcetypes:
       name:
     dependent: 'true'
     notes: Layer 2 spans, i.e. ethernet segments. Not to be confused with subnets.
-# Layer 3
-  vrfs:
-    dependent: 'true'
-    notes: VRFs as configured on devices
-    attributes:
-      description:
   ipv4Addresses:
     attributes:
       description:

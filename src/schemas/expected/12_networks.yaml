@@ -1,5 +1,5 @@
 name: networks_expected
-version: 1
+version: 2
 
 resourcetypes:
 # Links and circuits
@@ -101,7 +101,7 @@ relationships:
 - uri: /circuits/BusinessOwner/organisations
   cardinality: many:1
 # Layer 3
-- uri: /organisations/VrfGroups/vrfGroups
+- uri: /devices/VrfGroups/vrfGroups
   cardinality: many:1
   dependent: 'true'
 - uri: /vrfGroups/Subnets/ipv4Subnets

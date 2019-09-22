@@ -1,5 +1,5 @@
 name: hardware
-version: 2
+version: 3
 
 resourcetypes:
   deviceTypes:
@@ -53,7 +53,7 @@ relationships:
 - uri: /devices/Interfaces/networkInterfaces
   cardinality: 1:many
   dependent: 'true'
-- uri: /devices/Type/Devicetypes
+- uri: /devices/Type/deviceTypes
   cardinality: many:1
 - uri: /devices/Members/devices
   cardinality: many:1

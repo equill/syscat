@@ -1,5 +1,5 @@
 name: organisations_expected
-version: 1
+version: 2
 
 resourcetypes:
   organisations:
@@ -16,6 +16,14 @@ resourcetypes:
       given_name:
       surname:
     notes: UID should be their login name or some other compact reference
+  emailAddresses:
+    attributes:
+      description:
+        description: Comments about this particular email address.
+    dependent: 'true'
+  phoneNumbers:
+    attributes:
+      description:
   contracts:
     attributes:
       description:

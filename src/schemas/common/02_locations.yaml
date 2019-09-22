@@ -1,5 +1,5 @@
 name: locations
-version: 1
+version: 2
 
 resourcetypes:
   cities:
@@ -7,14 +7,6 @@ resourcetypes:
     notes: The geographic kind.
   countries:
     notes: The geographic kind.
-  emailAddresses:
-    attributes:
-      description:
-        description: Comments about this particular email address.
-    dependent: 'true'
-  phoneNumbers:
-    attributes:
-      description:
   postboxAddresses:
     notes: The UID is the PO Box number.
   postcodes:
