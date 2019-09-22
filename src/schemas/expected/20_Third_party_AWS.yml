@@ -1,0 +1,108 @@
+name: aws_expected
+version: 1
+
+resourcetypes:
+  # VPC
+  awsVpcs:
+    notes: UID = Description is probably your best bet.
+    dependent: true
+    attributes:
+  awsCidrBlocks:
+    dependent: true
+    attributes:
+      description:
+  awsSubnets:
+    dependent: true
+    notes: UID = whatever makes sense to you, for mapping this to its discovered counterpart.
+    attributes:
+      mappubliciponlaunch:
+        description: Indicates whether instances launched in this subnet receive a public IPv4 address.
+      subnetarn:
+        description: The Amazon Resource Name (ARN) of the subnet.
+  # EC2
+  awsEc2Instances:
+    dependent: true
+    notes: UID = whatever makes sense for matching it to its discovered counterpart.
+    architecture: i386, x86_64, arm64
+    dnsname:
+      description: The public DNS name assigned to the instance.
+    ebsOptimized:
+      description: Boolean indicating whether the instance is optimized for Amazon EBS I/O.
+    enasupport:
+      description: Specifies whether enhanced networking with ENA is enabled.
+    hypervisor:
+      description: ovm or xen
+    keyname:
+      description: The name of the key pair, if this instance was launched with an associated key pair.
+    platform:
+      description: Either `windows` or blank.
+    sourcedestcheck:
+      description: Specifies whether to enable an instance launched in a VPC to perform NAT. This controls whether source/destination checking is enabled on the instance.
+
+relationships:
+- uri: /awsVpcs/CidrBlock/ipv4Subnets
+  cardinality:1:1
+  dependent: true
+- uri: /awsAccounts/Owner/awsVpcs
+  cardinality: 1:many
+  dependent: true
+- uri: /awsRegions/Vpcs/awsVpcs
+  cardinality: 1:many
+  dependent: false
+- uri: /awsCidrBlocks/Ipv4Subnet/ipv4Subnets
+  cardinality: 1:1
+  dependent: true
+- uri: /awsVpcs/Ec2Tags/awsEc2Tags
+  cardinality: 1:many
+  dependent: true
+- uri: /awsVpcs/CidrBlocks/awsCidrBlocks
+  cardinality: 1:many
+  dependent: false
+- uri: /awsVpcs/Az/awsVpcAvailabilityZones
+  cardinality: 1:many
+  dependent: true
+- uri: /awsVpcs/Subnets/awsSubnets
+  cardinality: 1:many
+  dependent: true
+- uri: /awsSubnets/CidrBlock/ipv4Subnets
+  cardinality: 1:1
+  dependent: true
+- uri: /awsSubnets/Az/awsVpcAvailabilityZones
+  cardinality: 1:many
+  dependent: false
+- uri: /awsVpcAvailabilityZones/DefaultSubnet/awsSubnets
+  cardinality: 1:1
+  dependent: false
+- uri: /awsSubnets/Owner/awsAccounts
+  cardinality: many:1
+  dependent: false
+- uri: /awsSubnets/Ec2Tags/awsEc2Tags
+  cardinality: 1:many
+  dependent: false
+- uri: /awsSubnets/Ec2Instances/awsEc2Instances
+  cardinality: 1:many
+  dependent: true
+- uri: /awsEc2Instances/Ec2Tags/awsEc2Tags
+  cardinality: 1:many
+  dependent: false
+- uri: /awsEc2Instance/CidrBlock/ipv4Subnets
+  cardinality: 1:1
+  dependent: true
+- uri: /awsEc2Instance/ipaddress/ipv4Addresses
+  cardinality: 1:1
+  dependent: true
+- uri: /awsEc2Instance/ipaddress/ipv4Interfaces
+  cardinality: 1:1
+  dependent: true
+- uri: /awsEc2Instance/PrivateIpAddress/ipv4Addresses
+  cardinality: 1:1
+  dependent: true
+- uri: /awsEc2Instance/PrivateIpAddress/ipv4Interfaces
+  cardinality: 1:1
+  dependent: true
+- uri: /ipv4Subnets/AllocatedTo/awsVpcs
+  cardinality: many:1
+  dependent: false
+- uri: /ipv4Subnets/AllocatedTo/awsSubnets
+  cardinality: many:1
+  dependent: false
