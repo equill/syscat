@@ -1,5 +1,5 @@
 name: organisations_expected
-version: 2
+version: 3
 
 resourcetypes:
   organisations:
@@ -84,10 +84,8 @@ relationships:
 - uri: /contracts/Supports/cabinets
   cardinality: 1:many
 - uri: /organisations/Sites/sites
-  cardinality: many:1
+  cardinality: many:many
   dependent: 'true'
-- uri: /organisations/Site/sites
-  cardinality: many:1
 - uri: /buildings/Tenant/organisations
   cardinality: 1:many
 - uri: /floors/Tenant/organisations
