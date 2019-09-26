@@ -21,4 +21,6 @@ stdenv.mkDerivation rec {
         pkgs.libyaml
     ];
 
+    shellHook = "export PS1='\n\\[\\033[01;32m\\][nix syscat] \\w\\$\\[\\033[00m\\] '";
+
 }
