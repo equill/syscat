@@ -141,6 +141,9 @@ relationships:
   - uri: /thousandEyesEnterpriseAgents/Host/devices
     cardinality: 1:1
     dependent: false
+  - uri: /thousandEyesEnterpriseAgents/Host/awsEc2Instances
+    cardinality: 1:1
+    dependent: false
     # Clusters
   - uri: /thousandeyesEnterpriseClusters/Member/thousandeyesEnterpriseClusterMembers
     cardinality: 1:many
