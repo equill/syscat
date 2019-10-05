@@ -135,6 +135,101 @@ resourcetypes:
         description: "Type of test. This attribute departs from the 'type' attribute name for obvious reasons."
       interval:
         description: "Period between successive tests, in seconds."
+  thousandeyesHttpServerTests:
+    notes: "HTTP test to an arbitrary server"
+    attributes:
+      alertsEnabled:
+        description: "1 for enabled, 0 for disabled."
+      createddate:
+        description: "YYYY-MM-DD HH:mm:ss formatted date in UTC"
+      description:
+        description: "Text description of this test."
+      enabled:
+        description: "1 for enabled, 0 for disabled."
+      modifieddate:
+        description: "YYYY-MM-DD HH:mm:ss formatted date in UTC"
+      savedevent:
+        description: "0 for saved event, 1 for normal test."
+      testname:
+      interval:
+        description: "Period between successive tests, in seconds."
+      bandwidthmeasurements:
+        description: "Set to 1 to measure bandwidth; requires that networkMeasurements is set."
+      bgpmeasurements:
+        description: "Set to 1 to enable BGP measurements; requires that networkMeasurements is set."
+      clientcertificate:
+        description: "String representation of client certificate, if used. Include any newline characters."
+      contentregex:
+      desiredstatuscode:
+      downloadlimit:
+        description: "Maximum number of bytes to download from the target object."
+      dnsoverride:
+        description: "IP address to use for DNS override"
+      followredirects:
+        description: "Set to 0 to not follow HTTP/301 or HTTP/302 redirect directives. Default is 1"
+      httpversion:
+      httptargettime:
+      httptimelimit:
+      includeheaders:
+      mtumeasurements:
+      networkmeasurements:
+      numpathtraces:
+      password:
+      postbody:
+      probemode:
+      protocol:
+      sslversion:
+      sslversionid:
+      url:
+      usentlm:
+      useragent:
+      username:
+      verifycertificate:
+  thousandeyesAgentToServerTests:
+    attributes:
+      alertsEnabled:
+        description: "1 for enabled, 0 for disabled."
+      createddate:
+        description: "YYYY-MM-DD HH:mm:ss formatted date in UTC"
+      description:
+        description: "Text description of this test."
+      enabled:
+        description: "1 for enabled, 0 for disabled."
+      modifieddate:
+        description: "YYYY-MM-DD HH:mm:ss formatted date in UTC"
+      savedevent:
+        description: "0 for saved event, 1 for normal test."
+      testname:
+      interval:
+        description: "Period between successive tests, in seconds."
+      bandwidthmeasurements:
+        description: "Set to 1 to measure bandwidth; requires that networkMeasurements is set."
+      bgpmeasurements:
+        description: "Set to 1 to enable BGP measurements; requires that networkMeasurements is set."
+      mtumeasurements:
+      numpathtraces:
+      port:
+      probemode:
+      protocol:
+      server:
+  thousandeyesAgentToAgentTest:
+    attributes:
+      alertsEnabled:
+        description: "1 for enabled, 0 for disabled."
+      createddate:
+        description: "YYYY-MM-DD HH:mm:ss formatted date in UTC"
+      description:
+        description: "Text description of this test."
+      enabled:
+        description: "1 for enabled, 0 for disabled."
+      modifieddate:
+        description: "YYYY-MM-DD HH:mm:ss formatted date in UTC"
+      savedevent:
+        description: "0 for saved event, 1 for normal test."
+      testname:
+      interval:
+        description: "Period between successive tests, in seconds."
+
 
 relationships:
 ## Agents
