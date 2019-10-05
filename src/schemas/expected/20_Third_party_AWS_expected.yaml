@@ -41,7 +41,7 @@ resourcetypes:
 
 relationships:
 - uri: /awsVpcs/CidrBlock/ipv4Subnets
-  cardinality:1:1
+  cardinality: 1:1
   dependent: true
 - uri: /awsAccounts/Owner/awsVpcs
   cardinality: 1:many
