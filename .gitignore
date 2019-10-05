@@ -1,5 +1,6 @@
 *pyc
-result
+result_discovered
+result_expected
 tags
 venv*/
 scripts/docker/syscat_expected

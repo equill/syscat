@@ -1,2 +1,2 @@
-./create_expected.sh && nix-build docker_expected.nix && docker load < result
-./create_discovered.sh && nix-build docker_discovered.nix && docker load < result
+./create_expected.sh && nix-build --out-link result_expected docker_expected.nix && docker load < result_expected
+./create_discovered.sh && nix-build --out-link result_discovered docker_discovered.nix && docker load < result_discovered
