@@ -7,6 +7,7 @@ resourcetypes:
     notes: UID = Description is probably your best bet.
     dependent: true
     attributes:
+      description:
   awsCidrBlocks:
     dependent: true
     attributes:
