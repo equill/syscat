@@ -23,7 +23,7 @@
                    Note: it silently deletes and other kinds of relationship between the target subnet and other resources - if you want those reassigned, you need to do it yourself first.
                    If you want to recursively delete a subnet and everything under it, use restagraph::delete-resource in recursive mode."))
 
-(defgeneric find-ipv4address (db address org vrf)
+(defgeneric find-ipaddress (db address org vrf)
             (:documentation "Find the path to an IPv4 address in the IPAM section"))
 
 (defgeneric insert-ipv4address (db address org vrf)
