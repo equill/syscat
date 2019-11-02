@@ -1,0 +1,1 @@
+docker run -d --env NEO4J_AUTH=neo4j/wallaby -p 7687:7687 -p 7474:7474 --name syscattest neo4j:3.5.3
