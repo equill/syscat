@@ -171,10 +171,9 @@
     (restagraph:log-message :debug "TEST Address is absent")
     (fiveam:is (null (syscat::find-ipaddress *server* address org vrf)))
     (restagraph:log-message :debug "TEST Insert address")
-    (fiveam:is (null (syscat::insert-ipaddress *server* address org vrf)))
+    (fiveam:is (syscat::insert-ipaddress *server* address org vrf))
     (fiveam:is (equal (ipaddress:as-string address)
-                      (ipaddress:as-string
-                        (car (last (syscat::find-ipaddress *server* address org vrf))))))
+                      (car (last (syscat::find-ipaddress *server* address org vrf)))))
     (restagraph:log-message :debug "TEST Delete address")
     (fiveam:is (null (syscat::delete-ipaddress *server* address org vrf)))
     (fiveam:is (null (syscat::find-ipaddress *server* address org vrf)))
@@ -199,13 +198,12 @@
     (syscat::insert-subnet *server* org "" subnet1)
     ;; Add the IP address
     (restagraph:log-message :info "TEST Add the IP address")
-    (fiveam:is (null (syscat::insert-ipaddress *server* address org "")))
+    (fiveam:is (syscat::insert-ipaddress *server* address org ""))
     ;; Confirm the address is there
     (restagraph:log-message :info "TEST Confirm the address is present.")
     (fiveam:is (syscat::find-ipaddress *server* address org ""))
     (fiveam:is (equal (ipaddress:as-string address)
-                      (ipaddress:as-string
-                        (car (last (syscat::find-ipaddress *server* address org ""))))))
+                      (car (last (syscat::find-ipaddress *server* address org "")))))
     ;; Add another subnet
     (restagraph:log-message :info "TEST Add a second-level subnet.")
     (fiveam:is (syscat::insert-subnet *server* org "" subnet2))
@@ -219,7 +217,7 @@
       (fiveam:is (equal (mapcar #'ipaddress:as-cidr (list subnet1 subnet2))
                         (mapcar #'ipaddress:as-cidr (butlast newpath))))
       (fiveam:is (equal (ipaddress:as-string address)
-                        (ipaddress:as-string (car (last newpath))))))
+                        (car (last newpath)))))
     ;; Remove the second subnet
     (restagraph:log-message :info "TEST Delete the second-level subnet.")
     (fiveam:is (syscat::delete-subnet *server* org "" subnet2))
@@ -230,7 +228,7 @@
       (fiveam:is (equal (list (ipaddress:as-cidr subnet1))
                         (mapcar #'ipaddress:as-cidr (butlast newpath))))
       (fiveam:is (equal (ipaddress:as-string address)
-                        (ipaddress:as-string (car (last newpath))))))
+                        (car (last newpath)))))
     ;; Remove the fixtures
     (restagraph:log-message :info "TEST Deleting the fixtures.")
     (restagraph:delete-resource-by-path *server* (format nil "/organisations/~A" org) :recursive t)))
