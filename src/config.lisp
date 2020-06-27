@@ -8,6 +8,7 @@
     :listen-port 4950
     :dbhostname "localhost"
     :dbport 7474
+    :dbname "neo4j"
     :dbusername "neo4j"
     :dbpasswd "wallaby"
     :api-uri-base "/raw/v1"

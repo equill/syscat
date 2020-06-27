@@ -289,6 +289,8 @@
                                (getf restagraph::*config-vars* :dbhostname))
                  :port (or (sb-ext:posix-getenv "SYSCAT_NEO4J_PORT")
                                (getf restagraph::*config-vars* :dbport))
+                 :dbname (or (sb-ext:posix-getenv "SYSCAT_NEO4J_DBNAME")
+                               (getf restagraph::*config-vars* :dbname))
                  :dbpasswd (or (sb-ext:posix-getenv "SYSCAT_NEO4J_PASSWORD")
                                (getf restagraph::*config-vars* :dbpasswd))
                  :dbuser (or (sb-ext:posix-getenv "SYSCAT_NEO4J_USER")
