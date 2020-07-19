@@ -279,6 +279,14 @@
     :port (or (when (sb-ext:posix-getenv "SYSCAT_LISTEN_PORT")
                 (parse-integer (sb-ext:posix-getenv "SYSCAT_LISTEN_PORT")))
               (getf restagraph::*config-vars* :listen-port))
+    :uri-base-api (or (sb-ext:posix-getenv "API_URI_BASE")
+                      (getf restagraph::*config-vars* :api-uri-base))
+    :uri-base-schema (or (sb-ext:posix-getenv "SCHEMA_URI_BASE")
+                         (getf restagraph::*config-vars* :schema-uri-base))
+    :uri-base-files (or (sb-ext:posix-getenv "FILES_URI_BASE")
+                        (getf restagraph::*config-vars* :files-uri-base))
+    :files-location (or (sb-ext:posix-getenv "FILES_LOCATION")
+                        (getf restagraph::*config-vars* :files-location))
     ;; Send all logs to STDOUT, and let Docker sort 'em out
     :access-log-destination (make-synonym-stream 'cl:*standard-output*)
     :message-log-destination (make-synonym-stream 'cl:*standard-output*)
@@ -287,10 +295,11 @@
                  'neo4cl:neo4j-rest-server
                  :hostname (or (sb-ext:posix-getenv "SYSCAT_NEO4J_HOSTNAME")
                                (getf restagraph::*config-vars* :dbhostname))
-                 :port (or (sb-ext:posix-getenv "SYSCAT_NEO4J_PORT")
-                               (getf restagraph::*config-vars* :dbport))
+                 :port (or (when (sb-ext:posix-getenv "SYSCAT_NEO4J_PORT")
+                             (parse-integer (sb-ext:posix-getenv "SYSCAT_NEO4J_PORT")))
+                           (getf restagraph::*config-vars* :dbport))
                  :dbname (or (sb-ext:posix-getenv "SYSCAT_NEO4J_DBNAME")
-                               (getf restagraph::*config-vars* :dbname))
+                             (getf restagraph::*config-vars* :dbname))
                  :dbpasswd (or (sb-ext:posix-getenv "SYSCAT_NEO4J_PASSWORD")
                                (getf restagraph::*config-vars* :dbpasswd))
                  :dbuser (or (sb-ext:posix-getenv "SYSCAT_NEO4J_USER")
@@ -303,6 +312,7 @@
   ;; Having set the dynamic variable, invoke the appserver
   (restagraph:startup
     :acceptor *syscat-acceptor*
+    ;; Add these dispatchers to the default set
     :dispatchers (list
                    (tbnl:create-prefix-dispatcher "/ipam/v1/subnets" 'subnet-dispatcher-v1)
                    (tbnl:create-prefix-dispatcher "/ipam/v1/addresses" 'address-dispatcher-v1))

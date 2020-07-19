@@ -26,10 +26,10 @@ let
 in
 pkgs.dockerTools.buildImage {
     name = "equill/syscat_discovered";
-    tag = "0.1.8a1";
+    tag = "0.1.9a3";
     created = "now";
 
-    contents = syscat_deriv;
+    contents = [ syscat_deriv file ];
 
     config = {
         Cmd = [ "syscat" ];
