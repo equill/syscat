@@ -1,8 +1,6 @@
 *pyc
-result_discovered
-result_expected
+result
 tags
 venv*/
-scripts/docker/syscat_expected
-scripts/docker/syscat_discovered
+scripts/docker/syscat
 scripts/docker/schema.yaml

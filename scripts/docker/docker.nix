@@ -4,11 +4,11 @@ let
     syscat_deriv = stdenv.mkDerivation rec {
         name = "syscat";
         builder = "${bash}/bin/bash";
-        args = [ ./nix-builder_expected.sh ];
+        args = [ ./nix-builder.sh ];
         inherit coreutils openssl libyaml;
         system = builtins.currentSystem;
         schemapath = ../../src/schemas;
-        syscatpath = ./syscat_expected;
+        syscatpath = ./syscat;
     };
 
     # Prepare the value of LD_LIBRARY_PATH
@@ -25,8 +25,8 @@ let
 
 in
 pkgs.dockerTools.buildImage {
-    name = "equill/syscat_expected";
-    tag = "0.1.9a3";
+    name = "equill/syscat";
+    tag = "0.2.0a2";
     created = "now";
 
     contents = [ syscat_deriv file ];
