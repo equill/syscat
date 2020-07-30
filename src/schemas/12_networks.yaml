@@ -1,5 +1,5 @@
-name: networks_expected
-version: 3
+name: networks
+version: 1
 
 resourcetypes:
 # Links and circuits
@@ -33,6 +33,11 @@ resourcetypes:
     notes: VRF Groups allocated for use
     attributes:
       description:
+  vrfs:
+    notes: VRFs as configured on devices
+    attributes:
+      description:
+    dependent: 'true'
 
 relationships:
 - uri: /devices/ManagementAddress/ipv4Addresses
@@ -134,6 +139,9 @@ relationships:
   cardinality: 1:many
   dependent: 'true'
 - uri: /ipv6Subnets/Addresses/ipv6Addresses
+  cardinality: 1:many
+  dependent: 'true'
+- uri: /devices/Vrfs/vrfs
   cardinality: 1:many
   dependent: 'true'
 # Generic links

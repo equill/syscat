@@ -2,26 +2,26 @@ name: software_expected
 version: 1
 
 resourcetypes:
-  preferredOsVersion:
-    notes: For being specific about the circumstances under which a given version is preferred
+  recommendedOsVersion:
+    notes: "Version recommended for this make and model. Helpful when you're trying to converge on a standard."
     attributes:
       description:
       mandatory:
 
 relationships:
-# Preferred OS Version
-- uri: /models/PreferredOsVersion/operatingSystemVersions
+# recommended OS Version
+- uri: /models/recommendedOsVersion/operatingSystemVersions
   cardinality: many:1
   notes: "For the simple case where there's a global preference within this instance of Syscat"
-- uri: /models/PreferredOsVersion/preferredOsVersion
+- uri: /models/recommendedOsVersion/recommendedOsVersion
   cardinality: many:1
-- uri: /preferredOsVersions/Version/operatingSystemVersions
+- uri: /recommendedOsVersion/Version/operatingSystemVersions
   cardinality: many:1
-- uri: /preferredOsVerion/Organisation/organisations
+- uri: /recommendedOsVersion/Organisation/organisations
   cardinality: many:1
-- uri: /preferredOsVerion/Environment/environments
+- uri: /recommendedOsVersion/Environment/environments
   cardinality: many:1
-- uri: /preferredOsVerion/Model/models
+- uri: /recommendedOsVersion/Model/models
   cardinality: many:1
 - uri: /applications/DependsOn/applications
   cardinality: many:many

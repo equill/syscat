@@ -1,4 +1,4 @@
-name: aws_expected
+name: aws
 version: 1
 
 resourcetypes:
@@ -8,6 +8,8 @@ resourcetypes:
     dependent: true
     attributes:
       description:
+      cidrblock:
+        description: The primary IPv4 CIDR block for the VPC.
   awsCidrBlocks:
     dependent: true
     attributes:
@@ -20,6 +22,8 @@ resourcetypes:
         description: Indicates whether instances launched in this subnet receive a public IPv4 address.
       subnetarn:
         description: The Amazon Resource Name (ARN) of the subnet.
+      availableipaddresscount:
+        description: The number of unused private IPv4 addresses in the subnet. The IPv4 addresses for any stopped instances are considered unavailable.
   # EC2
   awsEc2Instances:
     dependent: true
@@ -39,6 +43,21 @@ resourcetypes:
       description: Either `windows` or blank.
     sourcedestcheck:
       description: Specifies whether to enable an instance launched in a VPC to perform NAT. This controls whether source/destination checking is enabled on the instance.
+    # Discovered-specific attributes
+    instancelifecycle:
+      description: Indicates whether this is a Spot Instance or a Scheduled Instance.
+    reason:
+      description: The reason for the most recent state transition. This might be an empty string.
+    rootdevicename:
+      description: The device name of the root device volume (for example, /dev/sda1).
+    rootdevicetype:
+      description: The root device type used by the AMI. Either `ebs` or `instance-store`.
+    spotinstancerequestid:
+      description: If the request is a Spot Instance request, the ID of the request.
+    sriovnetsupport:
+      description: Specifies whether enhanced networking with the Intel 82599 Virtual Function interface is enabled.
+    virtualizationtype:
+      description: hvm or paravirtual.
 
 relationships:
 - uri: /awsVpcs/CidrBlock/ipv4Subnets

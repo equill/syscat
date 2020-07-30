@@ -1,4 +1,4 @@
-name: hardware_expected
+name: hardware
 version: 1
 
 resourcetypes:
@@ -19,6 +19,15 @@ resourcetypes:
       description:
       monitor:
         description: Whether this interface is to be monitored.
+      macaddress:
+      snmpindex:
+      ifname:
+      ifdescr:
+      ifalias:
+      iftype:
+      ifspeed:
+      ifhighspeed:
+      ifphysaddress:
     dependent: 'true'
   serviceLevels:
     attributes:
