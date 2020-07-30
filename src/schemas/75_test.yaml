@@ -1,7 +1,0 @@
-name: test
-version: 1
-
-relationships:
-- url: /people/Address/thisShouldFail
-- uri: /people/Address/thisShouldFailAsWell
-- uri: /thisTooShouldFail/Address/streetNumbers
