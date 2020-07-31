@@ -2,36 +2,6 @@ name: aws_common
 version: 1
 
 resourcetypes:
-  # VPC
-  awsAccounts:
-    attributes:
-      name:
-      description:
-        description: Comments about this particular account.
-  awsRegions:
-    notes: uid is the short code, e.g. APSE2
-    attributes:
-      description:
-        description: Comments about this particular region.
-      name:
-        description: the AWS name for this region
-  awsAvailabilityZones:
-    notes: Global availability zones. UID = ZoneId
-    dependent: true
-    attributes:
-      description:
-        description: Comments about this particular AZ.
-  awsAvailabilityZones:
-    notes: Global availability zones. UID = ZoneId
-    dependent: true
-    attributes:
-      description:
-        description: Comments about this particular AZ.
-  awsEc2Tags:
-    notes: UID = key
-    dependent: true
-    attributes:
-      value:
   awsVpcAvailabilityZones:
     dependent: true
     notes: Mapping from this VPC to the global AZ. UID = ZoneName

@@ -1,5 +1,5 @@
 name: make_and_model
-version: 1
+version: 2
 
 resourcetypes:
   makes:
@@ -17,6 +17,8 @@ resourcetypes:
     attributes:
       endoflife:
       endofsupport:
+      description:
+        description: Comments about this particular model version.
 
 relationships:
 - uri: /makes/Produces/models
@@ -27,3 +29,7 @@ relationships:
 - uri: /models/Versions/modelVersions
   dependent: 'true'
   cardinality: 1:many
+- uri: /modelVersions/CompatibleWith/models
+  cardinality: many:many
+- uri: /models/Website/url
+  cardinality: many:many

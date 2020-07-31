@@ -55,6 +55,17 @@ resourcetypes:
       longname:
       description:
     notes: Like a campus, a site contains one or more buildings.
+  websites:
+    dependent: 'false'
+    attributes:
+      url:
+      description:
+  url:
+    dependent: "false"
+    attributes:
+        url:
+        text:
+        description:
 
 relationships:
 - uri: /countries/States/states
@@ -118,4 +129,6 @@ relationships:
   cardinality: 1:many
   dependent: 'true'
 - uri: /sites/Buildings/buildings
+  cardinality: 1:many
+- uri: /people/Addresses/streetNumbers
   cardinality: 1:many

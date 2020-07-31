@@ -1,8 +1,25 @@
 name: aws
-version: 1
+version: 2
 
 resourcetypes:
   # VPC
+  awsEc2Tags:
+    notes: UID = key
+    dependent: true
+    attributes:
+      value:
+  awsAccounts:
+    attributes:
+      name:
+      description:
+        description: Comments about this particular account.
+  awsRegions:
+    notes: uid is the short code, e.g. APSE2
+    attributes:
+      description:
+        description: Comments about this particular region.
+      name:
+        description: the AWS name for this region
   awsVpcs:
     notes: UID = Description is probably your best bet.
     dependent: true
@@ -14,6 +31,15 @@ resourcetypes:
     dependent: true
     attributes:
       description:
+  awsAvailabilityZones:
+    notes: Global availability zones. UID = ZoneId
+    dependent: true
+    attributes:
+      description:
+        description: Comments about this particular AZ.
+  awsVpcAvailabilityZones:
+    dependent: true
+    notes: Mapping from this VPC to the global AZ. UID = ZoneName
   awsSubnets:
     dependent: true
     notes: UID = whatever makes sense to you, for mapping this to its discovered counterpart.
@@ -86,6 +112,9 @@ relationships:
   dependent: true
 - uri: /awsSubnets/CidrBlock/ipv4Subnets
   cardinality: 1:1
+  dependent: true
+- uri: /awsRegions/Az/awsAvailabilityZones
+  cardinality: 1:many
   dependent: true
 - uri: /awsSubnets/Az/awsVpcAvailabilityZones
   cardinality: 1:many
