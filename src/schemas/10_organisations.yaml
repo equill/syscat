@@ -6,16 +6,6 @@ resourcetypes:
     attributes:
       description:
     notes: 'Any kind of organisation: professional, social or other.'
-  roles:
-    notes: Roles within an organisation.
-    dependent: 'true'
-    attributes:
-        description:
-  people:
-    attributes:
-      given_name:
-      surname:
-    notes: UID should be their login name or some other compact reference
   emailAddresses:
     attributes:
       description:
