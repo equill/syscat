@@ -318,12 +318,12 @@
                    (tbnl:create-prefix-dispatcher "/ipam/v1/addresses" 'address-dispatcher-v1))
     :docker docker
     :schemapath (cond
-                  ;; Were we passed one explicitly?
-                  (schemapath
-                    schemapath)
                   ;; Is one set via an environment variable?
                   ((sb-ext:posix-getenv "SCHEMAPATH")
                    (sb-ext:posix-getenv "SCHEMAPATH"))
+                  ;; Were we passed one explicitly?
+                  (schemapath
+                    schemapath)
                   ;; Default case
                   (t
                     nil))))
