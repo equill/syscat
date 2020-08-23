@@ -22,10 +22,10 @@ resourcetypes:
       end_date:
 
 relationships:
-- uri: /people/ContactMethod/emailAddresses
+- uri: /people/ContactMethods/emailAddresses
   cardinality: 1:many
   dependent: 'true'
-- uri: /people/ContactMethod/phoneNumbers
+- uri: /people/ContactMethods/phoneNumbers
   cardinality: 1:many
   dependent: 'true'
 - uri: /people/Members/organisations
@@ -92,19 +92,8 @@ relationships:
   cardinality: many:many
 - uri: /cabinets/Tenant/organisations
   cardinality: many:many
-- uri: /people/ContactMethod/emailAddresses
-  cardinality: 1:many
-  dependent: 'true'
-- uri: /people/ContactMethod/phoneNumbers
-  cardinality: 1:many
-  dependent: 'true'
 - uri: /people/Addresses/streetNumbers
   cardinality: 1:many
-- uri: /makes/Vendor/organisations
-  cardinality: many:1
 - uri: /organisations/Websites/websites
   cardinality: 1:many
-  dependent: 'false'
-- uri: /models/Location/websites
-  cardinality: many:many
   dependent: 'false'

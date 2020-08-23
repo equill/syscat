@@ -1,5 +1,5 @@
 name: aws
-version: 2
+version: 3
 
 resourcetypes:
   # VPC
@@ -134,19 +134,19 @@ relationships:
 - uri: /awsEc2Instances/Ec2Tags/awsEc2Tags
   cardinality: 1:many
   dependent: false
-- uri: /awsEc2Instance/CidrBlock/ipv4Subnets
+- uri: /awsEc2Instances/CidrBlock/ipv4Subnets
   cardinality: 1:1
   dependent: true
-- uri: /awsEc2Instance/ipaddress/ipv4Addresses
+- uri: /awsEc2Instances/Ipaddress/ipv4Addresses
   cardinality: 1:1
   dependent: true
-- uri: /awsEc2Instance/ipaddress/ipv4Interfaces
+- uri: /awsEc2Instances/Ipaddress/ipv4Interfaces
   cardinality: 1:1
   dependent: true
-- uri: /awsEc2Instance/PrivateIpAddress/ipv4Addresses
+- uri: /awsEc2Instances/PrivateIpAddress/ipv4Addresses
   cardinality: 1:1
   dependent: true
-- uri: /awsEc2Instance/PrivateIpAddress/ipv4Interfaces
+- uri: /awsEc2Instances/PrivateIpAddress/ipv4Interfaces
   cardinality: 1:1
   dependent: true
 - uri: /ipv4Subnets/AllocatedTo/awsVpcs

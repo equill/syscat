@@ -137,50 +137,50 @@ resourcetypes:
         description: "Period between successive tests, in seconds."
 
 relationships:
-    ## Agents
-  - uri: /thousandEyesEnterpriseAgents/Host/devices
-    cardinality: 1:1
-    dependent: false
-  - uri: /thousandEyesEnterpriseAgents/Host/awsEc2Instances
-    cardinality: 1:1
-    dependent: false
-    # Clusters
-  - uri: /thousandeyesEnterpriseClusters/Member/thousandeyesEnterpriseClusterMembers
-    cardinality: 1:many
-    dependent: true
-    # Addresses
-  - uri: /thousandeyesCloudAgents/Addresses/ipv4Addresses
-    cardinality: 1:many
-    dependent: true
-  - uri: /thousandeyesCloudAgents/Addresses/ipv6Addresses
-    cardinality: 1:many
-    dependent: true
-  - uri: /thousandeyesEnterpriseAgents/Addresses/ipv4Addresses
-    cardinality: 1:many
-    dependent: true
-  - uri: /thousandeyesEnterpriseAgents/Addresses/ipv6Addresses
-    cardinality: 1:many
-    dependent: true
-  - uri: /thousandeyesEnterpriseClusterMembers/Addresses/ipv4Addresses
-    cardinality: 1:many
-    dependent: true
-  - uri: /thousandeyesEnterpriseClusterMembers/Addresses/ipv6Addresses
-    cardinality: 1:many
-    dependent: true
-  - uri: /thousandeyesEnterpriseAgents/Prefix/ipv4Subnets
-    cardinality: many:1
-    dependent: true
-    ## Tests
-    # Generic
-  - uri: /thousandeyesTests/Created/thousandeyesUsers
-    cardinality: many:1
-  - uri: /thousandeyesTests/Modified/thousandeyesUsers
-    cardinality: many:many
-  - uri: /thousandeyesTests/Associated/thousandeyesAlertRules
-    cardinality: many:many
-  - uri: /thousandeyesTests/Agents/thousandeyesCloudAgents
-    cardinality: many:many
-  - uri: /thousandeyesTests/Agents/thousandeyesEnterpriseAgents
-    cardinality: many:many
-  - uri: /thousandeyesTests/Agents/thousandeyesEnterpriseClusters
-    cardinality: many:many
+## Agents
+- uri: /thousandEyesEnterpriseAgents/Host/devices
+  cardinality: '1:1'
+  dependent: 'false'
+- uri: /thousandEyesEnterpriseAgents/Host/awsEc2Instances
+  cardinality: '1:1'
+  dependent: 'false'
+# Clusters
+- uri: /thousandeyesEnterpriseClusters/Member/thousandeyesEnterpriseClusterMembers
+  cardinality: 1:many
+  dependent: 'true'
+# Addresses
+- uri: /thousandeyesCloudAgents/Addresses/ipv4Addresses
+  cardinality: 1:many
+  dependent: 'true'
+- uri: /thousandeyesCloudAgents/Addresses/ipv6Addresses
+  cardinality: 1:many
+  dependent: 'true'
+- uri: /thousandeyesEnterpriseAgents/Addresses/ipv4Addresses
+  cardinality: 1:many
+  dependent: 'true'
+- uri: /thousandeyesEnterpriseAgents/Addresses/ipv6Addresses
+  cardinality: 1:many
+  dependent: 'true'
+- uri: /thousandeyesEnterpriseClusterMembers/Addresses/ipv4Addresses
+  cardinality: 1:many
+  dependent: 'true'
+- uri: /thousandeyesEnterpriseClusterMembers/Addresses/ipv6Addresses
+  cardinality: 1:many
+  dependent: 'true'
+- uri: /thousandeyesEnterpriseAgents/Prefix/ipv4Subnets
+  cardinality: many:1
+  dependent: 'true'
+## Tests
+# Generic
+- uri: /thousandeyesTests/Created/thousandeyesUsers
+  cardinality: many:1
+- uri: /thousandeyesTests/Modified/thousandeyesUsers
+  cardinality: many:many
+- uri: /thousandeyesTests/Associated/thousandeyesAlertRules
+  cardinality: many:many
+- uri: /thousandeyesTests/Agents/thousandeyesCloudAgents
+  cardinality: many:many
+- uri: /thousandeyesTests/Agents/thousandeyesEnterpriseAgents
+  cardinality: many:many
+- uri: /thousandeyesTests/Agents/thousandeyesEnterpriseClusters
+  cardinality: many:many

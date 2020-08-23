@@ -6,6 +6,18 @@ resourcetypes:
     attributes:
       description:
     notes: Type of device, e.g. physical, cluster or virtual.
+  deviceRoles:
+    attributes:
+      description:
+    notes: Classification of the device, e.g. host, router or switch.
+  environments:
+    attributes:
+      description:
+    notes: Development, testing, staging, production etc.
+  lifeCyclePhases:
+    attributes:
+      description:
+    notes: Where the device currently is, in its lifecycle. E.g. ordered, installed, in service or decommissioned.
   devices:
     attributes:
       description:
@@ -28,8 +40,24 @@ resourcetypes:
     dependent: 'true'
     notes: "Spare parts, swappable components, anything of the kind: hard drives, SFPs etc."
   networkInterfaces:
-    notes: a stub instance, to allow all the common relationships, which will be augmented by later schemas.
+    attributes:
+      description:
+      monitor:
+        description: Whether this interface is to be monitored.
+      macaddress:
+      snmpindex:
+      ifname:
+      ifdescr:
+      ifalias:
+      iftype:
+      ifspeed:
+      ifhighspeed:
+      ifphysaddress:
     dependent: 'true'
+  serviceLevels:
+    attributes:
+      description:
+    notes: Sets the expectations for responses to issues, e.g. gold, silver, bronze, plastic
 
 relationships:
 - uri: /devices/Location/sites
@@ -82,3 +110,37 @@ relationships:
   cardinality: many:1
 - uri: /devices/Model/models
   cardinality: many:1
+- uri: /models/Capability/deviceRoles
+  cardinality: many:many
+  notes: "The capabilities available from this model, regardless of whether you're using any/all of them right now."
+- uri: /devices/Role/deviceRoles
+  cardinality: many:many
+  notes: "The role(s) being fulfulled by this device: e.g, a layer-3 switch should have the roles switch and router."
+- uri: /devices/LifeCyclePhase/lifeCyclePhases
+  cardinality: many:1
+- uri: /devices/Environment/environments
+  cardinality: many:1
+- uri: /devices/ServiceLevel/serviceLevels
+  cardinality: many:1
+- uri: /devices/Vendor/organisations
+  cardinality: many:1
+  notes: The organisation from which this device was bought.
+- uri: /parts/Vendor/organisations
+  cardinality: many:1
+- uri: /makes/Produces/parts
+  cardinality: 1:many
+  dependent: 'true'
+- uri: /devices/TechnicalOwner/people
+  cardinality: many:1
+- uri: /devices/BusinessOwner/people
+  cardinality: many:1
+- uri: /devices/BusinessOwner/organisations
+  cardinality: many:1
+- uri: /contracts/Supplies/devices
+  cardinality: 1:many
+- uri: /contracts/Supports/devices
+  cardinality: 1:many
+- uri: /contracts/Supplies/parts
+  cardinality: 1:many
+- uri: /contracts/Supports/parts
+  cardinality: 1:many

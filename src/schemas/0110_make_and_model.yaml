@@ -31,5 +31,10 @@ relationships:
   cardinality: 1:many
 - uri: /modelVersions/CompatibleWith/models
   cardinality: many:many
-- uri: /models/Website/url
+- uri: /models/Websites/url
   cardinality: many:many
+- uri: /makes/Vendor/organisations
+  cardinality: many:1
+- uri: /models/Location/websites
+  cardinality: many:many
+  dependent: 'false'
