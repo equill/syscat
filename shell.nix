@@ -7,7 +7,6 @@ stdenv.mkDerivation rec {
         pkgs.libyaml
         pkgs.openssl
         pkgs.sbcl
-        pkgs.neo4j
         pkgs.bash
     ];
 
