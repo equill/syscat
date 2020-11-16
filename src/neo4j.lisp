@@ -164,7 +164,8 @@
 (defmethod insert-subnet ((db neo4cl:neo4j-rest-server)
                           (org string)
                           (vrf string)
-                          (subnet ipaddress:ip-subnet))
+                          (subnet ipaddress:ip-subnet)
+                          schema)
   (restagraph:log-message
     :debug
     (format nil "Attempting to insert subnet '~A' under organisation '~A' and VRF-group '~A'."
@@ -282,7 +283,8 @@
                                              insert-path
                                              `(("uid" . ,subnet-uid)
                                                ("netaddress" . ,(ipaddress:as-string subnet))
-                                               ("prefixlength" . ,(ipaddress:prefix-length subnet))))
+                                               ("prefixlength" . ,(ipaddress:prefix-length subnet)))
+                                             schema)
         ;; Using the list of candidates we retrieved earlier,
         ;; identify subnets of the one we just inserted, and move them under it.
         (if subnets
@@ -313,7 +315,8 @@
                                   ""
                                   (format nil "/VrfGroups/vrfGroups/~A" vrf))
                                 (append (mapcar #'make-subnet-uid parent-path)
-                                        (list subnet-uid)))))
+                                        (list subnet-uid)))
+                        schema))
                   subnets)
           (restagraph:log-message :debug "No subnets to relocate"))
         ;; Find all IP addresses directly attached to the supernet which fit in this subnet;
@@ -348,7 +351,8 @@
                                   (format nil "/VrfGroups/vrfGroups/~A" vrf))
                                 (append
                                   (mapcar #'make-subnet-uid parent-path)
-                                  (list subnet-uid)))))
+                                  (list subnet-uid)))
+                        schema))
                   addresses)
           (restagraph:log-message :debug "No addresses to relocate"))
         ;; Return t, to indicate success.
@@ -358,7 +362,8 @@
 (defmethod delete-subnet ((db neo4cl:neo4j-rest-server)
                           (org string)
                           (vrf string)
-                          (subnet ipaddress:ip-subnet))
+                          (subnet ipaddress:ip-subnet)
+                          schema)
   (let* ((subnet-path (find-subnet db org vrf subnet))
          (parent-path (butlast subnet-path)))
     ;; Sanity-check
@@ -387,7 +392,8 @@
                           (if (equal vrf "")
                               ""
                               (format nil "/VrfGroups/vrfGroups/~A" vrf))
-                          (mapcar #'make-subnet-uid parent-path))))
+                          (mapcar #'make-subnet-uid parent-path))
+                  schema))
             ;; Get a list of subnets
             (restagraph:get-resources
               db
@@ -428,7 +434,8 @@
                           (if (equal vrf "")
                               ""
                               (format nil "/VrfGroups/vrfGroups/~A" vrf))
-                          (mapcar #'make-subnet-uid parent-path))))
+                          (mapcar #'make-subnet-uid parent-path))
+                  schema))
             ;; Get a list of addresses
             (restagraph:get-resources
               db
@@ -452,7 +459,8 @@
               (if (equal vrf "")
                   ""
                   (format nil "/VrfGroups/vrfGroups/~A" vrf))
-              (mapcar #'make-subnet-uid subnet-path)))))
+              (mapcar #'make-subnet-uid subnet-path))
+      schema)))
 
 
 (defmethod find-ipaddress ((db neo4cl:neo4j-rest-server)

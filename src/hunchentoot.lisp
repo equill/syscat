@@ -55,7 +55,8 @@
                                   (or (tbnl:post-parameter "vrf") "")
                                   (if (ipaddress:ipv4-subnet-p (tbnl:post-parameter "subnet"))
                                     (ipaddress:make-ipv4-subnet (tbnl:post-parameter "subnet"))
-                                    (ipaddress:make-ipv6-subnet (tbnl:post-parameter "subnet"))))))
+                                    (ipaddress:make-ipv6-subnet (tbnl:post-parameter "subnet")))
+                                  (restagraph:schema *syscat-acceptor*))))
              ;; Return it to the client for confirmation
              (restagraph:log-message
                :debug
@@ -129,7 +130,8 @@
                       (or (tbnl:post-parameter "vrf") "")
                       (if (ipaddress:ipv4-subnet-p (tbnl:post-parameter "subnet"))
                         (ipaddress:make-ipv4-subnet (tbnl:post-parameter "subnet"))
-                        (ipaddress:make-ipv6-subnet (tbnl:post-parameter "subnet"))))
+                        (ipaddress:make-ipv6-subnet (tbnl:post-parameter "subnet")))
+                      (restagraph:schema *syscat-acceptor*))
        (setf (tbnl:content-type*) "text/plain")
        (setf (tbnl:return-code*) tbnl:+http-no-content+)
        "")

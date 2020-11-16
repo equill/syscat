@@ -11,12 +11,12 @@
   (:documentation "Find the subnet with the longest prefix-length that could plausibly be a parent subnet to the one supplied. Return a URI representing the path.
                    Expects a canonicalised (full-length) subnet descriptor in CIDR format."))
 
-(defgeneric insert-subnet (db org vrf subnet)
+(defgeneric insert-subnet (db org vrf subnet schema)
   (:documentation "Insert a subnet under the specified organisation and VRF.
                    If the vrf argument is the empty string, create it directly, implying the default VRF.
                    Return t on success, and NIL if the subnet already exists."))
 
-(defgeneric delete-subnet (db org vrf subnet)
+(defgeneric delete-subnet (db org vrf subnet schema)
   (:documentation "Remove a subnet from the IPAM section.
                    Merge its subnets and addresses into its subnet.
                    Note: it assumes you got the path right, most likely via find-subnet.
