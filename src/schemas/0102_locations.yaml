@@ -61,6 +61,7 @@ resourcetypes:
       url:
       description:
   url:
+    notes: The value of this is not clear; it may be removed in later versions.
     dependent: "false"
     attributes:
         url:

@@ -35,6 +35,10 @@ relationships:
   cardinality: many:many
 - uri: /makes/Vendor/organisations
   cardinality: many:1
+  notes: The organisation that _sells_ this make.
+- uri: /models/Vendor/organisations
+  cardinality: many:1
+  notes: The organisation that _sells_ this model.
 - uri: /models/Location/websites
   cardinality: many:many
   dependent: 'false'
