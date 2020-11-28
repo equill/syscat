@@ -1,19 +1,7 @@
 name: organisations
-version: 1
+version: 2
 
 resourcetypes:
-  organisations:
-    attributes:
-      description:
-    notes: 'Any kind of organisation: professional, social or other.'
-  emailAddresses:
-    attributes:
-      description:
-        description: Comments about this particular email address.
-    dependent: 'true'
-  phoneNumbers:
-    attributes:
-      description:
   contracts:
     attributes:
       description:
@@ -22,34 +10,11 @@ resourcetypes:
       end_date:
 
 relationships:
-- uri: /people/ContactMethods/emailAddresses
-  cardinality: 1:many
-  dependent: 'true'
-- uri: /people/ContactMethods/phoneNumbers
-  cardinality: 1:many
-  dependent: 'true'
-- uri: /people/Members/organisations
-  cardinality: many:1
-- uri: /organisations/Subsidiaries/organisations
-  cardinality: 1:many
-- uri: /organisations/ContactMethods/emailAddresses
-  cardinality: 1:many
-  dependent: 'true'
-- uri: /organisations/ContactMethods/phoneNumbers
-  cardinality: 1:many
-  dependent: 'true'
-- uri: /organisations/Roles/roles
-  dependent: 'true'
-  cardinality: 1:many
-- uri: /people/Roles/roles
-  cardinality: many:many
 - uri: /people/AccountManager/organisations
   cardinality: many:1
 - uri: /people/SalesContact/organisations
   cardinality: many:1
 - uri: /people/SupportContact/organisations
-  cardinality: many:1
-- uri: /organisations/Parent/organisations
   cardinality: many:1
 - uri: /contracts/Subcontracts/contracts
   cardinality: many:1
@@ -92,8 +57,3 @@ relationships:
   cardinality: many:many
 - uri: /cabinets/Tenant/organisations
   cardinality: many:many
-- uri: /people/Addresses/streetNumbers
-  cardinality: 1:many
-- uri: /organisations/Websites/websites
-  cardinality: 1:many
-  dependent: 'false'

@@ -1,113 +1,33 @@
 name: locations
-version: 3
+version: 4
 
 resourcetypes:
-  cities:
-    dependent: 'true'
-    notes: The geographic kind.
-  countries:
-    notes: The geographic kind.
-  postboxAddresses:
-    notes: The UID is the PO Box number.
-  postcodes:
-    notes: What else does this need?
-  states:
-    dependent: 'true'
-    notes: The geographic kind.
-  streetNumbers:
-    attributes:
-      floor:
-      name:
-    dependent: 'true'
-    notes: The UID is the street number
-  streets:
-    dependent: 'true'
-  buildings:
-    attributes:
-      description:
-    notes: Individual buildings.
-    dependent: 'false'
-  floors:
-    attributes:
-      description:
-    notes: Floors within a building.
-  cabinets:
-    attributes:
-      description:
-    notes: A frame for rack-mounting equipment in. May be in the form of a lockable
       cabinet.
-  cages:
-    attributes:
-      description:
-    notes: Lockable areas within a room, containing racks. Usually found in data centres.
-  racks:
-    attributes:
-      description:
-    notes: The rack location within a cabinet where a device is mounted. Usually the topmost rack number, in the case of multi-unit-height hardware.
-  rooms:
-    attributes:
-      description:
-    notes: Rooms within a floor or a building.
-    dependent: 'true'
   sites:
     dependent: 'true'
     attributes:
       longname:
       description:
     notes: Like a campus, a site contains one or more buildings.
-  websites:
-    dependent: 'false'
+  rooms:
     attributes:
-      url:
       description:
-  url:
-    notes: The value of this is not clear; it may be removed in later versions.
-    dependent: "false"
+    notes: Rooms within a floor or a building.
+    dependent: 'true'
+  cages:
     attributes:
-        url:
-        text:
-        description:
+      description:
+    notes: Lockable areas within a room, containing racks. Usually found in data centres.
+  cabinets:
+    attributes:
+      description:
+    notes: A frame for rack-mounting equipment in. May be in the form of a lockable
+  racks:
+    attributes:
+      description:
+    notes: The rack location within a cabinet where a device is mounted. Usually the topmost rack number, in the case of multi-unit-height hardware.
 
 relationships:
-- uri: /countries/States/states
-  cardinality: 1:many
-  dependent: 'true'
-- uri: /countries/Cities/cities
-  cardinality: 1:many
-  dependent: 'true'
-- uri: /countries/Postcodes/postcodes
-  cardinality: 1:many
-  dependent: 'true'
-- uri: /states/Cities/cities
-  cardinality: 1:many
-  dependent: 'true'
-- uri: /states/Postcodes/postcodes
-  cardinality: 1:many
-  dependent: 'true'
-- uri: /cities/Postcodes/postcodes
-  cardinality: 1:many
-  dependent: 'true'
-- uri: /cities/Streets/streets
-  cardinality: 1:many
-  dependent: 'true'
-- uri: /streets/StreetNumbers/streetNumbers
-  cardinality: 1:many
-  dependent: 'true'
-- uri: /streetNumbers/Postcodes/postcodes
-  cardinality: many:1
-- uri: /postboxAddresses/Postcodes/postcodes
-  cardinality: many:1
-- uri: /buildings/Location/countries
-  cardinality: many:1
-- uri: /buildings/Location/states
-  cardinality: many:1
-- uri: /buildings/Location/cities
-  cardinality: many:1
-- uri: /buildings/Address/streetNumbers
-  cardinality: many:1
-- uri: /buildings/Floors/floors
-  cardinality: 1:many
-  dependent: 'true'
 - uri: /buildings/Rooms/rooms
   cardinality: 1:many
   dependent: 'true'
@@ -130,6 +50,4 @@ relationships:
   cardinality: 1:many
   dependent: 'true'
 - uri: /sites/Buildings/buildings
-  cardinality: 1:many
-- uri: /people/Addresses/streetNumbers
   cardinality: 1:many
