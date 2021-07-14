@@ -525,6 +525,18 @@
       ]
     },
     {
+      "name": "Licenses",
+      "dependent": false,
+      "notes": "The license under which software (or possibly hardware) is made available.",
+      "attributes": [
+        {
+          "name": "description",
+          "description": "A summary of the license in question",
+          "values": null
+        }
+      ]
+    },
+    {
       "name": "LifeCyclePhases",
       "dependent": "false",
       "notes": "Where the device currently is, in its lifecycle. E.g. ordered, installed, in service or decommissioned.",
