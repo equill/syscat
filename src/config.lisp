@@ -8,7 +8,7 @@
 (defparameter *config-vars*
   `(:listen-address "localhost"
     :listen-port 4950
-    :dbhostname "localhost"
+    :dbhostname "10.255.0.1"
     :dbport 7474
     :dbname "neo4j"
     :dbusername "neo4j"
