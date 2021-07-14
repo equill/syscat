@@ -1,0 +1,2480 @@
+{
+  "name": "webcat",
+  "resourcetypes": [
+    {
+      "name": "Applications",
+      "dependent": "false",
+      "notes": "Software application of any kind.",
+      "attributes": [
+        {
+          "name": "description",
+          "description": "Comments about this particular app.",
+          "values": null
+        },
+        {
+          "name": "monitor",
+          "description": "Whether this application is to be monitored.",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Asns",
+      "dependent": "false",
+      "notes": "BGP Autonomous System Numbers. The UID should be the ASN, and the ´name´ should be its human-friendly tag.",
+      "attributes": [
+        {
+          "name": "description",
+          "description": "",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "AwsAccounts",
+      "dependent": "false",
+      "notes": "",
+      "attributes": [
+        {
+          "name": "name",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "description",
+          "description": "Comments about this particular account.",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "AwsAvailabilityZones",
+      "dependent": true,
+      "notes": "Global availability zones. UID = ZoneId",
+      "attributes": [
+        {
+          "name": "description",
+          "description": "Comments about this particular AZ.",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "AwsCidrBlocks",
+      "dependent": true,
+      "notes": "",
+      "attributes": [
+        {
+          "name": "description",
+          "description": "",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "AwsEc2Instances",
+      "dependent": true,
+      "notes": "UID = whatever makes sense for matching it to its discovered counterpart.",
+      "attributes": null
+    },
+    {
+      "name": "AwsEc2Tags",
+      "dependent": true,
+      "notes": "UID = key",
+      "attributes": [
+        {
+          "name": "value",
+          "description": "",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "AwsRegions",
+      "dependent": "false",
+      "notes": "uid is the short code, e.g. APSE2",
+      "attributes": [
+        {
+          "name": "description",
+          "description": "Comments about this particular region.",
+          "values": null
+        },
+        {
+          "name": "name",
+          "description": "the AWS name for this region",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "AwsSubnets",
+      "dependent": true,
+      "notes": "UID = whatever makes sense to you, for mapping this to its discovered counterpart.",
+      "attributes": [
+        {
+          "name": "mappubliciponlaunch",
+          "description": "Indicates whether instances launched in this subnet receive a public IPv4 address.",
+          "values": null
+        },
+        {
+          "name": "subnetarn",
+          "description": "The Amazon Resource Name (ARN) of the subnet.",
+          "values": null
+        },
+        {
+          "name": "availableipaddresscount",
+          "description": "The number of unused private IPv4 addresses in the subnet. The IPv4 addresses for any stopped instances are considered unavailable.",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "AwsVpcAvailabilityZones",
+      "dependent": true,
+      "notes": "Mapping from this VPC to the global AZ. UID = ZoneName",
+      "attributes": null
+    },
+    {
+      "name": "AwsVpcs",
+      "dependent": true,
+      "notes": "UID = Description is probably your best bet.",
+      "attributes": [
+        {
+          "name": "description",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "cidrblock",
+          "description": "The primary IPv4 CIDR block for the VPC.",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Bgp4Instances",
+      "dependent": true,
+      "notes": "",
+      "attributes": [
+        {
+          "name": "description",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "routerid",
+          "description": "",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Bgp4Peerings",
+      "dependent": true,
+      "notes": "",
+      "attributes": [
+        {
+          "name": "description",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "bgpPeerIdentifier",
+          "description": "Index for the bgpPeerEntry SNMP table",
+          "values": null
+        },
+        {
+          "name": "bgpPeerLocalPort",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "bgpPeerRemotePort",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "monitor",
+          "description": "Whether this peering is to be monitored.",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Cabinets",
+      "dependent": "false",
+      "notes": "A frame for rack-mounting equipment in. May be in the form of a lockable",
+      "attributes": [
+        {
+          "name": "description",
+          "description": "",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Cages",
+      "dependent": "false",
+      "notes": "Lockable areas within a room, containing racks. Usually found in data centres.",
+      "attributes": [
+        {
+          "name": "description",
+          "description": "",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Circuits",
+      "dependent": "false",
+      "notes": "Network circuits, whether telco-provided or otherwise.",
+      "attributes": [
+        {
+          "name": "description",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "our_id",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "vendor_id",
+          "description": "",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Contracts",
+      "dependent": "false",
+      "notes": "",
+      "attributes": [
+        {
+          "name": "description",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "reference_number",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "start_date",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "end_date",
+          "description": "",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Cpus",
+      "dependent": "false",
+      "notes": "",
+      "attributes": [
+        {
+          "name": "description",
+          "description": "",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "DarkFibreLinks",
+      "dependent": "false",
+      "notes": "Dark fibre network link, from one device to another",
+      "attributes": [
+        {
+          "name": "description",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "ourId",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "vendorId",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "fibretype",
+          "description": "",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "DeviceRoles",
+      "dependent": "false",
+      "notes": "Classification of the device, e.g. host, router or switch.",
+      "attributes": [
+        {
+          "name": "description",
+          "description": "",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "DeviceTypes",
+      "dependent": "false",
+      "notes": "Type of device, e.g. physical, cluster or virtual.",
+      "attributes": [
+        {
+          "name": "description",
+          "description": "",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Devices",
+      "dependent": "false",
+      "notes": "Any kind of device that interacts with a network.",
+      "attributes": [
+        {
+          "name": "description",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "sysdescr",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "sysname",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "sysobjectid",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "snmp_community",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "serial_number",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "asset_number",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "in_service",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "monitor",
+          "description": "Whether this device is to be monitored.",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Environments",
+      "dependent": "false",
+      "notes": "Development, testing, staging, production etc.",
+      "attributes": [
+        {
+          "name": "description",
+          "description": "",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "IpsecVpns",
+      "dependent": "false",
+      "notes": "",
+      "attributes": [
+        {
+          "name": "description",
+          "description": "",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Ipv4Addresses",
+      "dependent": true,
+      "notes": "",
+      "attributes": [
+        {
+          "name": "description",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "prefixlength",
+          "description": "",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Ipv4Interfaces",
+      "dependent": "false",
+      "notes": "IPv4 address as configured on an interface",
+      "attributes": [
+        {
+          "name": "description",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "prefixlength",
+          "description": "",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Ipv4Subnets",
+      "dependent": true,
+      "notes": "",
+      "attributes": [
+        {
+          "name": "description",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "netaddress",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "prefixlength",
+          "description": "",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Ipv6Addresses",
+      "dependent": true,
+      "notes": "",
+      "attributes": [
+        {
+          "name": "description",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "prefixlength",
+          "description": "",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Ipv6Interfaces",
+      "dependent": "false",
+      "notes": "IPv6 address as configured on an interface",
+      "attributes": [
+        {
+          "name": "description",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "prefixlength",
+          "description": "",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Ipv6Subnets",
+      "dependent": true,
+      "notes": "",
+      "attributes": [
+        {
+          "name": "description",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "netaddress",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "prefixlength",
+          "description": "",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "LifeCyclePhases",
+      "dependent": "false",
+      "notes": "Where the device currently is, in its lifecycle. E.g. ordered, installed, in service or decommissioned.",
+      "attributes": [
+        {
+          "name": "description",
+          "description": "",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Links",
+      "dependent": "false",
+      "notes": "Generic segment or section of a network circuit.",
+      "attributes": [
+        {
+          "name": "description",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "ourId",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "vendorId",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "bandwidth",
+          "description": "The committed information rate for this link",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Makes",
+      "dependent": "false",
+      "notes": "Also known as ´brand´.",
+      "attributes": [
+        {
+          "name": "description",
+          "description": "Comments about this particular make.",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "ModelVersions",
+      "dependent": true,
+      "notes": "",
+      "attributes": [
+        {
+          "name": "endoflife",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "endofsupport",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "description",
+          "description": "Comments about this particular model version.",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Models",
+      "dependent": true,
+      "notes": "",
+      "attributes": [
+        {
+          "name": "endoflife",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "endofsupport",
+          "description": "",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "NetworkInterfaces",
+      "dependent": true,
+      "notes": "",
+      "attributes": [
+        {
+          "name": "description",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "monitor",
+          "description": "Whether this interface is to be monitored.",
+          "values": null
+        },
+        {
+          "name": "macaddress",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "snmpindex",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "ifname",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "ifdescr",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "ifalias",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "iftype",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "ifspeed",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "ifhighspeed",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "ifphysaddress",
+          "description": "",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "OperatingSystemVersions",
+      "dependent": true,
+      "notes": "",
+      "attributes": [
+        {
+          "name": "endoflife",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "endofsupport",
+          "description": "",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "OperatingSystems",
+      "dependent": true,
+      "notes": "",
+      "attributes": null
+    },
+    {
+      "name": "Parts",
+      "dependent": true,
+      "notes": "Spare parts, swappable components, anything of the kind: hard drives, SFPs etc.",
+      "attributes": [
+        {
+          "name": "description",
+          "description": "",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "PatchPanelPorts",
+      "dependent": true,
+      "notes": "",
+      "attributes": [
+        {
+          "name": "description",
+          "description": "",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "PatchPanels",
+      "dependent": "false",
+      "notes": "",
+      "attributes": [
+        {
+          "name": "description",
+          "description": "",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Racks",
+      "dependent": "false",
+      "notes": "The rack location within a cabinet where a device is mounted. Usually the topmost rack number, in the case of multi-unit-height hardware.",
+      "attributes": [
+        {
+          "name": "description",
+          "description": "",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "RecommendedOsVersion",
+      "dependent": "false",
+      "notes": "Version recommended for this make and model. Helpful when you're trying to converge on a standard.",
+      "attributes": [
+        {
+          "name": "description",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "mandatory",
+          "description": "Whether this version is mandatory, or merely recommended.",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Rooms",
+      "dependent": true,
+      "notes": "Rooms within a floor or a building.",
+      "attributes": [
+        {
+          "name": "description",
+          "description": "",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "RoutingInstanceTypes",
+      "dependent": "false",
+      "notes": "",
+      "attributes": [
+        {
+          "name": "description",
+          "description": "",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "RoutingInstances",
+      "dependent": true,
+      "notes": "",
+      "attributes": [
+        {
+          "name": "snmp_community",
+          "description": "",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "ServiceLevels",
+      "dependent": "false",
+      "notes": "Sets the expectations for responses to issues, e.g. gold, silver, bronze, plastic",
+      "attributes": [
+        {
+          "name": "description",
+          "description": "",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Sites",
+      "dependent": true,
+      "notes": "Like a campus, a site contains one or more buildings.",
+      "attributes": [
+        {
+          "name": "longname",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "description",
+          "description": "",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "VlanGroups",
+      "dependent": "false",
+      "notes": "A notional VLAN, the sum of the VLANs of one or more devices. Often confused as being the VLAN itself.",
+      "attributes": [
+        {
+          "name": "default_vlan_id",
+          "description": "",
+          "values": null
+        },
+        {
+          "name": "description",
+          "description": "",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Vlans",
+      "dependent": true,
+      "notes": "Layer 2 spans, as configured on devices, i.e. ethernet segments. Not to be confused with subnets.",
+      "attributes": [
+        {
+          "name": "name",
+          "description": "",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "VrfGroups",
+      "dependent": true,
+      "notes": "VRF Groups allocated for use",
+      "attributes": [
+        {
+          "name": "description",
+          "description": "",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Vrfs",
+      "dependent": true,
+      "notes": "VRFs as configured on devices",
+      "attributes": [
+        {
+          "name": "description",
+          "description": "",
+          "values": null
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "source-type": "Applications",
+      "name": "BUSINESS_OWNER",
+      "target-type": "People",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Applications",
+      "name": "BUSINESS_OWNER",
+      "target-type": "Organisations",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Applications",
+      "name": "CONNECTS_TO",
+      "target-type": "Applications",
+      "cardinality": "many:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Applications",
+      "name": "DEPENDS_ON",
+      "target-type": "Applications",
+      "cardinality": "many:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Applications",
+      "name": "MONITOR",
+      "target-type": "Applications",
+      "cardinality": "many:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Applications",
+      "name": "MONITOR",
+      "target-type": "Devices",
+      "cardinality": "many:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Applications",
+      "name": "MONITOR",
+      "target-type": "NetworkInterfaces",
+      "cardinality": "many:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Applications",
+      "name": "MONITOR",
+      "target-type": "Bgp4Peerings",
+      "cardinality": "many:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Applications",
+      "name": "RUNS_ON",
+      "target-type": "Devices",
+      "cardinality": "many:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Applications",
+      "name": "TECHNICAL_OWNER",
+      "target-type": "People",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Applications",
+      "name": "TECHNICAL_OWNER",
+      "target-type": "Organisations",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Asns",
+      "name": "ALLOCATED_BY",
+      "target-type": "Organisations",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Asns",
+      "name": "ALLOCATED_TO",
+      "target-type": "Organisations",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "AwsAccounts",
+      "name": "OWNER",
+      "target-type": "AwsVpcs",
+      "cardinality": "1:many",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "AwsCidrBlocks",
+      "name": "IPV4_SUBNET",
+      "target-type": "Ipv4Subnets",
+      "cardinality": "1:1",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "AwsEc2Instances",
+      "name": "CIDR_BLOCK",
+      "target-type": "Ipv4Subnets",
+      "cardinality": "1:1",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "AwsEc2Instances",
+      "name": "EC2_TAGS",
+      "target-type": "AwsEc2Tags",
+      "cardinality": "1:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "AwsEc2Instances",
+      "name": "IPADDRESS",
+      "target-type": "Ipv4Addresses",
+      "cardinality": "1:1",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "AwsEc2Instances",
+      "name": "IPADDRESS",
+      "target-type": "Ipv4Interfaces",
+      "cardinality": "1:1",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "AwsEc2Instances",
+      "name": "PRIVATE_IP_ADDRESS",
+      "target-type": "Ipv4Addresses",
+      "cardinality": "1:1",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "AwsEc2Instances",
+      "name": "PRIVATE_IP_ADDRESS",
+      "target-type": "Ipv4Interfaces",
+      "cardinality": "1:1",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "AwsRegions",
+      "name": "AZ",
+      "target-type": "AwsAvailabilityZones",
+      "cardinality": "1:many",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "AwsRegions",
+      "name": "VPCS",
+      "target-type": "AwsVpcs",
+      "cardinality": "1:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "AwsSubnets",
+      "name": "AZ",
+      "target-type": "AwsVpcAvailabilityZones",
+      "cardinality": "1:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "AwsSubnets",
+      "name": "CIDR_BLOCK",
+      "target-type": "Ipv4Subnets",
+      "cardinality": "1:1",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "AwsSubnets",
+      "name": "EC2_INSTANCES",
+      "target-type": "AwsEc2Instances",
+      "cardinality": "1:many",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "AwsSubnets",
+      "name": "EC2_TAGS",
+      "target-type": "AwsEc2Tags",
+      "cardinality": "1:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "AwsSubnets",
+      "name": "OWNER",
+      "target-type": "AwsAccounts",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "AwsVpcAvailabilityZones",
+      "name": "DEFAULT_SUBNET",
+      "target-type": "AwsSubnets",
+      "cardinality": "1:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "AwsVpcs",
+      "name": "AZ",
+      "target-type": "AwsVpcAvailabilityZones",
+      "cardinality": "1:many",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "AwsVpcs",
+      "name": "CIDR_BLOCK",
+      "target-type": "Ipv4Subnets",
+      "cardinality": "1:1",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "AwsVpcs",
+      "name": "CIDR_BLOCKS",
+      "target-type": "AwsCidrBlocks",
+      "cardinality": "1:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "AwsVpcs",
+      "name": "EC2_TAGS",
+      "target-type": "AwsEc2Tags",
+      "cardinality": "1:many",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "AwsVpcs",
+      "name": "SUBNETS",
+      "target-type": "AwsSubnets",
+      "cardinality": "1:many",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "Bgp4Instances",
+      "name": "BGP4_PEERING",
+      "target-type": "Bgp4Peerings",
+      "cardinality": "1:many",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "Bgp4Instances",
+      "name": "LOCAL_AS",
+      "target-type": "Asns",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Bgp4Peerings",
+      "name": "BGP_REMOTE_ADDRESS",
+      "target-type": "Ipv4Addresses",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Bgp4Peerings",
+      "name": "BGP_REMOTE_ADDRESS",
+      "target-type": "Ipv6Addresses",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Bgp4Peerings",
+      "name": "BGP_REMOTE_AS",
+      "target-type": "Asns",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Buildings",
+      "name": "CAGES",
+      "target-type": "Cages",
+      "cardinality": "1:many",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "Buildings",
+      "name": "ROOMS",
+      "target-type": "Rooms",
+      "cardinality": "1:many",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "Buildings",
+      "name": "TENANT",
+      "target-type": "Organisations",
+      "cardinality": "1:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Cabinets",
+      "name": "RACKS",
+      "target-type": "Racks",
+      "cardinality": "1:many",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "Cabinets",
+      "name": "TENANT",
+      "target-type": "Organisations",
+      "cardinality": "many:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Cages",
+      "name": "CABINETS",
+      "target-type": "Cabinets",
+      "cardinality": "1:many",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "Cages",
+      "name": "TENANT",
+      "target-type": "Organisations",
+      "cardinality": "many:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Circuits",
+      "name": "BUSINESS_OWNER",
+      "target-type": "People",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Circuits",
+      "name": "BUSINESS_OWNER",
+      "target-type": "Organisations",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Contracts",
+      "name": "CUSTOMER",
+      "target-type": "Organisations",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Contracts",
+      "name": "NEGOTIATED_BY",
+      "target-type": "People",
+      "cardinality": "many:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Contracts",
+      "name": "SUBCONTRACTS",
+      "target-type": "Contracts",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Contracts",
+      "name": "SUPPLIES",
+      "target-type": "Buildings",
+      "cardinality": "1:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Contracts",
+      "name": "SUPPLIES",
+      "target-type": "Floors",
+      "cardinality": "1:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Contracts",
+      "name": "SUPPLIES",
+      "target-type": "Rooms",
+      "cardinality": "1:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Contracts",
+      "name": "SUPPLIES",
+      "target-type": "Cages",
+      "cardinality": "1:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Contracts",
+      "name": "SUPPLIES",
+      "target-type": "Cabinets",
+      "cardinality": "1:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Contracts",
+      "name": "SUPPLIES",
+      "target-type": "Devices",
+      "cardinality": "1:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Contracts",
+      "name": "SUPPLIES",
+      "target-type": "Parts",
+      "cardinality": "1:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Contracts",
+      "name": "SUPPORTS",
+      "target-type": "Buildings",
+      "cardinality": "1:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Contracts",
+      "name": "SUPPORTS",
+      "target-type": "Floors",
+      "cardinality": "1:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Contracts",
+      "name": "SUPPORTS",
+      "target-type": "Rooms",
+      "cardinality": "1:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Contracts",
+      "name": "SUPPORTS",
+      "target-type": "Cages",
+      "cardinality": "1:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Contracts",
+      "name": "SUPPORTS",
+      "target-type": "Cabinets",
+      "cardinality": "1:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Contracts",
+      "name": "SUPPORTS",
+      "target-type": "Devices",
+      "cardinality": "1:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Contracts",
+      "name": "SUPPORTS",
+      "target-type": "Parts",
+      "cardinality": "1:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Contracts",
+      "name": "VENDOR",
+      "target-type": "Organisations",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "DarkFibreLinks",
+      "name": "CONNECTED_TO",
+      "target-type": "Devices",
+      "cardinality": "many:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "DarkFibreLinks",
+      "name": "CONNECTED_TO",
+      "target-type": "NetworkInterfaces",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "DarkFibreLinks",
+      "name": "CONNECTED_TO",
+      "target-type": "DarkFibreLinks",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "DarkFibreLinks",
+      "name": "CONNECTED_TO",
+      "target-type": "Links",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "DarkFibreLinks",
+      "name": "MEMBERS",
+      "target-type": "Circuits",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "DarkFibreLinks",
+      "name": "SUPPLIER",
+      "target-type": "Organisations",
+      "cardinality": "1:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Devices",
+      "name": "ADDRESSES",
+      "target-type": "Ipv4Addresses",
+      "cardinality": "1:many",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "Devices",
+      "name": "ADDRESSES",
+      "target-type": "Ipv6Addresses",
+      "cardinality": "1:many",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "Devices",
+      "name": "BGP4_INSTANCE",
+      "target-type": "Bgp4Instances",
+      "cardinality": "1:many",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "Devices",
+      "name": "BUSINESS_OWNER",
+      "target-type": "People",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Devices",
+      "name": "BUSINESS_OWNER",
+      "target-type": "Organisations",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Devices",
+      "name": "CONNECTED_TO",
+      "target-type": "Circuits",
+      "cardinality": "many:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Devices",
+      "name": "ENVIRONMENT",
+      "target-type": "Environments",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Devices",
+      "name": "INSTALLED",
+      "target-type": "Cpus",
+      "cardinality": "1:many",
+      "dependent": true,
+      "notes": "CPUs installed in the device"
+    },
+    {
+      "source-type": "Devices",
+      "name": "INTERFACES",
+      "target-type": "NetworkInterfaces",
+      "cardinality": "1:many",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "Devices",
+      "name": "LIFE_CYCLE_PHASE",
+      "target-type": "LifeCyclePhases",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Devices",
+      "name": "LOCATION",
+      "target-type": "Sites",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Devices",
+      "name": "LOCATION",
+      "target-type": "Buildings",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Devices",
+      "name": "LOCATION",
+      "target-type": "Floors",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Devices",
+      "name": "LOCATION",
+      "target-type": "Rooms",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Devices",
+      "name": "LOCATION",
+      "target-type": "Cages",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Devices",
+      "name": "LOCATION",
+      "target-type": "Cabinets",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Devices",
+      "name": "LOCATION",
+      "target-type": "Racks",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Devices",
+      "name": "MANAGEMENT_ADDRESS",
+      "target-type": "Ipv4Addresses",
+      "cardinality": "1:1",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "Devices",
+      "name": "MANAGEMENT_ADDRESS",
+      "target-type": "Ipv6Addresses",
+      "cardinality": "1:1",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "Devices",
+      "name": "MEMBERS",
+      "target-type": "Devices",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": "Indicates that this device is a member of that stack/cluster."
+    },
+    {
+      "source-type": "Devices",
+      "name": "MODEL",
+      "target-type": "Models",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Devices",
+      "name": "OPERATING_SYSTEM",
+      "target-type": "OperatingSystems",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Devices",
+      "name": "OPERATING_SYSTEM",
+      "target-type": "OperatingSystemVersions",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Devices",
+      "name": "ROLE",
+      "target-type": "DeviceRoles",
+      "cardinality": "many:many",
+      "dependent": null,
+      "notes": "The role(s) being fulfulled by this device: e.g, a layer-3 switch should have the roles switch and router."
+    },
+    {
+      "source-type": "Devices",
+      "name": "ROUTING_INSTANCE",
+      "target-type": "RoutingInstances",
+      "cardinality": "1:many",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "Devices",
+      "name": "SERVICE_LEVEL",
+      "target-type": "ServiceLevels",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Devices",
+      "name": "TECHNICAL_OWNER",
+      "target-type": "People",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Devices",
+      "name": "TYPE",
+      "target-type": "DeviceTypes",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Devices",
+      "name": "VENDOR",
+      "target-type": "Organisations",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": "The organisation from which this device was bought."
+    },
+    {
+      "source-type": "Devices",
+      "name": "VLAN",
+      "target-type": "Vlans",
+      "cardinality": "1:many",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "Devices",
+      "name": "VRFS",
+      "target-type": "Vrfs",
+      "cardinality": "1:many",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "Floors",
+      "name": "ROOMS",
+      "target-type": "Rooms",
+      "cardinality": "1:many",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "Floors",
+      "name": "TENANT",
+      "target-type": "Organisations",
+      "cardinality": "many:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "IpsecVpns",
+      "name": "CONNECTED_TO",
+      "target-type": "Devices",
+      "cardinality": "many:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "IpsecVpns",
+      "name": "CONNECTED_TO",
+      "target-type": "NetworkInterfaces",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "IpsecVpns",
+      "name": "CONNECTED_TO",
+      "target-type": "Ipv4Addresses",
+      "cardinality": "many:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "IpsecVpns",
+      "name": "CONNECTED_TO",
+      "target-type": "Ipv6Addresses",
+      "cardinality": "many:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Ipv4Addresses",
+      "name": "ALLOCATED_TO",
+      "target-type": "Devices",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Ipv4Subnets",
+      "name": "ADDRESSES",
+      "target-type": "Ipv4Addresses",
+      "cardinality": "1:many",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "Ipv4Subnets",
+      "name": "ALLOCATED_BY",
+      "target-type": "Organisations",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Ipv4Subnets",
+      "name": "ALLOCATED_TO",
+      "target-type": "Organisations",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Ipv4Subnets",
+      "name": "ALLOCATED_TO",
+      "target-type": "Sites",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Ipv4Subnets",
+      "name": "ALLOCATED_TO",
+      "target-type": "VlanGroups",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Ipv4Subnets",
+      "name": "ALLOCATED_TO",
+      "target-type": "AwsVpcs",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Ipv4Subnets",
+      "name": "ALLOCATED_TO",
+      "target-type": "AwsSubnets",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Ipv4Subnets",
+      "name": "SUBNETS",
+      "target-type": "Ipv4Subnets",
+      "cardinality": "1:many",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "Ipv6Addresses",
+      "name": "ALLOCATED_TO",
+      "target-type": "Devices",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Ipv6Subnets",
+      "name": "ADDRESSES",
+      "target-type": "Ipv6Addresses",
+      "cardinality": "1:many",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "Ipv6Subnets",
+      "name": "ALLOCATED_BY",
+      "target-type": "Organisations",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Ipv6Subnets",
+      "name": "ALLOCATED_TO",
+      "target-type": "Organisations",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Ipv6Subnets",
+      "name": "ALLOCATED_TO",
+      "target-type": "Sites",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Ipv6Subnets",
+      "name": "ALLOCATED_TO",
+      "target-type": "VlanGroups",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Ipv6Subnets",
+      "name": "SUBNETS",
+      "target-type": "Ipv6Subnets",
+      "cardinality": "1:many",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "Links",
+      "name": "BUSINESS_OWNER",
+      "target-type": "People",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Links",
+      "name": "BUSINESS_OWNER",
+      "target-type": "Organisations",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Links",
+      "name": "CONNECTED_TO",
+      "target-type": "Devices",
+      "cardinality": "many:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Links",
+      "name": "CONNECTED_TO",
+      "target-type": "NetworkInterfaces",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Links",
+      "name": "CONNECTED_TO",
+      "target-type": "PatchPanelPorts",
+      "cardinality": "1:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Links",
+      "name": "CONNECTED_TO",
+      "target-type": "Links",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Links",
+      "name": "MEMBERS",
+      "target-type": "Circuits",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Links",
+      "name": "SUPPLIER",
+      "target-type": "Organisations",
+      "cardinality": "1:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Makes",
+      "name": "PRODUCES",
+      "target-type": "Models",
+      "cardinality": "1:many",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "Makes",
+      "name": "PRODUCES",
+      "target-type": "Parts",
+      "cardinality": "1:many",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "Makes",
+      "name": "PRODUCES",
+      "target-type": "OperatingSystems",
+      "cardinality": "1:many",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "Makes",
+      "name": "VENDOR",
+      "target-type": "Organisations",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": "The organisation that _sells_ this make."
+    },
+    {
+      "source-type": "ModelVersions",
+      "name": "COMPATIBLE_WITH",
+      "target-type": "Models",
+      "cardinality": "many:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Models",
+      "name": "CAPABILITY",
+      "target-type": "DeviceRoles",
+      "cardinality": "many:many",
+      "dependent": null,
+      "notes": "The capabilities available from this model, regardless of whether you're using any/all of them right now."
+    },
+    {
+      "source-type": "Models",
+      "name": "COMPATIBLE_WITH",
+      "target-type": "Models",
+      "cardinality": "many:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Models",
+      "name": "LOCATION",
+      "target-type": "Websites",
+      "cardinality": "many:many",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "Models",
+      "name": "RECOMMENDED_OS_VERSION",
+      "target-type": "OperatingSystemVersions",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": "For the simple case where there's a global preference within this instance of Syscat"
+    },
+    {
+      "source-type": "Models",
+      "name": "RECOMMENDED_OS_VERSION",
+      "target-type": "RecommendedOsVersion",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Models",
+      "name": "VENDOR",
+      "target-type": "Organisations",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": "The organisation that _sells_ this model."
+    },
+    {
+      "source-type": "Models",
+      "name": "VERSIONS",
+      "target-type": "ModelVersions",
+      "cardinality": "1:many",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "Models",
+      "name": "WEBSITES",
+      "target-type": "Url",
+      "cardinality": "many:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "NetworkInterfaces",
+      "name": "ADDRESSES",
+      "target-type": "Ipv4Interfaces",
+      "cardinality": "1:many",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "NetworkInterfaces",
+      "name": "ADDRESSES",
+      "target-type": "Ipv6Interfaces",
+      "cardinality": "1:many",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "NetworkInterfaces",
+      "name": "CONNECTED_TO",
+      "target-type": "NetworkInterfaces",
+      "cardinality": "1:1",
+      "dependent": null,
+      "notes": "The simplest network link: direct from one interface to another."
+    },
+    {
+      "source-type": "NetworkInterfaces",
+      "name": "CONNECTED_TO",
+      "target-type": "Circuits",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "NetworkInterfaces",
+      "name": "MEMBER",
+      "target-type": "RoutingInstances",
+      "cardinality": "1:many",
+      "dependent": null,
+      "notes": "Denotes that an interface is associated with a VRF or routing instance."
+    },
+    {
+      "source-type": "NetworkInterfaces",
+      "name": "MEMBER",
+      "target-type": "VrfGroups",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "NetworkInterfaces",
+      "name": "MEMBERS",
+      "target-type": "NetworkInterfaces",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": "This interface is a member of that etherchannel/port-channel/reth/aggregated-ethernet bundle."
+    },
+    {
+      "source-type": "NetworkInterfaces",
+      "name": "SUBINTERFACES",
+      "target-type": "NetworkInterfaces",
+      "cardinality": "1:many",
+      "dependent": true,
+      "notes": "Also known as logical interfaces in Junos."
+    },
+    {
+      "source-type": "NetworkInterfaces",
+      "name": "VLAN",
+      "target-type": "Vlans",
+      "cardinality": "1:many",
+      "dependent": null,
+      "notes": "Associate a network interface with a VLAN, regardless of which way around the underlying OS sees the relationship."
+    },
+    {
+      "source-type": "OperatingSystems",
+      "name": "VERSION",
+      "target-type": "OperatingSystemVersions",
+      "cardinality": "1:many",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "Organisations",
+      "name": "ADDRESSES",
+      "target-type": "Ipv4Addresses",
+      "cardinality": "1:many",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "Organisations",
+      "name": "ADDRESSES",
+      "target-type": "Ipv6Addresses",
+      "cardinality": "1:many",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "Organisations",
+      "name": "ALLOCATED",
+      "target-type": "Asns",
+      "cardinality": "1:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Organisations",
+      "name": "ASNS",
+      "target-type": "Asns",
+      "cardinality": "1:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Organisations",
+      "name": "SITES",
+      "target-type": "Sites",
+      "cardinality": "many:many",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "Organisations",
+      "name": "SUBNETS",
+      "target-type": "Ipv4Subnets",
+      "cardinality": "1:many",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "Organisations",
+      "name": "SUBNETS",
+      "target-type": "Ipv6Subnets",
+      "cardinality": "1:many",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "Organisations",
+      "name": "SUPPLIER",
+      "target-type": "Circuits",
+      "cardinality": "1:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Organisations",
+      "name": "VRF_GROUPS",
+      "target-type": "VrfGroups",
+      "cardinality": "1:many",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "Parts",
+      "name": "INSTALLED",
+      "target-type": "Devices",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Parts",
+      "name": "LOCATION",
+      "target-type": "Sites",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Parts",
+      "name": "LOCATION",
+      "target-type": "Buildings",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Parts",
+      "name": "LOCATION",
+      "target-type": "Rooms",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Parts",
+      "name": "LOCATION",
+      "target-type": "Cages",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Parts",
+      "name": "LOCATION",
+      "target-type": "Cabinets",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Parts",
+      "name": "VENDOR",
+      "target-type": "Organisations",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "PatchPanels",
+      "name": "BUSINESS_OWNER",
+      "target-type": "Organisations",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "PatchPanels",
+      "name": "BUSINESS_OWNER",
+      "target-type": "People",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "PatchPanels",
+      "name": "LOCATION",
+      "target-type": "Sites",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "PatchPanels",
+      "name": "LOCATION",
+      "target-type": "Buildings",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "PatchPanels",
+      "name": "LOCATION",
+      "target-type": "Floors",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "PatchPanels",
+      "name": "LOCATION",
+      "target-type": "Rooms",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "PatchPanels",
+      "name": "LOCATION",
+      "target-type": "Cages",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "PatchPanels",
+      "name": "LOCATION",
+      "target-type": "Cabinets",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "PatchPanels",
+      "name": "LOCATION",
+      "target-type": "Racks",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "PatchPanels",
+      "name": "PORTS",
+      "target-type": "PatchPanelPorts",
+      "cardinality": "many:1",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "People",
+      "name": "ACCOUNT_MANAGER",
+      "target-type": "Organisations",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "People",
+      "name": "SALES_CONTACT",
+      "target-type": "Organisations",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "People",
+      "name": "SUPPORT_CONTACT",
+      "target-type": "Organisations",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "RecommendedOsVersion",
+      "name": "ENVIRONMENT",
+      "target-type": "Environments",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "RecommendedOsVersion",
+      "name": "MODEL",
+      "target-type": "Models",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "RecommendedOsVersion",
+      "name": "ORGANISATION",
+      "target-type": "Organisations",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "RecommendedOsVersion",
+      "name": "VERSION",
+      "target-type": "OperatingSystemVersions",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Rooms",
+      "name": "CABINETS",
+      "target-type": "Cabinets",
+      "cardinality": "1:many",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "Rooms",
+      "name": "CAGES",
+      "target-type": "Cages",
+      "cardinality": "1:many",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "Rooms",
+      "name": "TENANT",
+      "target-type": "Organisations",
+      "cardinality": "many:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "RoutingInstances",
+      "name": "BGP4_INSTANCE",
+      "target-type": "Bgp4Instances",
+      "cardinality": "1:1",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "RoutingInstances",
+      "name": "MEMBER",
+      "target-type": "VrfGroups",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "RoutingInstances",
+      "name": "TYPE",
+      "target-type": "RoutingInstanceTypes",
+      "cardinality": "many:1",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Sites",
+      "name": "BUILDINGS",
+      "target-type": "Buildings",
+      "cardinality": "1:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "Vlans",
+      "name": "MEMBER",
+      "target-type": "VlanGroups",
+      "cardinality": "1:many",
+      "dependent": null,
+      "notes": null
+    },
+    {
+      "source-type": "VrfGroups",
+      "name": "SUBNETS",
+      "target-type": "Ipv4Subnets",
+      "cardinality": "1:many",
+      "dependent": true,
+      "notes": null
+    },
+    {
+      "source-type": "VrfGroups",
+      "name": "SUBNETS",
+      "target-type": "Ipv6Subnets",
+      "cardinality": "1:many",
+      "dependent": true,
+      "notes": null
+    }
+  ]
+}
