@@ -318,7 +318,7 @@
                  :dbuser (or (sb-ext:posix-getenv "NEO4J_USER")
                              (getf restagraph::*config-vars* :dbusername)))))
 
-(defun startup (&key docker schemapath)
+(defun startup (&key docker)
   ;; This needs to be a dynamic variable for the dispatcher to grab
   (defparameter *syscat-acceptor*
     (make-syscat-acceptor))
@@ -329,22 +329,10 @@
     :dispatchers (list
                    (tbnl:create-prefix-dispatcher "/ipam/v1/subnets" 'subnet-dispatcher-v1)
                    (tbnl:create-prefix-dispatcher "/ipam/v1/addresses" 'address-dispatcher-v1))
-    :docker docker
-    :schemapath (cond
-                  ;; Is one set via an environment variable?
-                  ((sb-ext:posix-getenv "SCHEMAPATH")
-                   (sb-ext:posix-getenv "SCHEMAPATH"))
-                  ;; Were we passed one explicitly?
-                  (schemapath
-                    schemapath)
-                  ;; Default case
-                  (t
-                    nil))))
+    :docker docker))
 
-(defun dockerstart (&key schemapath)
-  (if schemapath
-    (startup :docker t :schemapath schemapath)
-    (startup :docker t)))
+(defun dockerstart ()
+  (startup :docker t))
 
 (defun shutdown ()
   (restagraph:shutdown))
