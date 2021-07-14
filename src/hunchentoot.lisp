@@ -287,10 +287,10 @@
 (defun make-syscat-acceptor ()
   (make-instance
     'restagraph::restagraph-acceptor
-    :address (or (sb-ext:posix-getenv "SYSCAT_LISTEN_ADDR")
+    :address (or (sb-ext:posix-getenv "LISTEN_ADDR")
                  (getf restagraph::*config-vars* :listen-address))
-    :port (or (when (sb-ext:posix-getenv "SYSCAT_LISTEN_PORT")
-                (parse-integer (sb-ext:posix-getenv "SYSCAT_LISTEN_PORT")))
+    :port (or (when (sb-ext:posix-getenv "LISTEN_PORT")
+                (parse-integer (sb-ext:posix-getenv "LISTEN_PORT")))
               (getf restagraph::*config-vars* :listen-port))
     :uri-base-api (or (sb-ext:posix-getenv "API_URI_BASE")
                       (getf restagraph::*config-vars* :api-uri-base))
@@ -306,16 +306,16 @@
     ;; Datastore object - for specialising all the db methods on
     :datastore (make-instance
                  'neo4cl:neo4j-rest-server
-                 :hostname (or (sb-ext:posix-getenv "SYSCAT_NEO4J_HOSTNAME")
+                 :hostname (or (sb-ext:posix-getenv "NEO4J_HOSTNAME")
                                (getf restagraph::*config-vars* :dbhostname))
-                 :port (or (when (sb-ext:posix-getenv "SYSCAT_NEO4J_PORT")
-                             (parse-integer (sb-ext:posix-getenv "SYSCAT_NEO4J_PORT")))
+                 :port (or (when (sb-ext:posix-getenv "NEO4J_PORT")
+                             (parse-integer (sb-ext:posix-getenv "NEO4J_PORT")))
                            (getf restagraph::*config-vars* :dbport))
-                 :dbname (or (sb-ext:posix-getenv "SYSCAT_NEO4J_DBNAME")
+                 :dbname (or (sb-ext:posix-getenv "NEO4J_DBNAME")
                              (getf restagraph::*config-vars* :dbname))
-                 :dbpasswd (or (sb-ext:posix-getenv "SYSCAT_NEO4J_PASSWORD")
+                 :dbpasswd (or (sb-ext:posix-getenv "NEO4J_PASSWORD")
                                (getf restagraph::*config-vars* :dbpasswd))
-                 :dbuser (or (sb-ext:posix-getenv "SYSCAT_NEO4J_USER")
+                 :dbuser (or (sb-ext:posix-getenv "NEO4J_USER")
                              (getf restagraph::*config-vars* :dbusername)))))
 
 (defun startup (&key docker schemapath)
