@@ -1,3 +1,5 @@
+;   Copyright 2021 James Fleming <james@electronic-quill.net>
+
 ;;;; Configs for the server to use
 
 (in-package #:restagraph)

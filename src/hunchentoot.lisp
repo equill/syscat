@@ -1,4 +1,15 @@
+;   Copyright 2021 James Fleming <james@electronic-quill.net>
+
+
+;;;; The HTTP API server application
+
 (in-package #:syscat)
+
+(declaim (optimize (compilation-speed 0)
+                   (speed 2)
+                   (safety 3)
+                   (debug 3)))
+
 
 ;; Default initial state, to make sure 'startup has something to work from
 (defvar *syscat-acceptor* nil)

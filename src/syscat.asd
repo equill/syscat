@@ -1,3 +1,5 @@
+;   Copyright 2021 James Fleming <james@electronic-quill.net>
+
 (asdf:defsystem #:syscat
   :serial t
   :license "MIT license"

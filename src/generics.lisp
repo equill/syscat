@@ -1,4 +1,12 @@
+;   Copyright 2021 James Fleming <james@electronic-quill.net>
+
 (in-package #:syscat)
+
+(declaim (optimize (compilation-speed 0)
+                   (speed 2)
+                   (safety 3)
+                   (debug 3)))
+
 
 (defgeneric make-subnet-uid (subnet)
   (:documentation "Take an ipaddress:ip-subnet object, and return a URL-safe UID"))
